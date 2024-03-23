@@ -2,16 +2,16 @@
 * a collection of R code to analyze minirhiztron tubes
 
 ## content: 
-# functions:
+### functions:
   * Kimura Root Length
   * Depth Binning
 
-# composite functions:
+### composite functions:
   * Depth Map
   * Root Features
   * Soil 0 estimate
   * Rotation Censoring
 
-# outsourced:
+### outsourced:
   * Affine Image stitching (python)
 
