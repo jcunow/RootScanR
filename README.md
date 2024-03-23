@@ -1,5 +1,5 @@
 # MinirhizotronR
-* a collection of R code to analyze minirhiztron tubes
+a collection of R code to analyze minirhiztron tubes
 
 ## content: 
 ### functions:
