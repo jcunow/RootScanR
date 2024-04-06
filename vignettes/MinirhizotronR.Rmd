@@ -56,7 +56,7 @@ Stitch your images together and segment them. You can find on e solution to this
 
 ## Second Step - Prep
 Segment the stitched Image. You can use this: ....Link
-Tipp: use split_join() function to cut the root image in pieces in case 'RootDetetcor' has trouble with the amount of roots of roots. You can rejoin the segmented images afterwards with the same function. But first, look change the settings of 'RootDetector' and crank up the root limit.  
+Tipp: use split_im() function to cut the root image in pieces in case 'RootDetetcor' has trouble with the amount of roots of roots. You can rejoin the segmented images afterwards with join_im(). But first, look change the settings of 'RootDetector' and crank up the maximum root limit.  
 
 ```{r Input Example Showcase, fig.height=4.9, fig.width=9, message=FALSE, warning=FALSE, paged.print=FALSE}
 library(cowplot)
@@ -75,9 +75,11 @@ Now we are finally ready to start using the package.
 First, we need to load the images and then estimate the soil surface and the rotation.
 ```{r}
 # read tiffs
-img.color = brick(paste0(getwd(),"/demo_images/Oulanka2023_Session03_T067.jpg"))
+img.color = brick(paste0(getwd(),"/demo_images/Oulanka2023_Session03_T067.tiff"))
 img.segm  = brick(paste0(getwd(),"/demo_images/Oulanka2023_Session03_T067_segmented.tiff"))
 img.skel  = brick(paste0(getwd(),"/demo_images/Oulanka2023_Session03_T067_skeleton.tiff"))
+
+s0 = MinirhizotronR::SoilSurfE(as.array(img.segm))
 ```
 
 
