@@ -16,14 +16,14 @@
 #' @export
 #'
 #' @examples data.frame(soil0, tape.end) = SoilSurfE(im)
-SoilSurfE = function(im,search.area = 0.33, tape.tresh = 0.33,dpi = 300,
-                     tape.overlap = 0.5,tape.brightness = 0.95,extra.rows = 100 ){
+SoilSurfE = function(im,search.area = 0.45, tape.tresh = 0.33,dpi = 300,
+                     tape.overlap = 0.5,tape.brightness = 0.66,extra.rows = 100 ){
+
 
 
   ## add one row of red tape pixel
   red.line = array(dim = c(dim(im)[1],extra.rows,dim(im)[3]))
-  red.line[,,2:3] <- 0
-  red.line[,,1] <- max(im[,,1])
+  red.line[,,1:3] <- max(im[,,1])
   img1 = abind::abind(red.line,im,along = 2)
 
   r.img1 = brick(img1)
@@ -35,7 +35,7 @@ SoilSurfE = function(im,search.area = 0.33, tape.tresh = 0.33,dpi = 300,
   # determine average group
   clust.center = apply(r1$model$centers,1,mean)
   # silver tape should have highest luminance across clusters -> select max lum.cluster (but not close to == 1 [pure white?])
-  clust= which(clust.center ==max(clust.center[clust.center < tape.brightness]))
+  clust= which(clust.center ==max(clust.center[clust.center > tape.brightness*max(values(r.img1))]))
   # identify the end of tape by rowsum threshold[]
   rr1 = r1$map == clust
 
@@ -45,7 +45,6 @@ SoilSurfE = function(im,search.area = 0.33, tape.tresh = 0.33,dpi = 300,
   # checks also 0.1 cm (+12 rows) and 0.2 cm (+24rows) and 0.3 cm (+36) down if the tape reappears  (in case a row impurities or other reasons for missclassification)
   i=1
   while (
-    #sum(rr1[,i])/length(rr1[,i]) >tresh &!
     sum(rr1[,i])/length(rr1[,i]) > tape.tresh |
     sum(rr1[,i+24])/length(rr1[,i]) > tape.tresh |
     sum(rr1[,i+48])/length(rr1[,i]) > tape.tresh) {
@@ -55,15 +54,15 @@ SoilSurfE = function(im,search.area = 0.33, tape.tresh = 0.33,dpi = 300,
       i = 1
     }
   }
-
+print(i)
 # store row index to determine soil 0cm offset
 rw.ind = i
 # remove a fixed amount of offset which corresponds to the tape that was installed deeper than 0 cm to prevent light intrusion
 rw.ind = rw.ind - extra.rows - round(tape.overlap*dpi/2.54) # cm tape in the ground converted as pixel offset from soil 0
 #start.soil = rw.ind # in case
-tape.end = rw.ind + round(0.5*300/2.54)
+tape.end = rw.ind + round(tape.overlap*dpi/2.54)
 
-out = data.fram(soil0 = rw.ind, tape.end = tape.end  )
+out = data.frame(soil0 = rw.ind, tape.end = tape.end  )
 return(out)
 print(paste0("columns cecked: ",i))
 }
