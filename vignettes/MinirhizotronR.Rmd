@@ -12,6 +12,7 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
+
 ```
 
 ```{r setup}
@@ -21,21 +22,70 @@ library(MinirhizotronR)
 
 ## Description: 
 This package is designed in support a analysis of root scans from Minirhizotron tubes, starting after image segmentation.
-To use this package to its full potential, you will need :
-- mandatory: raw root scans and the segmented equivalent. 
-- optional: skeletonized equivalents, in-situ calibration of soil surface to image start, as well as rotation calibration is beneficial
-- suggestion: 
-- use 'RootDetector' or an equivalent Image segmentation convolutional neural net to aid in automated analysis of root scans beforehand.
-- use AffineStitcher.py or equivalent to stitch all individual scans belonging to a particular tube in time to generate a unified image
+The following is needed to use this package to it's full potential:
     
-## Example Show Case     
-```{r}
-# Root per Available Space ~ Depth + Plant Community
+    
+*mandatory:* 
 
-```
+- raw root scans
+- segmentation of root scans 
+
+*optional:*
+
+- skeletonized version of root scans, 
+- *in-situ* calibration of soil surface to image start & rotation calibration is recommended!
+
+*suggestion:* 
+
+- use 'RootDetector' or an equivalent Image segmentation convolutional neural net to aid in automated analysis of root scans beforehand.
+- use AffineStitcher.py or equivalent to stitch all individual scans belonging to a particular tube in time to generate unified images
+
+
+
 
 ## Install Package
-```{r}
-devtools::install_git("jcunow/MinirhizotronR")
+```{r Install Package}
+# devtools::install_git("jcunow/MinirhizotronR")
+# remotes::install_github("jcunow/MinirhizotronR")
 ```
+
+
+## First Step - Prep
+Stitch your images together and segment them. You can find on e solution to this here: ....Link
+
+
+## Second Step - Prep
+Segment the stitched Image. You can use this: ....Link
+Tipp: use split_join() function to cut the root image in pieces in case 'RootDetetcor' has trouble with the amount of roots of roots. You can rejoin the segmented images afterwards with the same function. But first, look change the settings of 'RootDetector' and crank up the root limit.  
+
+```{r Input Example Showcase, fig.height=4.9, fig.width=9, message=FALSE, warning=FALSE, paged.print=FALSE}
+library(cowplot)
+library(ggplot2)
+
+p1 <- ggdraw() + draw_image(paste0(getwd(),"/demo_images/Oulanka2023_Session03_T067.jpg"), scale = 0.9)
+p2 <- ggdraw() + draw_image(paste0(getwd(),"/demo_images/Oulanka2023_Session03_T067_segmented.jpg"), scale = 0.9)
+p3 <- ggdraw() + draw_image(paste0(getwd(),"/demo_images/Oulanka2023_Session03_T067_skeleton.jpg"),scale = 0.9)
+
+plot_grid(p1, p2, p3,nrow = 3)
+```
+
+
+## Third step - The Package begins
+Now we are finally ready to start using the package.
+First, we need to load the images and then estimate the soil surface and the rotation.
+```{r}
+# read tiffs
+img.color = brick(paste0(getwd(),"/demo_images/Oulanka2023_Session03_T067.jpg"))
+img.segm  = brick(paste0(getwd(),"/demo_images/Oulanka2023_Session03_T067_segmented.tiff"))
+img.skel  = brick(paste0(getwd(),"/demo_images/Oulanka2023_Session03_T067_skeleton.tiff"))
+```
+
+
+
+
+
+
+
+
+
 
