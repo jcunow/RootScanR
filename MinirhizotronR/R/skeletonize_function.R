@@ -27,3 +27,5 @@ skeletonize_function = function(img,method = "gonzales"){
     print("method not appropriate")
   }
 }
+
+#
