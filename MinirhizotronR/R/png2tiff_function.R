@@ -15,3 +15,4 @@ png2tiff = function(path,path.out){
     tiff::writeTIFF(im,where = paste0(dir.out,stringr::str_replace( i, pattern = ".png",".tiff")))
   }
 }
+#
