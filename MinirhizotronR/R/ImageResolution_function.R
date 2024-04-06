@@ -1,7 +1,7 @@
 ## Image Resolution Alignment ##
 
-import.path= "C:/Users/jocu0013/Desktop/Oulanka/ExtraScan/Oulanka2022_July_highRes/"
-output.path= paste0(getwd(),"/")
+# import.path= "C:/Users/jocu0013/Desktop/Oulanka/ExtraScan/Oulanka2022_July_highRes/"
+# output.path= paste0(getwd(),"/")
 
 
 #' Resize the Image

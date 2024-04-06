@@ -1,9 +1,9 @@
 # split and join images
 #### Translate PNG to TIFF
-library(png);library(tiff);library(stringr)
-#path = "C:/Users/jocu0013/Desktop/blended_images/AffineStitcher/2023_025/"
-path = "C:/Users/jocu0013/Desktop/Oulanka/Scans_Blended/Full/Oulanka2023_03/"
-dir.out = "C:/Users/jocu0013/Desktop/Oulanka/Scans_Blended/Split/Oulanka2023_03/"
+# library(png);library(tiff);library(stringr)
+# #path = "C:/Users/jocu0013/Desktop/blended_images/AffineStitcher/2023_025/"
+# path = "C:/Users/jocu0013/Desktop/Oulanka/Scans_Blended/Full/Oulanka2023_03/"
+# dir.out = "C:/Users/jocu0013/Desktop/Oulanka/Scans_Blended/Split/Oulanka2023_03/"
 
 # split
 #' Split Images
@@ -12,20 +12,21 @@ dir.out = "C:/Users/jocu0013/Desktop/Oulanka/Scans_Blended/Split/Oulanka2023_03/
 #' @param path Input path
 #' @param dir.out Output path
 #' @param pattern only include images with this pattern
+#' @param ratio split point 0-1
 #'
 #' @return two sets of images
 #' @export
 #'
-#' @examples split_im(path,dir.out, ".tiff) = top.im; bot.im
-split_im = function(path,dir.out,pattern = ".tiff"){
-  file.ls = list.files(path = path, pattern = pattern,ratio = 0.5)
+#' @examples split_im(path, dir.out, ".tiff") = c(top.im, bot.im)
+split_im = function(path,dir.out,pattern = ".tiff",ratio = 0.5){
+  file.ls = list.files(path = path, pattern = pattern)
   ## split the image
   for (i in file.ls) {
-    im = readTIFF(paste0(path,i))
+    im = tiff::readTIFF(paste0(path,i))
     im.top = im[,1:(dim(im)[2]*ratio),]
     im.dwn = im[,(dim(im)[2]*ratio+1):dim(im)[2],]
-    writeTIFF(im.top,where = paste0(dir.out,"Split_top_",i))
-    writeTIFF(im.dwn,where = paste0(dir.out,"Split_dwn_",i))
+    tiff::writeTIFF(im.top,where = paste0(dir.out,"Split_top_",i))
+    tiff::writeTIFF(im.dwn,where = paste0(dir.out,"Split_dwn_",i))
   }
 }
 
@@ -51,11 +52,11 @@ join_im = function(path,dir.out,pattern = "skeleton"){
   dwn.files =  file.ls[stringr::str_detect(file.ls,pattern = "Split_dwn")]
 
   for (i in 1:length(top.files)) {
-    im.top = readPNG(paste0(dir.ls[i+36],top.files[i]))
-    im.dwn = readPNG(paste0(dir.ls[i],dwn.files[i]))
+    im.top = png::readPNG(paste0(dir.ls[i+36],top.files[i]))
+    im.dwn = png::readPNG(paste0(dir.ls[i],dwn.files[i]))
     im.all = abind::abind(im.top,im.dwn, along = 2 )
     file.name= top.files[i] %>% stringr::str_remove(pattern="Split_top_") %>% stringr::str_remove(pattern=".tiff.segmentation.png")
-    writeTIFF(im.all,where = paste0(dir.out,"FullSegmented_",file.name,".tiff"))
+    tiff::writeTIFF(im.all,where = paste0(dir.out,"FullSegmented_",file.name,".tiff"))
 
   }
 }

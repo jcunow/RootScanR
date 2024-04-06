@@ -29,3 +29,18 @@ kimura_length = function(image){
   N_d = compute_diagonal_connections(image) %>% cellStats("sum",na.rm = T)
   return(( N_d**2 + (N_d + N_o/2)**2 )**0.5   + N_o/2)
 }
+
+## kimura sum
+#' Kimura sum
+#'
+#' This function takes the orthogonal pixels and diagonal pixels to derive total root length
+#' @param orth.img orthogonal pixels
+#' @param diag.img diagonal pixels
+#'
+#' @return Kimura Root Length in px
+#' @export
+#'
+#' @examples kimura.sum(orth,diag) = 20
+kimura.sum = function(orth.img = orth.img,diag.img = diag.img){
+  ( diag.img**2 + (diag.img + orth.img/2)**2 )**0.5   + orth.img/2
+}
