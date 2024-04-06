@@ -1,19 +1,30 @@
-## create Depthmaps
+## Estimate Soil Surface from Tape
+# ### read image
+#img1 <- readTIFF(paste(path,Session,"/",file.name,sep=''))
 
-SoilSurfE = function(path,Session,file.name,search.area = 0.33, tape.tresh = 0.33,dpi = 300,
+#' Estimate the position of the soil surface by tape presence
+#'
+#' @param im image.tiff
+#' @param search.area ratio of image which is used to look for tape cover. Speeds up computation.
+#' @param tape.tresh ratio of how much of the tube rotation needs to covered in tape
+#' @param dpi image resolution
+#' @param tape.overlap assumes a saftey margin on the tape. The soil surface will be shifted by this amount in cm
+#' @param tape.brightness used for clustering. Tape appears bright e.g., 0.95
+#' @param extra.rows In case no tape is present. Best leave unchanged - some extra.rows are recommended and will be substracted from the output anyway.
+#'
+#' @return data.frame with tape end and soil surface estimation in rows
+#' @export
+#'
+#' @examples data.frame(soil0, tape.end) = SoilSurfE(im)
+SoilSurfE = function(im,search.area = 0.33, tape.tresh = 0.33,dpi = 300,
                      tape.overlap = 0.5,tape.brightness = 0.95,extra.rows = 100 ){
-  # print
-  print(paste0("currently processing Tube: ",file.name))
 
-
-  ### read image
-  img1 <- readTIFF(paste(path,Session,"/",file.name,sep=''))
 
   ## add one row of red tape pixel
-  red.line = array(dim = c(dim(img1)[1],extra.rows,dim(img1)[3]))
+  red.line = array(dim = c(dim(im)[1],extra.rows,dim(im)[3]))
   red.line[,,2:3] <- 0
-  red.line[,,1] <- max(img1[,,1])
-  img1 = abind::abind(red.line,img1,along = 2)
+  red.line[,,1] <- max(im[,,1])
+  img1 = abind::abind(red.line,im,along = 2)
 
   r.img1 = brick(img1)
   ### make the search are smaller

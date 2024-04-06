@@ -1,0 +1,41 @@
+---
+title: "MinirhizotronR: Depth Resolved Analysis of Segmented Minirhizotron Scans"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+knitr::opts_chunk$set(include = FALSE)
+library(MinirhizotronR)
+```
+
+## Description: 
+This package is designed in support a analysis of root scans from Minirhizotron tubes, starting after image segmentation.
+To use this package to its full potential, you will need :
+- mandatory: raw root scans and the segmented equivalent. 
+- optional: skeletonized equivalents, in-situ calibration of soil surface to image start, as well as rotation calibration is beneficial
+- suggestion: 
+- use 'RootDetector' or an equivalent Image segmentation convolutional neural net to aid in automated analysis of root scans beforehand.
+- use AffineStitcher.py or equivalent to stitch all individual scans belonging to a particular tube in time to generate a unified image
+    
+## Example Show Case     
+```{r}
+# Root per Available Space ~ Depth + Plant Community
+
+```
+
+## Install Package
+```{r}
+devtools::install_git("jcunow/MinirhizotronR")
+```
+

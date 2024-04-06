@@ -1,11 +1,16 @@
 Package: MinirhizotronR
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Minirhizotron Root Scan Depth Resolved Analysis
 Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
+Author: Johannes Cunow
+Maintainer: Johannes Cunow <johannes.cunow@gmail.com>
+Description: This package enables varies metrics related to depth distribion to an minirhizotron scan. It relies on outside handling of Image Segmentation. The package was tested with 'RootDetector' by Peters et al. 2023 Scientific Reports 13
 License: What license is it under?
 Encoding: UTF-8
 LazyData: true
+RoxygenNote: 7.3.1
+Imports: raster, imagefx, EBImage, terra, landscapemetrics
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr

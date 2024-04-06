@@ -8,11 +8,29 @@
 # soil.0plus = soil.0
 # soil.0plus$tape.end = soil.0$tape.end + soil.extra$Plus.0
 
+#   im = readTIFF(paste0(path,Session,file.name))
+# create mask to set tape px NA later
+# mask = brick(im)
+# mask = mask$layer.1 - mask$layer.2
+# mask = t(mask)
 
-
-create.depthmap = function(path,Session,file.name,output.name,output.path,
+#' Create A Cosine Shifted Depth Map
+#'
+#' @param im input image
+#' @param mask indicating which pixels are foreign objects like tape. The mask will be: mask = im[[1]] - im[[2]] if 'RootDetector' format is used
+#' @param tube.thicc Diameter of Minirhizotron Tubes
+#' @param tilt Minirhiztron Tube insertion angle (typically 30-45 degrees)
+#' @param dpi Image resolution
+#' @param start.soil indicates soil boundary 0cm. Can be retrieved from 'SoilSurfE()' but in-situ calibration is recommended
+#' @param center.offset rotational center. Set 0 if downfacing tube side is perfectly in the middle
+#'
+#' @return raster image
+#' @export
+#'
+#' @examples map = create.depthmap(im,mask,start.soil = 290 )
+create.depthmap = function(im, mask,
                            tube.thicc = 7,tilt = 45,dpi = 300,
-                           start.soil = 1,center.offset = 0){
+                           start.soil = 0,center.offset = 0){
 
   # used for sin()
   radiant = pi/180
@@ -25,14 +43,10 @@ create.depthmap = function(path,Session,file.name,output.name,output.path,
   px.to.cm.h = 1/(dpi/2.54)
 
   # get dims
-  im = readTIFF(paste0(path,Session,file.name))
   target.col = dim(im)[1]
   target.row = dim(im)[2]
 
-  # create mask to set tape px NA later
-  mask = brick(im)
-  mask = mask$layer.1 - mask$layer.2
-  mask = t(mask)
+
 
   # simulate a sine wave function across one row
   df1 = seq(0*3.141,2*3.141,2*3.141/(target.col-1))
@@ -54,8 +68,7 @@ create.depthmap = function(path,Session,file.name,output.name,output.path,
   # set mask NA
   values(masked.depthmap)[values(mask) == 1] <- NA
 
-  ## write depth maps to disk (merge later)
-  writeRaster(masked.depthmap,paste0(outputpath,"/",output.name),overwrite = T)
+  return(masked.depthmap)
 
 }
 
