@@ -1,4 +1,4 @@
-# helper functions
+## helper functions
 
 #' Takes a continues depth map and bins it to a specified range
 #'

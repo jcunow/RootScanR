@@ -29,7 +29,7 @@ kimura_length = function(image){
   N_d = compute_diagonal_connections(image) %>% cellStats("sum",na.rm = T)
   return(( N_d**2 + (N_d + N_o/2)**2 )**0.5   + N_o/2)
 }
-
+#
 ## kimura sum
 #' Kimura sum
 #'

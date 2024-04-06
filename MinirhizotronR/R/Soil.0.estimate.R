@@ -27,9 +27,9 @@
 
 
 ### for each file of each the sessions
-path = "C:/Users/jocu0013/Desktop/Oulanka/Scans_FullSkeleton/"
-path.depthmap = "C:/Users/jocu0013/Desktop/Oulanka/DepthMaps/"
-Session = "Oulanka2023_03/"
+# path = "C:/Users/jocu0013/Desktop/Oulanka/Scans_FullSkeleton/"
+# path.depthmap = "C:/Users/jocu0013/Desktop/Oulanka/DepthMaps/"
+# Session = "Oulanka2023_03/"
 
 
 
