@@ -23,7 +23,7 @@ SoilSurfE = function(im,search.area = 0.45, tape.tresh = 0.33,dpi = 300,
 
   ## add one row of red tape pixel
   red.line = array(dim = c(dim(im)[1],extra.rows,dim(im)[3]))
-  red.line[,,1:3] <- max(im[,,1])
+  red.line[,,1:dim(im)[3]] <- max(im[,,1])
   img1 = abind::abind(red.line,im,along = 2)
 
   r.img1 = brick(img1)
