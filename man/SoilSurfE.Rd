@@ -6,11 +6,11 @@
 \usage{
 SoilSurfE(
   im,
-  search.area = 0.33,
+  search.area = 0.45,
   tape.tresh = 0.33,
   dpi = 300,
   tape.overlap = 0.5,
-  tape.brightness = 0.95,
+  tape.brightness = 0.66,
   extra.rows = 100
 )
 }

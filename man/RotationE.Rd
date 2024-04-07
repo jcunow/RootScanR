@@ -4,12 +4,14 @@
 \alias{RotationE}
 \title{Estimates Rotation from Tape Coverage}
 \usage{
-RotationE(img, tape.brightness = 0.95)
+RotationE(im, tape.brightness = 0.66, extra.rows = 100)
 }
 \arguments{
-\item{img}{image.tiff}
+\item{im}{image.tiff}
 
-\item{tape.brightness}{used for clustering. Tape appears bright e.g., 0.95}
+\item{tape.brightness}{used for clustering. Tape appears bright e.g., 0.66}
+
+\item{extra.rows}{In case no tape is present. Best leave unchanged - some extra.rows are recommended and will be substracted from the output anyway.}
 }
 \value{
 numeric value corresponding to the center of extruding tape
