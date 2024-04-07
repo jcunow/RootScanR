@@ -6,20 +6,25 @@
 
 #' Estimates Rotation from Tape Coverage
 #'
-#' @param img image.tiff
-#' @param tape.brightness used for clustering. Tape appears bright e.g., 0.95
+#' @param im image.tiff
+#' @param tape.brightness used for clustering. Tape appears bright e.g., 0.66
+#' @param extra.rows In case no tape is present. Best leave unchanged - some extra.rows are recommended and will be substracted from the output anyway.
 #'
 #' @return numeric value corresponding to the center of extruding tape
 #' @export
 #'
 #' @examples value = RotationE(img)
-RotationE = function(img,tape.brightness = 0.95){
+RotationE = function(im,tape.brightness = 0.66,extra.rows = 100){
+
+  if(class(im) != "array"){
+    im = as.array(im)
+  }
 
   ## add one row of red tape pixel
-  red.line = array(dim = c(dim(img)[1],extra.rows,dim(img)[3]))
-  red.line[,,2:3] <- 0
-  red.line[,,1] <- max(img[,,1])
-  img = abind::abind(red.line,img,along = 2)
+  red.line = array(dim = c(dim(im)[1],extra.rows,dim(im)[3]))
+  red.line[,,1:dim(im)[3]] <- max(im[,,1])
+  img1 = abind::abind(red.line,im,along = 2)
+
 
   r.img1 = brick(img1)
   ### make the search are smaller
@@ -30,7 +35,7 @@ RotationE = function(img,tape.brightness = 0.95){
   # determine average group
   clust.center = apply(r1$model$centers,1,mean)
   # silver tape should have highest luminance across clusters -> select max lum.cluster (but not close to == 1 [pure white?])
-  clust= which(clust.center ==max(clust.center[clust.center < tape.brightness]))
+  clust= which(clust.center ==max(clust.center[clust.center > tape.brightness*max(values(r.img1))]))
   # identify the end of tape by rowsum threshold[]
   rr1 = r1$map == clust
 
@@ -41,8 +46,8 @@ RotationE = function(img,tape.brightness = 0.95){
   # Partial tape indicates the tube surface. Here, we assume that the partial tape is well placed !! (?)
   # needs manual calibration -- work in progress)
   bin = dplyr::ntile(rsums,2)
-  zero.rotation2[ii] = median(which(bin == 2 ))
-  zero.rotation.prop.offset2[ii] =   round(zero.rotation2[ii]/ (dim(img1)[1]),3)
+  zero.rotation.center = median(which(bin == 2 ))
+  return(zero.rotation.center)
 
 }
 
