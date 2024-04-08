@@ -6,42 +6,45 @@
 
 #' Estimates Rotation from Tape Coverage
 #'
-#' @param im image.tiff
+#' @param img image.tiff
 #' @param tape.brightness used for clustering. Tape appears bright e.g., 0.66
-#' @param extra.rows In case no tape is present. Best leave unchanged - some extra.rows are recommended and will be substracted from the output anyway.
+#' @param tape.quantile aligns extra.rows brightness with the tape. The default uses Silver Tape as reference.
+#' @param extra.rows In case no tape is present. Best leave unchanged - some extra.rows are recommended and will be subtracted from the output anyway.
+#' @param search.area portion of image to perform the tape search on
 #'
 #' @return numeric value corresponding to the center of extruding tape
 #' @export
 #'
 #' @examples value = RotationE(img)
-RotationE = function(im,tape.brightness = 0.66,extra.rows = 100){
+RotationE = function(img,tape.brightness = 0.66,extra.rows = 100,search.area = 0.45,tape.quantile = 0.98){
 
-  if(class(im) != "array"){
-    im = as.array(im)
+  if(inherits(img,what = "class") != "array"){
+    im = raster::as.array(img)
+  }else{
+    im = img
   }
 
   ## add one row of red tape pixel
   red.line = array(dim = c(dim(im)[1],extra.rows,dim(im)[3]))
-  red.line[,,1:dim(im)[3]] <- max(im[,,1])
-  img1 = abind::abind(red.line,im,along = 2)
+  red.line[,,1:dim(im)[3]] <- quantile(im[,,1],tape.quantile)
+  img1 = abind2(red.line,im,along = 2)
 
-
-  r.img1 = brick(img1)
+  r.img1 = raster::brick(img1)
   ### make the search are smaller
-  r.img1 = crop(r.img1,extent(0,search.area,0,1))
+  r.img1 = raster::crop(r.img1,raster::extent(0,search.area*raster::extent(r.img1)[2],0,raster::extent(r.img1)[4]))
 
   # identify distinct pixel groups
   r1 = RStoolbox::unsuperClass(r.img1,nClasses = 3)
   # determine average group
   clust.center = apply(r1$model$centers,1,mean)
   # silver tape should have highest luminance across clusters -> select max lum.cluster (but not close to == 1 [pure white?])
-  clust= which(clust.center ==max(clust.center[clust.center > tape.brightness*max(values(r.img1))]))
+  clust= which(clust.center ==max(clust.center[clust.center > tape.brightness*max(raster::values(r.img1))]))
   # identify the end of tape by rowsum threshold[]
   rr1 = r1$map == clust
 
 
   ## determine 0cm offset from the middle
-  rsums = rowSums(rr1)
+  rsums = raster::rowSums(rr1)
   # bin into two parts & take the middle one (my images have a complete tape part and a partial tape part.
   # Partial tape indicates the tube surface. Here, we assume that the partial tape is well placed !! (?)
   # needs manual calibration -- work in progress)

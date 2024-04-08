@@ -6,6 +6,7 @@
 \usage{
 RootScapeMetrics(
   im,
+  indexD,
   metrics = c("lsm_c_ca", "lsm_l_ent", "lsm_c_pd", "lsm_c_np", "lsm_c_pland",
     "lsm_c_area_mn", "lsm_c_area_cv", "lsm_c_enn_mn", "lsm_c_enn_cv")
 )
@@ -23,5 +24,5 @@ a bunch of metric values
 RootScape relies on Landscapemetrics as working horse
 }
 \examples{
-c(depth , metric , value, object)  = RootScapeMetrics(image)
+RootScapeObject  = RootScapeMetrics(image)
 }

@@ -10,9 +10,9 @@
 #' @return a value in units cm
 #' @export
 #'
-#' @examples root.ticc = root.tickness(kimuralength = 300,rootpx = 9500,300)
-root.tickness = function(kimuralength,rootpx,dpi){
+#' @examples root.ticc = root.thickness(kimuralength = 300,rootpx = 9500,300)
+root.thickness = function(kimuralength,rootpx,dpi){
   px.per.length = rootpx / kimuralength
-  thiccness = (px.per.length/118) / (dpi/2.54)
+  thiccness = round((px.per.length/118) / (dpi/2.54),5)
   return(thiccness) # cm
 }

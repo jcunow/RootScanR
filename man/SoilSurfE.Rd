@@ -5,17 +5,18 @@
 \title{Estimate the position of the soil surface by tape presence}
 \usage{
 SoilSurfE(
-  im,
+  img,
   search.area = 0.45,
   tape.tresh = 0.33,
   dpi = 300,
   tape.overlap = 0.5,
   tape.brightness = 0.66,
-  extra.rows = 100
+  extra.rows = 100,
+  tape.quantile = 0.98
 )
 }
 \arguments{
-\item{im}{image.tiff}
+\item{img}{image.tiff}
 
 \item{search.area}{ratio of image which is used to look for tape cover. Speeds up computation.}
 
@@ -23,11 +24,13 @@ SoilSurfE(
 
 \item{dpi}{image resolution}
 
-\item{tape.overlap}{assumes a saftey margin on the tape. The soil surface will be shifted by this amount in cm}
+\item{tape.overlap}{assumes a safety margin on the tape. The soil surface will be shifted by this amount in cm}
 
-\item{tape.brightness}{used for clustering. Tape appears bright e.g., 0.95}
+\item{tape.brightness}{used for clustering. Tape appears bright e.g., 0.66}
 
-\item{extra.rows}{In case no tape is present. Best leave unchanged - some extra.rows are recommended and will be substracted from the output anyway.}
+\item{extra.rows}{In case no tape is present. Best leave unchanged - some extra.rows are recommended and will be subtracted from the output anyway.}
+
+\item{tape.quantile}{aligns extra.rows brightness with the tape. The default uses Silver Tape as reference.}
 }
 \value{
 data.frame with tape end and soil surface estimation in rows

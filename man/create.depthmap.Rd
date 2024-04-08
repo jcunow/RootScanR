@@ -2,7 +2,7 @@
 % Please edit documentation in R/04_CreateDepthmap_function.R
 \name{create.depthmap}
 \alias{create.depthmap}
-\title{Create A Cosine Shifted Depth Map}
+\title{Create A Phase Shifted Cosine Depth Map}
 \usage{
 create.depthmap(
   im,
@@ -11,7 +11,7 @@ create.depthmap(
   tilt = 45,
   dpi = 300,
   start.soil = 0,
-  center.offset = 0
+  center.offset = 0.5
 )
 }
 \arguments{
@@ -27,13 +27,13 @@ create.depthmap(
 
 \item{start.soil}{indicates soil boundary 0cm. Can be retrieved from 'SoilSurfE()' but in-situ calibration is recommended}
 
-\item{center.offset}{rotational center. Set 0 if downfacing tube side is perfectly in the middle}
+\item{center.offset}{rotational center. Set 0.5 if down facing tube side is perfectly in the middle}
 }
 \value{
 raster image
 }
 \description{
-Create A Cosine Shifted Depth Map
+Create A Phase Shifted Cosine Depth Map
 }
 \examples{
 map = create.depthmap(im,mask,start.soil = 290 )

@@ -14,7 +14,7 @@
 # mask = mask$layer.1 - mask$layer.2
 # mask = t(mask)
 
-#' Create A Cosine Shifted Depth Map
+#' Create A Phase Shifted Cosine Depth Map
 #'
 #' @param im input image
 #' @param mask indicating which pixels are foreign objects like tape. The mask will be: mask = im[[1]] - im[[2]] if 'RootDetector' format is used
@@ -22,7 +22,7 @@
 #' @param tilt Minirhiztron Tube insertion angle (typically 30-45 degrees)
 #' @param dpi Image resolution
 #' @param start.soil indicates soil boundary 0cm. Can be retrieved from 'SoilSurfE()' but in-situ calibration is recommended
-#' @param center.offset rotational center. Set 0 if downfacing tube side is perfectly in the middle
+#' @param center.offset rotational center. Set 0.5 if down facing tube side is perfectly in the middle
 #'
 #' @return raster image
 #' @export
@@ -30,7 +30,7 @@
 #' @examples map = create.depthmap(im,mask,start.soil = 290 )
 create.depthmap = function(im, mask,
                            tube.thicc = 7,tilt = 45,dpi = 300,
-                           start.soil = 0,center.offset = 0){
+                           start.soil = 0,center.offset = 0.5){
 
   # used for sin()
   radiant = pi/180
@@ -49,24 +49,24 @@ create.depthmap = function(im, mask,
 
 
   # simulate a sine wave function across one row
-  df1 = seq(0*3.141,2*3.141,2*3.141/(target.col-1))
+  df1 = seq(0*pi,2*pi,2*pi/(target.col-1))
   # apply the function with the amplitude corresponding to the tilt
   # creates a cosine shaped curved shifted by the amount of rotation offset
-  df11 = (cos(df1+(3.141*(1-center.offset))))*(tube.thicc.tilted/2)
+  df11 = (cos(df1+(pi*(1-center.offset))))*(tube.thicc.tilted/2)
 
 
   # stack up rows and adding flat depth to each row
   df = array(dim = c(target.row,target.col))
   for (ii in 1:target.row) {
-    df[ii,] = df11+(ii*px.to.cm.h) # adds progressive depth to each row
+    df[ii,] = df11+(ii*px.to.cm.h * tilt.factor) # adds progressive depth to each row
   }
   # add soil surface offset estimated from tape cover
-  df.depthmap = df - (soil.start* px.to.cm.h * tilt.factor)
+  df.depthmap = df - (start.soil* px.to.cm.h)
 
   # masking tape
-  masked.depthmap= raster(df.depthmap)
+  masked.depthmap= raster::raster(df.depthmap)
   # set mask NA
-  values(masked.depthmap)[values(mask) == 1] <- NA
+  raster::values(masked.depthmap)[raster::values(mask) == 1] <- NA
 
   return(masked.depthmap)
 

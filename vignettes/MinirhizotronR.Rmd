@@ -79,7 +79,9 @@ img.color = brick(paste0(getwd(),"/demo_images/Oulanka2023_Session03_T067.tiff")
 img.segm  = brick(paste0(getwd(),"/demo_images/Oulanka2023_Session03_T067_segmented.tiff"))
 img.skel  = brick(paste0(getwd(),"/demo_images/Oulanka2023_Session03_T067_skeleton.tiff"))
 
-s0 = MinirhizotronR::SoilSurfE(as.array(img.segm))
+# Based on Tape Cover, soi start and rotation center is estimated
+s0 = MinirhizotronR::SoilSurfE(img.color)
+r0 = MinirhizotronR::RotationE(img.color)
 ```
 
 
