@@ -14,6 +14,8 @@ RootScapeMetrics(
 \arguments{
 \item{im}{segmented, unskeletonized raster}
 
+\item{indexD}{please specify depth}
+
 \item{metrics}{which ,metrics should be calculated from the available ones in 'landscapemetrics::calculate_lsm()'. A selection is used as default
 Interpretation here: ...}
 }
