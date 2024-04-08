@@ -7,7 +7,7 @@
 #' @return numeric value of root length
 #' @export
 #'
-#' @examples value = RootLength(im)
+#' @examples value = RootLength(im,unit = "cm", dpi = 300)
 RootLength = function(im,unit="cm",dpi=300){
   im2 = im / max(raster::values(im),na.rm=T)
   ## kimura image
