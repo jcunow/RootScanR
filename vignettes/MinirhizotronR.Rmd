@@ -28,7 +28,8 @@ The following is needed to use this package to it's full potential:
 *mandatory:* 
 
 - raw root scans
-- segmentation of root scans 
+- segmentation of root scans
+- tube insertion angle and tube thickness
 
 *optional:*
 
@@ -73,17 +74,120 @@ plot_grid(p1, p2, p3,nrow = 3)
 ## Third step - The Package begins
 Now we are finally ready to start using the package.
 First, we need to load the images and then estimate the soil surface and the rotation.
-```{r}
+```{r Start the package, echo=FALSE,  warning=FALSE}
+library(MinirhizotronR)
+library(dplyr)
 # read tiffs
-img.color = brick(paste0(getwd(),"/demo_images/Oulanka2023_Session03_T067.tiff"))
-img.segm  = brick(paste0(getwd(),"/demo_images/Oulanka2023_Session03_T067_segmented.tiff"))
-img.skel  = brick(paste0(getwd(),"/demo_images/Oulanka2023_Session03_T067_skeleton.tiff"))
+img.color = raster::brick(paste0(getwd(),"/demo_images/Oulanka2023_Session03_T067.tiff"))
+img.segm  = raster::brick(paste0(getwd(),"/demo_images/Oulanka2023_Session03_T067_segmented.tiff"))
+img.skel  = raster::brick(paste0(getwd(),"/demo_images/Oulanka2023_Session03_T067_skeleton.tiff"))
 
-# Based on Tape Cover, soi start and rotation center is estimated
-s0 = MinirhizotronR::SoilSurfE(img.color)
-r0 = MinirhizotronR::RotationE(img.color)
+
 ```
 
+## Now, we need to define where the soil begins
+```{r Meta-Data, echo=FALSE,  warning=FALSE}
+  
+### If you have measured the the distance from the soil to the edge of the tube - great, your job is done! 
+## Just do this:
+height = 12 # cm
+tilt = 45 # insertion angle
+dpi = 300 # imiage resolution
+
+# law of sines
+radiant = pi/180
+s0.true = (sin((90) * radiant)*height) / sin(tilt * radiant)
+s0 = s0.true * dpi / 2.54
+s0 = s0 %>% round()
+
+
+### If you don't have any data meta-deta available - too bad!
+## Try this instead:
+# Based on Tape Cover, soil start is estimated
+s0 = MinirhizotronR::SoilSurfE(img.color)
+print(paste0("Soil Surface Beginning in columns: ",s0$soil0))
+# While we're at it, lets estimate the rotion center (Here, we assume that the tape extrusion on the upside of the Tube is perfectly centered - go and calibrate !!!)
+r0 = MinirhizotronR::RotationE(img.color)
+print(paste0("Rotation Center in rows: ",r0))
+```
+
+
+
+```{r Create a depthmap, echo=FALSE, fig.height=4, fig.width=1.5, warning=FALSE}
+### We are ready now to create a depth map. The here goal is to supply every pixel of the root scans with a depth information. We choose to include the tube thickness and thereby create a phase shifted cosine depth map  -  or ignore it  (as traditionally done). Ignoring it will create a map in which the tube upside is located the same depth as tube downside (= vertical insertion angle). 
+
+## We want to exclude pixels with tape as part of the soil. Create a mask:
+# The format of 'RootDetector' uses the red channel to show mask and root px, while blue and green only show root px
+mask = (img.segm[[1]] - img.segm[[2]] ) / 255
+mask = raster::t(mask)
+## Create the Map (cosine.option missing!)
+center.offset = r0  / dim(img.segm)[1]
+DepthMap = MinirhizotronR::create.depthmap(im = img.segm, mask = mask,start.soil = s0$soil0, center.offset = center.offset )
+
+# Now lets bin the depth to be able to calculate some stats. Analysis on continous depth will feature in a future release.
+# we use 5cm intervals here but any bandwidth can be used.
+bm = MinirhizotronR::binning(DepthMap, nn = 5)
+raster::extent(bm) <- c(0,dim(bm)[2],0,dim(bm)[1])
+# Binned Depthmap Plot
+RStoolbox::ggR(bm)+theme_void()
+
+```
+
+## With Depth Information ready, we can now analyze the data. Here, we are interested in 3 key features: Root Coverage, RootScapes Features, and Peat Characteristics. Lets get to the vegan meat of it:
+```{r Depth Stats, fig.height=3, fig.width=4.2, , warning=FALSE}
+# A good starting point is selecting the desired depth. Typically, you want to go through all depth to construct a depth distribution. For brevity, we show it for one depth here.
+
+## We only need one binarized layer
+# one layer gray would usually be a good option, however, there is distinct information stored in the various layers when using 'RootDetector'
+gray.roots = rgb2gray(img.segm)
+# In this format, we can simply do this:
+gray.roots = img.segm[[2]] / 255
+
+# extracts a depth band from the root image based on the depth map 
+rootzone = zone.fun(rootpic = gray.roots, binned.map = bm, indexD = -10, nn = 5 )
+# the output message tells us the there are not enough proper values in the root zone. Lets try again
+rootzone = zone.fun(rootpic = gray.roots, binned.map = bm, indexD = 20, nn = 5 )
+raster::extent(rootzone) <- c(0,dim(rootzone)[2],0,dim(rootzone)[1])
+RStoolbox::ggR(rootzone) + theme_void()
+# Also do it for the skeletonized version
+rootzone.skeleton = zone.fun(img.skel[[2]], binned.map = bm, indexD = 20, nn = 5)
+raster::extent(rootzone.skeleton) <- c(0,dim(rootzone.skeleton)[2],0,dim(rootzone.skeleton)[1])
+
+
+# Get the landscape metrics of the root scape - keep the output units in mind (assuming... input and deliver hectar output)
+rsm = RootScapeMetrics(rootzone,indexD = 20, metrics = c( "lsm_c_ca","lsm_l_ent","lsm_c_pd","lsm_c_np","lsm_c_pland",
+                                      "lsm_c_area_mn","lsm_c_area_cv","lsm_c_enn_mn","lsm_c_enn_cv")) 
+print(rsm) 
+
+
+
+```
+
+## Get Root Coverage
+```{r}
+
+# Get number of Root pixel and Root Length, and Root Thickness
+void = gray.roots  
+raster::values(void) = 1-raster::values(gray.roots/255)
+# check if extent matches
+
+# rotate if necessary
+if(all(dim(bm)[1:2] != dim(gray.roots)[1:2])){
+bm = raster::t(bm)  
+}
+
+# retrieve the root pixel sum and the pixel without roots for all depths
+void.sum = raster::zonal( void,bm, "sum" )
+root.sum = raster::zonal(gray.roots,bm,"sum")
+# if you want to include this function within a depth wise loop use this
+rootpixel = px.sum(root.zone = rootzone) # uses the segmented - so its total root pixel
+# raster::zonal at depth 20 cm should have the same amount of root pixel as px.sum() on root zone 20cm
+
+# for root length do something like this
+kimroot = RootLength(rootzone.skeleton)
+# lastly Root thickness
+root.thicc = root.thickness(kimuralength = kimroot, rootpx = rootpixel, dpi = 300)
+```
 
 
 
