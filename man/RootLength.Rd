@@ -20,5 +20,5 @@ numeric value of root length
 Estimate Kimura Root Length
 }
 \examples{
-value = RootLength(skeletonized.image)
+value = RootLength(im)
 }
