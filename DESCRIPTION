@@ -5,12 +5,14 @@ Version: 0.1.0
 Author: Johannes Cunow
 Maintainer: Johannes Cunow <johannes.cunow@gmail.com>
 Description: This package calculates some metrics related to depth distribion to an minirhizotron scan. It relies on outside handling of Image Segmentation. The package was tested with 'RootDetector' by Peters et al. 2023 Scientific Reports 13
-License: What license is it under?
+License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.3.1
-Imports: raster, imagefx, EBImage, terra, landscapemetrics, RStoolbox, cowplot, dplyr, ggplot2, abind, stars, OpenImageR, dipr, glcm, mmand, png, tiff, scico, sf, stringr
+Imports: raster, imagefx, EBImage, terra, landscapemetrics, RStoolbox, dplyr, stars, OpenImageR, dipr, glcm, mmand, png, tiff, sf, stringr, cowplot, nloptr, minpack.lm
 Suggests: 
     knitr,
-    rmarkdown
+    rmarkdown,
+    testthat (>= 3.0.0)
 VignetteBuilder: knitr
+Config/testthat/edition: 3

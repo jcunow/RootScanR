@@ -36,8 +36,8 @@ RotateRaster <- function(data, x_add = 0, y_add = 0, rotation.angle = 45) {
         #shear_matrix() *
         rotate_matrix((pi/rotation.angle)) + c(x_add, y_add)
     )
-   tilt.r = stars::st_rasterize(data2)
-   tilt.r = as(tilt.r,"Raster")
+  tilt.r = stars::st_rasterize(data2)
+  tilt.r = as(tilt.r,"Raster")
 
   return(tilt.r)
 }

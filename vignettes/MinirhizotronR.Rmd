@@ -18,6 +18,9 @@ knitr::opts_chunk$set(
 ```{r setup}
 knitr::opts_chunk$set(include = FALSE)
 library(MinirhizotronR)
+library(cowplot)
+library(ggplot2)
+library(dplyr)
 ```
 
 ## Description: 
@@ -60,9 +63,6 @@ Segment the stitched Image. You can use this: ....Link
 Tipp: use split_im() function to cut the root image in pieces in case 'RootDetetcor' has trouble with the amount of roots of roots. You can rejoin the segmented images afterwards with join_im(). But first, look change the settings of 'RootDetector' and crank up the maximum root limit.  
 
 ```{r Input Example Showcase, fig.height=4.9, fig.width=9, message=FALSE, warning=FALSE, paged.print=FALSE}
-library(cowplot)
-library(ggplot2)
-
 p1 <- ggdraw() + draw_image(paste0(getwd(),"/demo_images/Oulanka2023_Session03_T067.jpg"), scale = 0.9)
 p2 <- ggdraw() + draw_image(paste0(getwd(),"/demo_images/Oulanka2023_Session03_T067_segmented.jpg"), scale = 0.9)
 p3 <- ggdraw() + draw_image(paste0(getwd(),"/demo_images/Oulanka2023_Session03_T067_skeleton.jpg"),scale = 0.9)
@@ -168,7 +168,7 @@ print(rsm)
 
 # Get number of Root pixel and Root Length, and Root Thickness
 void = gray.roots  
-raster::values(void) = 1-raster::values(gray.roots/255)
+raster::values(void) = 1-raster::values(gray.roots)
 # check if extent matches
 
 # rotate if necessary
@@ -181,18 +181,220 @@ void.sum = raster::zonal( void,bm, "sum" )
 root.sum = raster::zonal(gray.roots,bm,"sum")
 # if you want to include this function within a depth wise loop use this
 rootpixel = px.sum(root.zone = rootzone) # uses the segmented - so its total root pixel
-# raster::zonal at depth 20 cm should have the same amount of root pixel as px.sum() on root zone 20cm
+
 
 # for root length do something like this
 kimroot = RootLength(rootzone.skeleton)
 # lastly Root thickness
 root.thicc = root.thickness(kimuralength = kimroot, rootpx = rootpixel, dpi = 300)
+
+## report:
+print(paste0("total root pixel in this depth: ",rootpixel," px"))
+print(paste0("total root length in this depth: ",kimroot," cm"))
+print(paste0("average root thickness in this depth: ",root.thicc," cm"))
+```
+## OBS! not all depth have equal amount of tube surface to display roots! The end pieces of the tilted tube and partially tape covered tube have smaller tube surface
+```{r}
+# correct for available space
+av.space = root.sum + void.sum
+av.space[,1] =  av.space[,1]/2
+plot(av.space) + title("total available rooting space")
+
+rootpx_per_av.space =  root.sum
+rootpx_per_av.space[,2] = root.sum[,2] / av.space[,2]
+df.rootpx_per_av.space = as.data.frame(rootpx_per_av.space)
+ggplot(data=df.rootpx_per_av.space,aes(zone,sum)) + geom_point() + geom_smooth(span=0.25) + theme_classic() + ylab("% covered by roots") + xlab("Depth [cm]") +ggtitle("Roots per available rooting space")
+  
+```
+
+## what if we want to consider a sphere of influence around the roots ?
+```{r}
+## set hard limits
+root.seg = gray.roots
+raster::values(root.seg)[raster::values(raster::t(mask))==1] <- NA
+
+# create a buffer around pixels (12 px == ca. 1mm)
+buff.im = Halo(root.seg, width = 4, halo.only = FALSE)
+RStoolbox::ggR(buff.im) + ggtitle("The sphere of influence (roots + 0.3mm each side)")
+
+
+## lets do some stats on the sphere of influence
+buffer.sum = raster::zonal( buff.im,bm, "sum" )
+plot(scale(buffer.sum)); points(scale(root.sum),col="red") + title("The difference between distribution of influence (black) vs distribution of rotos (red)")
+
+# Hint: sphere of influence might not be the same across depth with varying physiology and hydraulic conductivity
 ```
 
 
 
 
 
+Can we characterize the Peat too ?
+```{r}
+# only consider soil pixels - not tape nor roots
+peat.color = raster::crop(img.color,gray.roots)
+raster::values(peat.color)[raster::values(buff.im) == 1] = NA 
+raster::values(peat.color)[raster::values(raster::t(mask)) == 1] = NA 
+# plot & color
+RStoolbox::ggR(peat.color)
+tube.color.peat = Tube.coloration(peat.color);tube.color.peat
+
+
+# now only consider roots
+root.color = raster::crop(img.color,gray.roots)
+raster::values(root.color)[raster::values(gray.roots) == 0] = NA 
+raster::values(root.color)[raster::values(raster::t(mask)) == 1] = NA 
+# plot & color
+RStoolbox::ggR(root.color) + ggtitle("available root pixel")
+tube.color.root = Tube.coloration(root.color);tube.color.root
+
+##  Lets try to get texture information as well
+gray.peat = rgb2gray(peat.color)
+void.tx = glcm::glcm(gray.peat,n_grey = 7,window = c(9,9), 
+                     statistics = c("second_moment","homogeneity","contrast","entropy"),
+                     shift=list(c(0,1), c(1,1), c(1,0), c(1,-1)))
+RStoolbox::ggR(void.tx[[1]]) + ggtitle("available texture pixels and their second moment characteristic ")
+tx.mean = raster::zonal(void.tx[[1]],bm,"mean")
+plot(tx.mean) + title("second moment - peat texture characterization")
+```
+
+
+### as the tube insertion angle increases, the more we expect a differences between the upside of the tube and the downside. Let's estimate the rotational bias
+```{r Asess Rotational Bias}
+# lets make the split in 1 cm intervals
+splits = round(dim(root.color)[1]/300*2.54)
+rot.df = data.frame(rotation = 1:splits,rotation.rootpx = NA)
+
+for (k in 1:splits) {
+rotation.z = zone.rotation.fun(rootpic = root.seg, mm= c(4000,9000), nn = splits, k = c(k-1,k))  
+rot.df[k,2] = px.sum(root.zone = rotation.z)
+}
+rot.df$sc.rotationpx = scale(rot.df$rotation.rootpx)
+ggplot(data= rot.df, aes(rotation,sc.rotationpx)) + geom_point() +  theme_bw() + xlab("rotation cm") + ylab("root px") + geom_smooth(method="lm", formula = y ~ cos(x*pi/8),method.args = list(start=c(b=8)),aes(color = "cosine fit")) + geom_smooth(se=F,aes(color="local smooth"))
+
+## fit a sine curve to the rotation-sliced image
+fitSinCurve(tt=rot.df$rotation,yy=rot.df$sc.rotationpx)
+# test if the variation in the data is 0 or explained by sine function alone 
+ryth.test = LR_rhythmicity(tt=rot.df$rotation,yy=rot.df$sc.rotationpx,period = 19, method = "LR")
+(6.35*pi) - ryth.test$phase 
+
+## if tow tubes are ought to be compared (different insertion angles or tube diameter)
+WaldTest_diff_amp(tt1=rot.df$rotation,yy1=rot.df$sc.rotationpx,tt2=rot.df$rotation,yy2=rot.df$sc.rotationpx+runif(length(rot.df$rotation)))
+
+
+## we can also test if if the rotational root distribution corresponds to the true tube upside
+# based on rotation center determined previously
+df1 = seq(0*pi,-2*pi,-2*pi/(max(rot.df$rotation)-1))
+calibrated.phase = (cos(df1+(pi*(1-center.offset))))*(6.35/2)
+# test the rotational root distribution vs the calibrated
+difftest = LRTest_diff_phase(tt1 = rot.df$rotation, tt2 =  rot.df$rotation, yy1 = calibrated.phase, yy2 = rot.df$sc.rotationpx,
+                  period = round(pi*6.35));difftest
+# tape estimation did not reflect the center of root distribution
+
+## alternative polar plot
+rot.df<-rot.df%>%
+    mutate(
+        # Use (rotation-0.5), not just id, to center label on each item
+        angle=90-360*(rotation-0.5)/max(rotation)
+    ) %>%
+  mutate(exag.rootpx = rotation.rootpx**1.33)
+
+
+ggplot(data= rot.df, 
+       aes(rotation-ryth.test$peakTime,exag.rootpx)) + 
+  geom_bar(fill="indianred",
+           stat = "identity") + 
+    geom_text(data=rot.df,
+            aes(y=max(exag.rootpx)-max(exag.rootpx)*0.85,label=rotation),hjust = 0.5, size = 3,color = "white")+
+  theme_minimal()+
+  ylab("")+xlab("")+
+  scale_y_continuous(breaks = c(-max(rot.df$exag.rootpx)*0.1),
+                                       labels = "",
+                                       limits = c(
+     -max(rot.df$exag.rootpx)/1.25,
+     max(rot.df$exag.rootpx)*1
+   ))+
+ scale_x_continuous(labels = "",breaks = max(rot.df$exag.rootpx))+
+coord_polar(start= (max(rot.df$rotation)/2)-(ryth.test$phase - ryth.test$peakTime) )
+
+```
+
+## Now its time for Turnover
+```{r}
+# the package offers two methods two estimate turnover. 
+#The function Turnover.TC() makes a comparison between two timepoints and determines production in relation to total biomass. 
+ im1 = raster::raster("C:/Users/jocu0013/Desktop/Oulanka/Scans_FullSkeleton/Oulanka2023_01/FullSegmented_Oulanka2023_Session01_T037.tiff.skeleton.png.tiff")
+ im2 = raster::raster("C:/Users/jocu0013/Desktop/Oulanka/Scans_FullSkeleton/Oulanka2023_03/FullSegmented_Oulanka2023_Session03_T037.tiff.skeleton.png.tiff")
+turn1 = Turnover.TC(im1,im2,method = "kimura");turn1
+# PDC stands for production, decay, and constant - extracting the variables from a 'RootDetector' format turnover output
+im1 = raster::brick("C:/Users/jocu0013/Desktop/Oulanka/Scan_comparsion/turnover2023/Split_top_Oulanka2023_T067_L001_turn.png")
+turn2 = Turnover.PDC(im1, product.layer = 2, decay.layer = 1);turn2
+# we can also return production, decay, and constant layers instead and go apply depth stats
+turn3 = Turnover.PDC(im1, im.return = T)
+# adapt depth map
+
+bm.turn = RotCensor(bm)
+bm.turn2 = DepthLimiter(bm.turn,top.cut = F)
+#bm.turn2 =raster::raster(bm.turn2)
+raster::extent(bm.turn2) = raster::extent(turn3$production)
+prd = raster::zonal(turn3$production,bm.turn2,"sum")
+dec = raster::zonal(turn3$decay,bm.turn2,"sum")
+con = raster::zonal(turn3$constant,bm.turn2,"sum")
+
+df = data.frame(prd = prd[,2],dec =  dec[,2],con =  con[,2], x = prd[,1], rootpx = root.sum[2:(length(prd[,1])+1),2])
+ggplot(data=df,aes(x=x)) + 
+  scale_y_continuous(limits = c(0,1))+
+  scale_x_continuous(limits = c(0,40))+
+  theme_bw()+
+  geom_point(aes(y = prd/rootpx,color = "prd")) + geom_line(aes(y = prd/rootpx,color = "prd")) + 
+  geom_point(aes(y = dec/rootpx,color = "dec")) + geom_line(aes(y = dec/rootpx,color = "dec")) + 
+  geom_point(aes(y = con/rootpx,color = "con")) + geom_line(aes(y = con/rootpx,color = "con"))# + geom_point(aes(y = rootpx,color = "rootpx")) + geom_line(aes(y = rootpx,color = "rootpx"))
+```
+
+
+
+```{r a quick and dirty fix to bring dimensions to the same level}
+dir = "C:/Users/jocu0013/Desktop/Oulanka/Scan_comparsion/2023_01/"
+#dir.out = dir
+dir.out = "C:/Users/jocu0013/Desktop/Oulanka/Scan_comparsion/censor_2023_01/"
+ file.names = list.files(dir)[-1]
+ for (i in file.names) {
+   im = tiff::readTIFF(paste0(dir,i))
+   name = i
+   
+   #name = stringr::str_replace(i, pattern = "_Session03_",replacement = "_")
+   #name = stringr::str_replace(name, pattern = ".tiff",replacement = "_L001_03.tiff")
+   
+   # name = stringr::str_replace(i, pattern = "Split_dwn_O",replacement = "O")
+   # name = stringr::str_replace(name, pattern = "Split_top_O",replacement = "O")
+   # name = stringr::str_replace(name, pattern = "2023",replacement = "_2023")
+ 
+   
+    
+    
+    
+    if(dim(im)[2] > 7200){
+    im = DepthLimiter(im,fixed.depth = 7200)  
+    }else{
+      if(dim(im)[2] > 6100){
+    im = DepthLimiter(im,fixed.depth = 6100)  
+      }else{
+    if(dim(im)[2] > 4900){
+    im = DepthLimiter(im,fixed.depth = 4900)    
+    }
+    }
+    }
+   im = RotCensor(im)
+ 
+   im = im / max(raster::values(im))
+   im = raster::as.array(im)
+   tiff::writeTIFF(im,paste0(dir.out,"/",name)) 
+   
+   
+   print(i)
+ }
+
+```
 
 
 

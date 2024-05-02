@@ -1,5 +1,3 @@
-## helper functions
-
 #' Takes a continues depth map and bins it to a specified range
 #'
 #' @param depthmap image with depth information as illumination
@@ -36,8 +34,7 @@ zone.fun = function(rootpic,binned.map,indexD,nn = 5,silent =F){
   if(any(ex.bm!=ex.rp)){
     rootpic = raster::t(rootpic)
   }
-  #raster::extent(binned.map) <- ex.bm
-  #raster::extent(rootpic) <- ex.rp
+
 
   r = (rootpic)
   if(raster::extent(rootpic)[2] != raster::extent(binned.map)[2] | raster::extent(rootpic)[4] != raster::extent(binned.map)[4]){
@@ -65,19 +62,60 @@ zone.fun = function(rootpic,binned.map,indexD,nn = 5,silent =F){
 
 
 
-#' Converts RGB to Grayscale
+# Adressing rotational Bias
+
+#' RotationZones
 #'
-#' @param img rgb raster
-#' @param r weight for red color
-#' @param g weight for green color
-#' @param b weight for blue color
+#' @param rootpic the "to be cut" image
+#' @param nn  number of total cut divisions
+#' @param k specifying which divisions to keep. Must be <= nn
+#' @param mm region along the tube. Adjust to your tube dimensions!
 #'
-#' @return a single layer gray scale raster
+#' @return raster image
 #' @export
 #'
-#' @examples gray.raster = rgb2gray(img)
-rgb2gray = function(img, r=0.21,g=0.72,b=0.07){
-  gray.im = img[[1]] * r + img[[2]] * g + img[[3]] * b
-  return(gray.im)
+#' @examples rotationZone1 = zone.rotation.fun(rootpic, k = c(1,2), nn = 7, mm = c(1500,3000))
+zone.rotation.fun = function(rootpic,k=c(3,4),nn = 5,mm = c(2000,5000)){
 
+  if(!is.array(rootpic) ){
+    img0 = raster::as.array(rootpic)
+  }else{
+    img0 = rootpic
+  }
+
+
+  m = seq(mm[1],mm[2],length = mm[2])
+  ## rotation wise test
+
+  img0 = img0[,m,]
+
+
+  # lower row for the kth bin
+  q = (k[1]*(nrow(img0)/nn)) %>% floor()
+  q = q +1
+  p = (k[2]*(nrow(img0)/nn)) %>% floor()
+
+  img00 = img0
+
+
+  if(is.na(dim(img0)[3] > 1 )){
+    img00[1:dim(img00)[1],1:dim(img00)[2]] <- NA
+  }else{
+    img00[1:dim(img00)[1],1:dim(img00)[2],] <- NA
+  }
+
+
+
+  if(is.na(dim(img0)[3] > 1 )){
+    img00[c(p:q),] = img0[c(p:q),]
+  }else{
+    img00[c(p:q),,] = img0[c(p:q),,]
+  }
+
+
+  img00 = terra::rast(img00)
+  img00 = img00 %>% terra::trim()
+  img00 = raster::raster(img00)
+
+  return(img00)
 }

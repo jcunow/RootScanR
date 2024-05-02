@@ -1,3 +1,172 @@
+## helper functions
+
+
+#' Converts RGB to Grayscale
+#'
+#' @param img rgb raster
+#' @param r weight for red color
+#' @param g weight for green color
+#' @param b weight for blue color
+#'
+#' @return a single layer gray scale raster
+#' @export
+#'
+#' @examples gray.raster = rgb2gray(img)
+rgb2gray = function(img, r=0.21,g=0.72,b=0.07){
+  gray.im = img[[1]] * r + img[[2]] * g + img[[3]] * b
+  return(gray.im)
+
+}
+
+
+
+#' Resize the Image
+#'
+#' useful if some scanning campaigns have used different dpi
+#' @param import.path Input Path
+#' @param output.path Output Path
+#' @param height target height
+#' @param width target width
+#'
+#' @return a image with new dimensions and resolution
+#' @export
+#'
+#' @examples resize.image(import.path, output.path) = resized.image
+resize.image = function(import.path,output.path,height = 2550,width= 2273){
+  img.list = list.files(import.path, pattern = ".tiff")
+
+  # sequentially read images, lower resolution and restore them
+  t1 = Sys.time()
+  for (i in 1:length(img.list)) {
+    # read
+    temp.im = OpenImageR::readImage(paste0(import.path,img.list[i]))
+    # resample bilinear
+    temp.im = OpenImageR::resizeImage(temp.im,
+                                      method = "bilinear",
+                                      height = 2550, width = 2273)
+    # transformation to 0-1 range
+    temp.im = imagefx::range01(temp.im)
+    # write as tiff
+    OpenImageR::writeImage(temp.im,file_name = paste0(output.path,img.list[i]))
+
+  }
+  t2 = Sys.time();floor(t2-t1)
+
+}
+
+
+
+
+#' read rename write wrapper
+#'
+#' @param img image name
+#' @param pattern pattern
+#' @param replace replace
+#' @param dir where to find the image
+#' @param dir.out where to write the image
+#'
+#' @export
+#'
+#' @return image output
+#'
+#' @examples rrwr(Oulanka2023_T001_L001.tiff,pattern = "_L001", replace = "", dir = getwd(),dir.out = paste0(getwd(),"/renamed/"))
+rrwr = function(img,pattern,replace,dir,dir.out){
+  im = tiff::readTIFF(paste0(dir,img))
+  name = stringr::str_replace(img, pattern = "Ecfg",replacement = "Oulanka_2020")
+  tiff::writeTIFF(im,paste0(dir.out,"/",name))
+}
+
+
+
+
+#' Split Images
+#'
+#' Use if too many roots are present for the Root Detector AI image segmentation
+#' @param path Input path
+#' @param dir.out Output path
+#' @param pattern only include images with this pattern
+#' @param ratio split point 0-1
+#'
+#' @return two sets of images
+#' @export
+#'
+#' @examples split_im(path, dir.out, ".tiff") = c(top.im, bot.im)
+split_im = function(path,dir.out,pattern = ".tiff",ratio = 0.5){
+  file.ls = list.files(path = path, pattern = pattern)
+  ## split the image
+  for (i in file.ls) {
+    im = tiff::readTIFF(paste0(path,i))
+    im.top = im[,1:(dim(im)[2]*ratio),]
+    im.dwn = im[,(dim(im)[2]*ratio+1):dim(im)[2],]
+    tiff::writeTIFF(im.top,where = paste0(dir.out,"Split_top_",i))
+    tiff::writeTIFF(im.dwn,where = paste0(dir.out,"Split_dwn_",i))
+  }
+}
+
+
+
+#' Fuse two Images
+#'
+#' this function is intended to to be used after using the root detector
+#' @param path Input path
+#' @param dir.out Output path
+#' @param pattern only include images with this pattern
+#'
+#' @return one complete image
+#' @export
+#'
+#' @examples join_im(path,out.path) = img
+join_im = function(path,dir.out,pattern = "skeleton"){
+  ### segmented
+  dir.ls = paste0(list.dirs(path = path)[-1],"/")
+  file.ls = list.files(path = dir.ls, pattern = pattern)
+  top.files =  file.ls[stringr::str_detect(file.ls,pattern = "Split_top")]
+  dwn.files =  file.ls[stringr::str_detect(file.ls,pattern = "Split_dwn")]
+
+  for (i in 1:length(top.files)) {
+    im.top = png::readPNG(paste0(dir.ls[i+36],top.files[i]))
+    im.dwn = png::readPNG(paste0(dir.ls[i],dwn.files[i]))
+    im.all = abind::abind(im.top,im.dwn, along = 2 )
+    file.name= top.files[i] %>% stringr::str_remove(pattern="Split_top_") %>% stringr::str_remove(pattern=".tiff.segmentation.png")
+    tiff::writeTIFF(im.all,where = paste0(dir.out,"FullSegmented_",file.name,".tiff"))
+
+  }
+}
+
+
+#' Skeletonize a segmented image
+#'
+#' @param img binary iamge
+#' @param method which approach should be used
+#'
+#' @return binary image with area turned into linear features
+#' @export
+#'
+#' @examples skeletonize(img,"gonzales") = skeleton_image
+skeletonize_function = function(img,method = "gonzales"){
+  if(method == "gonzales"){
+    skeleton = dipr::thinning(img)
+  }
+  if(method == "erode"){
+    skeleton = dipr::skeletonize(img)
+  }
+  if(method == "lantuejoul"){
+    skeleton = mmand::skeletonise(method = method )
+  }
+  if(method == "beucher"){
+    skeleton = mmand::skeletonise(method = method )
+  }
+  if(method == "hitormiss"){
+    skeleton = mmand::skeletonise(method = method )
+  }
+  if(method %in% any(c("gonzales","erode","lantuejoul","beucher","hitormiss"))  ){
+    print("method not appropriate")
+  }
+}
+
+#
+
+
 #' abind
 #'
 #' @param ... d
@@ -12,13 +181,12 @@
 #' @param use.dnns d
 #' @name name d
 #'
-#' @return merged multidimensional arrayS
-#' @export
+#' @return merged multidimensional arrays
 #'
 #' @examples marray = abind2()
 abind2 = function (..., along = N, rev.along = NULL, new.names = NULL,
-          force.array = TRUE, make.names = use.anon.names, use.anon.names = FALSE,
-          use.first.dimnames = FALSE, hier.names = FALSE, use.dnns = FALSE)
+                   force.array = TRUE, make.names = use.anon.names, use.anon.names = FALSE,
+                   use.first.dimnames = FALSE, hier.names = FALSE, use.dnns = FALSE)
 {
   if (is.character(hier.names))
     hier.names <- match.arg(hier.names, c("before", "after",
@@ -249,3 +417,47 @@ abind2 = function (..., along = N, rev.along = NULL, new.names = NULL,
     names(dimnames(out))[i] <- ""
   out
 }
+
+
+## coulumn align
+
+#' To cut top or bottom parts of a raster
+#'
+#' @param im image input
+#' @param fixed.depth how much should be retained
+#' @param top.cut discard the top part and retain the botom?
+#'
+#' @return a shorter raster
+#' @export
+#'
+#' @examples im2 = DepthLimiter(im)
+DepthLimiter = function(im,fixed.depth = 7200,top.cut = T){
+  depth = dim(im)[2]
+
+ if(!is.array(im)){
+
+    im2 = raster::as.array(im)
+  }else{
+
+    im2 = raster::as.array(im)
+  }
+
+  if(top.cut == T){
+    im3 = im2[,(depth - fixed.depth-1) : depth,]
+  }else{
+    im3 = im2[,1 : (fixed.depth+1), ]
+  }
+  if(dim(im)[3]>1){
+    im3 = raster::brick(im3)
+    im3 = raster::raster(im3)
+  }else{
+    im3 = raster::raster(im3)
+  }
+
+
+  return(im3)
+}
+
+
+
+
