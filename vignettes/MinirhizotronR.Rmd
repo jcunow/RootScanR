@@ -203,8 +203,8 @@ plot(av.space) + title("total available rooting space")
 rootpx_per_av.space =  root.sum
 rootpx_per_av.space[,2] = root.sum[,2] / av.space[,2]
 df.rootpx_per_av.space = as.data.frame(rootpx_per_av.space)
-ggplot(data=df.rootpx_per_av.space,aes(zone,sum)) + geom_point() + geom_smooth(span=0.25) + theme_classic() + ylab("% covered by roots") + xlab("Depth [cm]") +ggtitle("Roots per available rooting space")
-  
+ggplot(data=df.rootpx_per_av.space,aes(zone+5,sum)) + geom_point() + geom_smooth(span=0.25) + theme_classic() + ylab("% covered by roots") + xlab("Depth [cm]") +ggtitle("Roots per available rooting space")
+#ggsave("C:/Users/jocu0013/Documents/GitHub/MinirhizotronR/figures/rootsperavailablespace.png")  
 ```
 
 ## what if we want to consider a sphere of influence around the roots ?
@@ -215,7 +215,7 @@ raster::values(root.seg)[raster::values(raster::t(mask))==1] <- NA
 
 # create a buffer around pixels (12 px == ca. 1mm)
 buff.im = Halo(root.seg, width = 4, halo.only = FALSE)
-RStoolbox::ggR(buff.im) + ggtitle("The sphere of influence (roots + 0.3mm each side)")
+RStoolbox::ggR(buff.im) + ggtitle("The sphere of influence (roots + 0.3mm each side)") 
 
 
 ## lets do some stats on the sphere of influence
@@ -251,7 +251,7 @@ tube.color.root = Tube.coloration(root.color);tube.color.root
 ##  Lets try to get texture information as well
 gray.peat = rgb2gray(peat.color)
 void.tx = glcm::glcm(gray.peat,n_grey = 7,window = c(9,9), 
-                     statistics = c("second_moment","homogeneity","contrast","entropy"),
+                     statistics = c("second_moment","homogeneity","entropy"),
                      shift=list(c(0,1), c(1,1), c(1,0), c(1,-1)))
 RStoolbox::ggR(void.tx[[1]]) + ggtitle("available texture pixels and their second moment characteristic ")
 tx.mean = raster::zonal(void.tx[[1]],bm,"mean")
@@ -283,6 +283,21 @@ WaldTest_diff_amp(tt1=rot.df$rotation,yy1=rot.df$sc.rotationpx,tt2=rot.df$rotati
 
 
 ## we can also test if if the rotational root distribution corresponds to the true tube upside
+# rotation segments
+RStoolbox::ggR(root.seg) + 
+  geom_hline(yintercept = seq(0,dim(root.seg)[1],length = splits+1),
+             color = "red",size=0.05,linetype = "solid") + 
+  theme_void() + 
+  geom_text(label = 1:20,aes(x=250,
+                                 y= (scale((seq(0,dim(root.seg)[1],
+                                                length = splits)))*
+                                    (sd((seq(0,dim(root.seg)[1]-(dim(root.seg)[1]/splits),
+                                             length =splits))))) + 
+                                   mean((seq(0,dim(root.seg)[1],
+                                             length = splits)))),
+            color="black",size=1.5) 
+#ggsave("C:/Users/jocu0013/Documents/GitHub/MinirhizotronR/figures/rotation_splicing.png")
+
 # based on rotation center determined previously
 df1 = seq(0*pi,-2*pi,-2*pi/(max(rot.df$rotation)-1))
 calibrated.phase = (cos(df1+(pi*(1-center.offset))))*(6.35/2)
@@ -297,7 +312,7 @@ rot.df<-rot.df%>%
         # Use (rotation-0.5), not just id, to center label on each item
         angle=90-360*(rotation-0.5)/max(rotation)
     ) %>%
-  mutate(exag.rootpx = rotation.rootpx**1.33)
+  mutate(exag.rootpx = rotation.rootpx**1.75)
 
 
 ggplot(data= rot.df, 
@@ -305,7 +320,7 @@ ggplot(data= rot.df,
   geom_bar(fill="indianred",
            stat = "identity") + 
     geom_text(data=rot.df,
-            aes(y=max(exag.rootpx)-max(exag.rootpx)*0.85,label=rotation),hjust = 0.5, size = 3,color = "white")+
+            aes(y=max(exag.rootpx)-max(exag.rootpx)*0.925,label=rotation),hjust = 0.5, size = 3,color = "white")+
   theme_minimal()+
   ylab("")+xlab("")+
   scale_y_continuous(breaks = c(-max(rot.df$exag.rootpx)*0.1),
@@ -315,8 +330,8 @@ ggplot(data= rot.df,
      max(rot.df$exag.rootpx)*1
    ))+
  scale_x_continuous(labels = "",breaks = max(rot.df$exag.rootpx))+
-coord_polar(start= (max(rot.df$rotation)/2)-(ryth.test$phase - ryth.test$peakTime) )
-
+coord_polar(start= (max(rot.df$rotation)/2 - 0.5)-(ryth.test$phase - ryth.test$peakTime) )
+#ggsave("C:/Users/jocu0013/Documents/GitHub/MinirhizotronR/figures/rotation_bias.png")
 ```
 
 ## Now its time for Turnover
