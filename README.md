@@ -1,5 +1,6 @@
 # MinirhizotronR
 a collection of R code to analyze iamges from minirhiztron tube
+  -*work in progress* 
 
  ## The workflow could look like this:
  ### Step 1: Bringing seperate Images together
