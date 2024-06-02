@@ -430,17 +430,12 @@ abind2 = function (..., along = N, rev.along = NULL, new.names = NULL,
 #' @return a shorter raster
 #' @export
 #'
-#' @examples im2 = DepthLimiter(im)
+#' @examples im2 = DepthLimiter(im = image, fixed.depth = 7200, top.cut = T)
 DepthLimiter = function(im,fixed.depth = 7200,top.cut = T){
   depth = dim(im)[2]
 
- if(!is.array(im)){
-
     im2 = raster::as.array(im)
-  }else{
 
-    im2 = raster::as.array(im)
-  }
 
   if(top.cut == T){
     im3 = im2[,(depth - fixed.depth-1) : depth,]

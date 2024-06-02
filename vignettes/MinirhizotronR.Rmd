@@ -81,7 +81,7 @@ library(dplyr)
 img.color = raster::brick(paste0(getwd(),"/demo_images/Oulanka2023_Session03_T067.tiff"))
 img.segm  = raster::brick(paste0(getwd(),"/demo_images/Oulanka2023_Session03_T067_segmented.tiff"))
 img.skel  = raster::brick(paste0(getwd(),"/demo_images/Oulanka2023_Session03_T067_skeleton.tiff"))
-
+#img.skel  = raster::brick(paste0(getwd(),"/demo_images/horizontal lines.png"))
 
 ```
 

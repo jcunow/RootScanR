@@ -42,6 +42,60 @@ RootLength = function(im,unit="cm",dpi=300){
 }
 
 
+#' Estimate the directional of a skeleton pixels
+#'
+#' @param im a skeletonized image. Roots must be 1, background 0. The rotation of the image determines the output. The default is
+#'
+#' @return percentage of pixels with given neighbour pixel position
+#' @export
+#'
+#' @examples direction.frame = Directionality(im)
+Directionality = function(im){
+  im2 = im / max(raster::values(im),na.rm=T)
+  # the rotation of the image matters !
+  # background white or objects white matters - we want to count white objects (1's not 0's)
+
+  ## kimura image
+  D_horizontal = matrix(c(0,1,0,0,1,0,0,0,0), nrow = 3, ncol = 3)
+  D_vertical = matrix(c(0,0,0,1,1,0,0,0,0), nrow = 3, ncol = 3)
+  D_dia_topleft = matrix(c(1,0,0,0,1,0,0,0,0), nrow = 3, ncol = 3)
+  D_dia_botleft = matrix(c(0,0,1,0,1,0,0,0,0), nrow = 3, ncol = 3)
+
+  # orthogonal
+  r_Dho <- terra::focal(im2,w = D_horizontal, fun = "sum")
+  r_Dve <- terra::focal(im2,w = D_vertical, fun = "sum")
+
+  rr_Dho = sum((r_Dho == 2))
+  rr_Dve = sum((r_Dve == 2))
+
+  sum.Dho <- raster::cellStats(rr_Dho,"sum")
+  sum.Dve <- raster::cellStats(rr_Dve,"sum")
+  # diagonal
+  r_Dtopleft <- terra::focal(im2,w = D_dia_topleft, fun = "sum")
+  r_Dbotleft <- terra::focal(im2,w = D_dia_botleft, fun = "sum")
+
+  rr_Dtopleft = sum((r_Dtopleft == 2))
+  rr_Dbotleft = sum((r_Dbotleft == 2))
+
+  sum.Dtl <- raster::cellStats(rr_Dtopleft,"sum")
+  sum.Dbl <- raster::cellStats(rr_Dbotleft,"sum")
+
+  all.px = sum.Dho + sum.Dve + sum.Dtl + sum.Dbl
+  diag.px = sum.Dtl + sum.Dbl
+  orth.px = sum.Dho + sum.Dve
+
+
+Directions = data.frame(vertical = sum.Dve / all.px,
+                        horizontal = sum.Dho / all.px,
+                        topleft.bottomright = sum.Dtl / all.px,
+                        topright.bottom.left = sum.Dbl / all.px)
+
+  return(Directions)
+
+}
+
+
+
 ## RootScape Metrics
 
 #¤ input image should be segmented, unskeletonized image
