@@ -1,6 +1,24 @@
 ## helper functions
 
 
+#' Root accumulation Curve
+#'
+#' @param data dataframe must include group,depth, and variable columns
+#' @param group specify the grouping variable e.g., Plot
+#' @param depth specifiy column name which includes depth values
+#' @param variable accumulating values
+#'
+#' @return dataframe with one added column "cs" containing the cummulated values
+#' @export
+#'
+#' @examples data1 = root.accumulation(data,group = Plot, depth = depth, variable = rootpx)
+root.accumulation = function(data,group,depth,variable){
+  pdf = data %>% group_by(group) %>% arrange(depth) %>% mutate(cs = cumsum(rootpx))
+  return(pdf)
+}
+
+
+
 #' Converts RGB to Grayscale
 #'
 #' @param img rgb raster
