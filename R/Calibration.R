@@ -83,7 +83,7 @@ RotShiftDet = function(img1,img2,cor.type = "phase"){
   dif.dim = dim(img11)-dim(img22)
   if(dif.dim[1] != 0 | dif.dim[2] != 0 ){
     print(paste0("Subsequent images differ in size. Difference is ",dif.dim," px."))
-    img22=EBImage::resize(img22,output.dim = dim(img11)[1:2],w=dim(img11)[1],h= dim(img11)[2])
+    img22=resize(img22,output.dim = dim(img11)[1:2],w=dim(img11)[1],h= dim(img11)[2]) # Used to be EBImage function
   }
 
 
