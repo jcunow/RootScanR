@@ -52,7 +52,7 @@ create.depthmap = function(im, mask,
   df1 = seq(0*pi,2*pi,2*pi/(target.col-1))
   # apply the function with the amplitude corresponding to the tilt
   # creates a cosine shaped curved shifted by the amount of rotation offset
-  df11 = (cos(df1+(pi*(1-center.offset))))*(tube.thicc.tilted/2)
+  df11 = (cos(df1+(pi*(1-center.offset))))*(tube.thicc.tilted/2)+ (tube.thicc.tilted/2)
 
 
   # stack up rows and adding flat depth to each row
@@ -61,7 +61,7 @@ create.depthmap = function(im, mask,
     df[ii,] = df11+(ii*px.to.cm.h * tilt.factor) # adds progressive depth to each row
   }
   # add soil surface offset estimated from tape cover
-  df.depthmap = df - (start.soil* px.to.cm.h)
+  df.depthmap = df + (start.soil* px.to.cm.h)
 
   # masking tape
   masked.depthmap= raster::raster(df.depthmap)
