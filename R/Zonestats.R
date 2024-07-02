@@ -30,7 +30,7 @@ RootLength = function(im,unit="cm",dpi=300){
     rootlength = round(( kimura.sum.diag**2 + (kimura.sum.diag + kimura.sum.orth/2)**2 )**0.5   + kimura.sum.orth/2)
   }else{
     if(unit=="cm"){
-      rootlength = round((( kimura.sum.diag**2 + (kimura.sum.diag + kimura.sum.orth/2)**2 )**0.5   + kimura.sum.orth/2) / dpi/2.54)
+      rootlength = round((( kimura.sum.diag**2 + (kimura.sum.diag + kimura.sum.orth/2)**2 )**0.5   + kimura.sum.orth/2) / dpi/2.54,3)
     }else{
       print("only 'px' or 'cm' acceptable as unit")
     }
@@ -50,9 +50,12 @@ RootLength = function(im,unit="cm",dpi=300){
 #' @export
 #'
 #' @examples direction.frame = Directionality(im)
-Directionality = function(im){
+Directionality = function(im,rotate = TRUE){
   im2 = im / max(raster::values(im),na.rm=T)
   # the rotation of the image matters !
+  if(rotate == T){
+    im2 = raster::t(im2)
+  }
   # background white or objects white matters - we want to count white objects (1's not 0's)
 
   ## kimura image
@@ -88,7 +91,9 @@ Directionality = function(im){
 Directions = data.frame(vertical = sum.Dve / all.px,
                         horizontal = sum.Dho / all.px,
                         topleft.bottomright = sum.Dtl / all.px,
-                        topright.bottom.left = sum.Dbl / all.px)
+                        topright.bottom.left = sum.Dbl / all.px,
+                        diag.px = diag.px,
+                        orth.px = orth.px)
 
   return(Directions)
 
