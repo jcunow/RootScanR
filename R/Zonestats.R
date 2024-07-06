@@ -160,7 +160,7 @@ px.sum = function(root.zone){
 #' Halo creates a buffer around pixel bigger than 0
 #'
 #' @param im segmented raster
-#' @param width buffer around roots in px, the rhizosphere extent (exudate diffusion distance) is cited as 2mm (1-12mm) (source), but higher values have been suggested (Finzi )
+#' @param width buffer around roots in px, the rhizosphere extent (exudate diffusion distance) is cited as 2mm (1-12mm) (Finzi et al. 2015, https://doi.org/10.1111/gcb.12816), but higher values have been suggested
 #' @param halo.only set TRUE if only the buffer around roots should be returned (the rhizosphere only)
 #' @return raster output
 #' @export
