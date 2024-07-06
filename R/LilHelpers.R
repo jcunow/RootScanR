@@ -1,5 +1,36 @@
 ## helper functions
 
+#' Skeletonize a segmented image
+#'
+#' @param img binary image, can be path or magick object
+#' @param itr iterations of thinning. see magick::image_morphology
+#'
+#' @return image in as magick object
+#' @export
+#'
+#' @examples img.skeleton = skeletonize("/path/image.png",itr = 2)
+skeletonize = function(img,itr = 2){
+  if(!is.character(img)){
+    img_array <- as.array(img)
+    if(!(max(img) > 1)){
+      img_array <- img_array * 255
+    }
+
+    # Convert to raw array (required by magick)
+    magick_img <- imager::cimg2magick(imager::as.cimg( img_array))
+  }else{
+    magick_img = magick::image_read(img)
+  }
+
+  grayscale_img = magick::image_channel(magick_img,"lightness")
+
+  # Perform morphological thinning
+  thinned_img <- image_morphology(grayscale_img, 'Thinning', 'Skeleton:3',iterations = itr)
+
+  print(thinned_img)
+
+  return(thinned_img)
+}
 
 #' Root accumulation Curve
 #'
