@@ -9,9 +9,9 @@ Halo(im, width = 1, halo.only = T)
 \arguments{
 \item{im}{segmented raster}
 
-\item{width}{buffer around roots in px}
+\item{width}{buffer around roots in px, the rhizosphere extent (exudate diffusion distance) is cited as 2mm (1-12mm) (Finzi et al. 2015, https://doi.org/10.1111/gcb.12816), but higher values have been suggested}
 
-\item{halo.only}{set TRUE if only the buffer around roots should be returned}
+\item{halo.only}{set TRUE if only the buffer around roots should be returned (the rhizosphere only)}
 }
 \value{
 raster output
