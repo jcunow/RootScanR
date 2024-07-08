@@ -9,12 +9,11 @@ License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.3.1
-Imports: raster, imagefx,  terra, landscapemetrics, RStoolbox, dplyr, stars, OpenImageR,  glcm, mmand, png, tiff, sf, stringr, cowplot, nloptr, minpack.lm
+Imports: raster, terra, stars, sf, imagefx, magick, OpenImageR, landscapemetrics, RStoolbox, dplyr, glcm, png, tiff, stringr, cowplot, nloptr, minpack.lm
 Suggests: 
     knitr,
     rmarkdown,
     testthat (>= 3.0.0),
-    EBImage,
-    dipr
+    EBImage
 VignetteBuilder: knitr
 Config/testthat/edition: 3
