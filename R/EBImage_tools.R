@@ -1,6 +1,3 @@
-
-
-
 ## performs an affine transform on a set of images
 affine <- function (x, m, filter = c("bilinear", "none"), output.dim, bg.col = "black", antialias = TRUE) {
   ## check arguments
