@@ -50,9 +50,11 @@ create.depthmap = function(im, mask,
 
   # simulate a sine wave function across one row
   df1 = seq(0*pi,2*pi,2*pi/(target.col-1))
-  # apply the function with the amplitude corresponding to the tilt
+
+  ### CORE FUNCTION, apply the function with the amplitude corresponding to the tilt and a phase corresponding to the rotation center
   # creates a cosine shaped curved shifted by the amount of rotation offset
-  df11 = (cos(df1+(pi*(1-center.offset))))*(tube.thicc.tilted/2)+ (tube.thicc.tilted/2)
+  #df11 = (cos(df1+(pi*(1-center.offset))))*(tube.thicc.tilted/2)+ (tube.thicc.tilted/2) # center.offset 1 = no offset
+  df11 = (cos(df1+(pi*(center.offset))))*(tube.thicc.tilted/2)+ (tube.thicc.tilted/2) # center.offset = 0 no offset
 
 
   # stack up rows and adding flat depth to each row
