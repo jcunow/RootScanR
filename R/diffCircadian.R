@@ -560,7 +560,7 @@ WaldTest_diff_offset <- function(tt1, yy1, tt2, yy2, period = 24,FN=TRUE){
                 #"check_derivatives"=TRUE
   )
 
-  res <- nloptr:nloptr( x0 = x_Ha,
+  res <- nloptr::nloptr( x0 = x_Ha,
                   eval_f = eval_f_list,
                   #eval_grad_f=eval_g,
                   lb = lb,
