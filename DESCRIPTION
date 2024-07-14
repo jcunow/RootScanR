@@ -13,6 +13,6 @@ Imports: raster, terra, stars, sf, imagefx, magick, OpenImageR, landscapemetrics
 Suggests: 
     knitr,
     rmarkdown,
-    testthat (>= 3.0.0),
+    testthat (>= 3.0.0)
 VignetteBuilder: knitr
 Config/testthat/edition: 3
