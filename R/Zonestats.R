@@ -1,6 +1,6 @@
 #' Estimate Kimura Root Length
 #'
-#' @param im a skeletonized root image
+#' @param im a skeletonized root image raster
 #' @param unit output unit
 #' @param dpi image resolution
 #'
@@ -36,7 +36,6 @@ RootLength = function(im,unit="cm",dpi=300){
     }
   }
 
-
   return(rootlength)
 
 }
@@ -44,7 +43,8 @@ RootLength = function(im,unit="cm",dpi=300){
 
 #' Estimate the directional of a skeleton pixels
 #'
-#' @param im a skeletonized image. Roots must be 1, background 0. The rotation of the image determines the output. The default is
+#' @param im skeletonized image raster. Roots must be 1, background 0. Consider the input image rotation to interpret the output
+#' @param rotate should the image be rotated 90 degrees before entering?
 #'
 #' @return percentage of pixels with given neighbour pixel position
 #' @export
@@ -58,7 +58,7 @@ Directionality = function(im,rotate = TRUE){
   }
   # background white or objects white matters - we want to count white objects (1's not 0's)
 
-  ## kimura image
+  # Kernel
   D_horizontal = matrix(c(0,1,0,0,1,0,0,0,0), nrow = 3, ncol = 3)
   D_vertical = matrix(c(0,0,0,1,1,0,0,0,0), nrow = 3, ncol = 3)
   D_dia_topleft = matrix(c(1,0,0,0,1,0,0,0,0), nrow = 3, ncol = 3)
@@ -67,22 +67,20 @@ Directionality = function(im,rotate = TRUE){
   # orthogonal
   r_Dho <- terra::focal(im2,w = D_horizontal, fun = "sum")
   r_Dve <- terra::focal(im2,w = D_vertical, fun = "sum")
-
   rr_Dho = sum((r_Dho == 2))
   rr_Dve = sum((r_Dve == 2))
-
   sum.Dho <- raster::cellStats(rr_Dho,"sum")
   sum.Dve <- raster::cellStats(rr_Dve,"sum")
+
   # diagonal
   r_Dtopleft <- terra::focal(im2,w = D_dia_topleft, fun = "sum")
   r_Dbotleft <- terra::focal(im2,w = D_dia_botleft, fun = "sum")
-
   rr_Dtopleft = sum((r_Dtopleft == 2))
   rr_Dbotleft = sum((r_Dbotleft == 2))
-
   sum.Dtl <- raster::cellStats(rr_Dtopleft,"sum")
   sum.Dbl <- raster::cellStats(rr_Dbotleft,"sum")
 
+# pixel neigbourhood sums
   all.px = sum.Dho + sum.Dve + sum.Dtl + sum.Dbl
   diag.px = sum.Dtl + sum.Dbl
   orth.px = sum.Dho + sum.Dve
@@ -103,20 +101,20 @@ Directions = data.frame(vertical = sum.Dve / all.px,
 
 ## RootScape Metrics
 
-#¤ input image should be segmented, unskeletonized image
+# input image should be segmented, unskeletonized image
 
-#' RootScape relies on Landscapemetrics as working horse
+#' RootScapeMetric relies on Landscapemetrics to extract 'Root Scape' Features akin to landscape analysis.
 #'
-#' @param im segmented, unskeletonized raster
-#' @param indexD please specify depth
+#' @param im segmented raster  (values = 0,1). Consider whether skeletonized raster is appropriate.
+#' @param indexD please specify depth. Will only affect the output column = "depth". Useful when used in a loop.
 #' @param metrics which ,metrics should be calculated from the available ones in 'landscapemetrics::calculate_lsm()'. A selection is used as default
 #' Interpretation here: ...
 #'
 #' @return a bunch of metric values
 #' @export
 #'
-#' @examples RootScapeObject  = RootScapeMetrics(image)
-RootScapeMetrics = function(im,indexD, metrics = c( "lsm_c_ca","lsm_l_ent","lsm_c_pd","lsm_c_np","lsm_c_pland",
+#' @examples RootScapeObject  = RootScapeMetrics(image,indexD = 10, metrics = c("lsm_c_ca","lsm_c_enn_mn"))
+RootScapeMetrics = function(im,indexD=NA, metrics = c( "lsm_c_ca","lsm_l_ent","lsm_c_pd","lsm_c_np","lsm_c_pland",
                                                     "lsm_c_area_mn","lsm_c_area_cv","lsm_c_enn_mn","lsm_c_enn_cv")){
 
   rsm = landscapemetrics::calculate_lsm(im, directions = 8, neighbourhood = 8,what = metrics)
@@ -138,9 +136,9 @@ RootScapeMetrics = function(im,indexD, metrics = c( "lsm_c_ca","lsm_l_ent","lsm_
 
 
 
-#' counts all pixels in a binarized root image
+#' counts all pixels in a segmented image
 #'
-#' @param root.zone a one layer raster layer
+#' @param root.zone one layer raster
 #'
 #' @return a numeric value
 #' @export

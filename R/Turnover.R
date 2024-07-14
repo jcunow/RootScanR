@@ -1,14 +1,4 @@
-#
-# im1 = raster::brick("C:/Users/jocu0013/Desktop/Oulanka/Scans_FullSegmented/Oulanka2023_01/FullSegmented_Oulanka2023_Session01_T037.tiff")
-# im2 = raster::brick("C:/Users/jocu0013/Desktop/Oulanka/Scans_FullSegmented/Oulanka2023_03/FullSegmented_Oulanka2023_Session03_T037.tiff")
-#
-# im1 = raster::brick("C:/Users/jocu0013/Desktop/Oulanka/Scans_FullSkeleton/Oulanka2023_01/FullSegmented_Oulanka2023_Session01_T037.tiff.skeleton.png.tiff")
-# im2 = raster::brick("C:/Users/jocu0013/Desktop/Oulanka/Scans_FullSkeleton/Oulanka2023_03/FullSegmented_Oulanka2023_Session03_T037.tiff.skeleton.png.tiff")
-# im1=im1[[2]]
-# im2=im2[[2]]
-
-
-#' Global root production and root turnover
+#' Global root production and root turnover from temporal comparison
 #'
 #' @param im.t1 brick raster timepoint 1
 #' @param im.t2 brick raster timepoint 2
@@ -45,22 +35,21 @@ Turnover.TC = function(im.t1, im.t2,method="kimura",unit = "cm",dpi = 300){
 }
 
 
-# im1 = raster::brick("C:/Users/jocu0013/Desktop/Oulanka/Scan_comparsion/turnover2022/Split_top_Oulanka2022_T037_turnover.png")
 
-#' Estimates New Root Production, Root Decay, and Roots without change
+#' Estimates New Root Production, Root Decay, and Roots without change. Relies on 'RootDetector'
 #'
-#' @param img image in the 'RootDetector' format
+#' @param img image in the 'RootDetector' format - one layer for production, one layer for decay, one layer for stagnation
 #' @param product.layer layer indicating production
 #' @param decay.layer layer indicating decay & tape
-#' @param blur.capture saftey margin on production-decay-constant delination
+#' @param blur.capture pixel are included if:  value >= max value * blur.capture. Ensures that attenuated pixels (as a result of blurring or resizing) are also included
 #' @param im.return return images instead of values?
-#' @param include.virtualroots should all roots which were present at some point in one of the two time steps be considered?
+#' @param include.virtualroots should all roots which were present at some point in one of the two time steps be considered? Consider decay in production ratio, and production in decay ratio?
 #'
 #' @return either pixel sums if im.return = F, or individual layers corresponding to tape, production, decay, and no change
 #' @export
 #'
 #' @examples  PDCs = Turnover.PDC(img = img, im.return = F)
-Turnover.PDC = function(img,product.layer = 2, decay.layer = 1, blur.capture = 0.95, im.return = FALSE, include.virtualroots = TRUE){
+Turnover.PDC = function(img,product.layer = 2, decay.layer = 1, blur.capture = 0.95, im.return = FALSE, include.virtualroots = FALSE){
   l.indx = 1:3
   no.change.layer = which(!l.indx %in% c(product.layer,decay.layer))
   l.pr = img[[product.layer]]
@@ -98,16 +87,13 @@ if(include.virtualroots == TRUE){
   newgrowth.ratio  = prodc.px / (prodc.px + const.px)
   decay.ratio  = decay.px / (decay.px + const.px)
 }
-
-
-    constant.ratio  = const.px / (prodc.px + decay.px + const.px)
-    state.change = (decay.px + prodc.px) / (prodc.px + decay.px + const.px)
-    return(dplyr::tibble("tape" = tape.px, "constant" = const.px,
+  constant.ratio  = const.px / (prodc.px + decay.px + const.px)
+  state.change = (decay.px + prodc.px) / (prodc.px + decay.px + const.px)
+  return(dplyr::tibble("tape" = tape.px, "constant" = const.px,
                   "production" = prodc.px, "decay" = decay.px,
                   "newgrowth.ratio" = round(newgrowth.ratio,4),
                   "decay.ratio" = round(decay.ratio,4),
                   "constant.ratio" = round(constant.ratio,4)))
   }
-
 }
 

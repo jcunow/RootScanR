@@ -1,28 +1,14 @@
 ####### create the depthmap
 
-### manual measurements
-## cases where tape ends followed by a gap, followed by soil 0cm depth
-# add extra rows from manual estimation
-# soil.extra = data.frame(Tube =  paste0("T0",seq(37,72)),
-#                         Plus.0 = c(rep(0,3),340,0,310,320,rep(0,10),590,300,530,0,920,920,0,270,1100,750,0,1320,0,220,410,0,500,290,0))
-# soil.0plus = soil.0
-# soil.0plus$tape.end = soil.0$tape.end + soil.extra$Plus.0
-
-#   im = readTIFF(paste0(path,Session,file.name))
-# create mask to set tape px NA later
-# mask = brick(im)
-# mask = mask$layer.1 - mask$layer.2
-# mask = t(mask)
-
-#' Create A Phase Shifted Cosine Depth Map
+#' Create A Phase-Shifted, Tilt-Amplitude Sine Depth Map
 #'
 #' @param im input image
 #' @param mask indicating which pixels are foreign objects like tape. The mask will be: mask = im[[1]] - im[[2]] if 'RootDetector' format is used
-#' @param tube.thicc Diameter of Minirhizotron Tubes
-#' @param tilt Minirhiztron Tube insertion angle (typically 30-45 degrees)
+#' @param tube.thicc Diameter of minirhizotron tubes
+#' @param tilt Minirhiztron tube insertion angle (typically 30-45 degrees)
 #' @param dpi Image resolution
 #' @param start.soil indicates soil boundary 0cm. Can be retrieved from 'SoilSurfE()' but in-situ calibration is recommended
-#' @param center.offset rotational center. Set 0.5 if down facing tube side is perfectly in the middle
+#' @param center.offset rotational center. Set 0 if top facing tube side is perfectly in the middle
 #'
 #' @return raster image
 #' @export
@@ -30,7 +16,7 @@
 #' @examples map = create.depthmap(im,mask,start.soil = 290 )
 create.depthmap = function(im, mask,
                            tube.thicc = 7,tilt = 45,dpi = 300,
-                           start.soil = 0,center.offset = 0.5){
+                           start.soil = 0,center.offset = 0){
 
   # used for sin()
   radiant = pi/180

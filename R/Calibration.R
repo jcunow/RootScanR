@@ -1,10 +1,10 @@
-#' Estimates Rotation from Tape Coverage
+#' Estimates Rotation from Tape Coverage. Assummes that more tape is present on the tube upside.
 #'
-#' @param img image.tiff
-#' @param tape.brightness used for clustering. Tape appears bright e.g., 0.66
-#' @param tape.quantile aligns extra.rows brightness with the tape. The default uses Silver Tape as reference.
+#' @param img takes raster, filename, or array input.
+#' @param tape.brightness used for clustering. Silver Dukt tape appears bright e.g., > 0.66.
+#' @param tape.quantile aligns extra.rows brightness with tape to ensure the same cluster class. The default uses Silver Tape as reference.
 #' @param extra.rows In case no tape is present. Best leave unchanged - some extra.rows are recommended and will be subtracted from the output anyway.
-#' @param search.area portion of image to perform the tape search on
+#' @param search.area portion of image to perform the tape search on. Potential speed increase.
 #'
 #' @return numeric value corresponding to the center of extruding tape
 #' @export
@@ -12,6 +12,10 @@
 #' @examples value = RotationE(img)
 RotationE = function(img,tape.brightness = 0.66,extra.rows = 100,search.area = 0.45,tape.quantile = 0.98){
 
+  if(is.character(img)){
+    im = raster::brick(img)
+    im = raster::as.array(im)
+  }
   if(!is.array(img) ){
     im = raster::as.array(img)
   }else{
@@ -21,7 +25,7 @@ RotationE = function(img,tape.brightness = 0.66,extra.rows = 100,search.area = 0
   ## add one row of red tape pixel
   red.line = array(dim = c(dim(im)[1],extra.rows,dim(im)[3]))
   red.line[,,1:dim(im)[3]] <- quantile(im[,,1],tape.quantile)
-  img1 = abind2(red.line,im,along = 2)
+  img1 = abind2(red.line,im,along = 2) # adapted function from package:abind
 
   r.img1 = raster::brick(img1)
   ### make the search are smaller
@@ -64,7 +68,7 @@ RotationE = function(img,tape.brightness = 0.66,extra.rows = 100,search.area = 0
 #' @param img2 Subsequent Image
 #' @param cor.type Two correlation types available: "ccf" cross correlation, and "phase" phase correlation in frequency domain. See ??imagefx
 #'
-#' @return numeric value corresponding to rotation in rows. Will be nonsens if image is rotated 90 degrees.
+#' @return numeric value corresponding to rotation in rows. Ensure correct image rotation i.e., rows == rotation
 #' @export
 #'
 #' @examples y.lag = RotShiftDet(img,img2,"phase")
@@ -83,7 +87,8 @@ RotShiftDet = function(img1,img2,cor.type = "phase"){
   dif.dim = dim(img11)-dim(img22)
   if(dif.dim[1] != 0 | dif.dim[2] != 0 ){
     print(paste0("Subsequent images differ in size. Difference is ",dif.dim," px."))
-    img22=resize(img22,output.dim = dim(img11)[1:2],w=dim(img11)[1],h= dim(img11)[2]) # Used to be EBImage function
+    #img22=resize(img22,output.dim = dim(img11)[1:2],w=dim(img11)[1],h= dim(img11)[2]) # Used to be EBImage function
+    img22=OpenImager::resizeImage(img22,output.dim = dim(img11)[1:2],w=dim(img11)[1],h= dim(img11)[2])
   }
 
 
@@ -116,7 +121,7 @@ RotShiftDet = function(img1,img2,cor.type = "phase"){
 #' @param img The image which should be censored
 #' @param center.offset Rotational shift in rows. Can be retrieved from 'RotShiftDet()', reference image is 0 offset
 #' @param cut.buffer ratio of image dimensions that will be cut if fixed.rotation=FALSE
-#' @param fixed.rotation specifies whether censoring is applied to fixed output dimensions or proportional to input dimensions if FALSE
+#' @param fixed.rotation specifies whether censoring is applied to fixed output dimensions (=TRUE) or proportional to input dimensions (=FALSE)
 #' @param fixed.width if fixed.rotation is TRUE, fixed.width specifies the final amount of rows centered at center.offset
 #'
 #' @return a raster
@@ -173,7 +178,7 @@ if(fixed.rotation == TRUE){
 
 #' Estimate the position of the soil surface by tape presence
 #'
-#' @param img image.tiff
+#' @param img raster,filename, or array input
 #' @param search.area ratio of image which is used to look for tape cover. Speeds up computation.
 #' @param tape.tresh ratio of how much of the tube rotation needs to covered in tape
 #' @param dpi image resolution
@@ -189,6 +194,10 @@ if(fixed.rotation == TRUE){
 SoilSurfE = function(img,search.area = 0.45, tape.tresh = 0.33,dpi = 300,
                      tape.overlap = 0.5,tape.brightness = 0.66,extra.rows = 100,tape.quantile = 0.98 ){
 
+  if(is.character(img)){
+    im = raster::brick(img)
+    im = raster::as.array(im)
+  }
   if(!is.array(img) ){
     im = raster::as.array(img)
   }else{
