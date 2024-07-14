@@ -8,19 +8,18 @@
 #' @export
 #'
 #' @examples image = binning(depthmap,nn = 5)
-binning = function(depthmap,nn,round.option = "standard"){
+binning = function(depthmap,nn,round.option = "rounding"){
 
   if(round.option == "rounding"){
     im = nn * round(depthmap / nn,0)
   }
   if(round.option == "ceiling"){
-    im = nn * ceiling(x / nn)
+    im = nn * ceiling(depthmap / nn)
   }
   if(round.option == "floor"){
-    im = nn * floor(x / nn)
+    im = nn * floor(depthmap / nn)
   }
-
-  return(im)
+im
 }
 
 
