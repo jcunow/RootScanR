@@ -2,19 +2,19 @@
 % Please edit documentation in R/Zonestats.R
 \name{RootScapeMetrics}
 \alias{RootScapeMetrics}
-\title{RootScape relies on Landscapemetrics as working horse}
+\title{RootScapeMetric relies on Landscapemetrics to extract 'Root Scape' Features akin to landscape analysis.}
 \usage{
 RootScapeMetrics(
   im,
-  indexD,
+  indexD = NA,
   metrics = c("lsm_c_ca", "lsm_l_ent", "lsm_c_pd", "lsm_c_np", "lsm_c_pland",
     "lsm_c_area_mn", "lsm_c_area_cv", "lsm_c_enn_mn", "lsm_c_enn_cv")
 )
 }
 \arguments{
-\item{im}{segmented, unskeletonized raster}
+\item{im}{segmented raster  (values = 0,1). Consider whether skeletonized raster is appropriate.}
 
-\item{indexD}{please specify depth}
+\item{indexD}{please specify depth. Will only affect the output column = "depth". Useful when used in a loop.}
 
 \item{metrics}{which ,metrics should be calculated from the available ones in 'landscapemetrics::calculate_lsm()'. A selection is used as default
 Interpretation here: ...}
@@ -23,8 +23,8 @@ Interpretation here: ...}
 a bunch of metric values
 }
 \description{
-RootScape relies on Landscapemetrics as working horse
+RootScapeMetric relies on Landscapemetrics to extract 'Root Scape' Features akin to landscape analysis.
 }
 \examples{
-RootScapeObject  = RootScapeMetrics(image)
+RootScapeObject  = RootScapeMetrics(image,indexD = 10, metrics = c("lsm_c_ca","lsm_c_enn_mn"))
 }
