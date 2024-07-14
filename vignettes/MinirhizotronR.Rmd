@@ -122,7 +122,7 @@ mask = (img.segm[[1]] - img.segm[[2]] ) / 255
 mask = raster::t(mask)
 ## Create the Map (cosine.option missing!)
 center.offset = r0  / dim(img.segm)[1]
-DepthMap = MinirhizotronR::create.depthmap(im = img.segm, mask = mask,start.soil = s0$soil0, center.offset = center.offset )
+DepthMap = MinirhizotronR::create.depthmap(img.segm, mask = mask,start.soil = s0$soil0, center.offset = center.offset )
 
 # Now lets bin the depth to be able to calculate some stats. Analysis on continous depth will feature in a future release.
 # we use 5cm intervals here but any bandwidth can be used.
