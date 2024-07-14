@@ -4,7 +4,7 @@
 \alias{binning}
 \title{Takes a continues depth map and bins it to a specified range}
 \usage{
-binning(depthmap, nn, round.option = "standard")
+binning(depthmap, nn, round.option = "rounding")
 }
 \arguments{
 \item{depthmap}{1-layer raster, takes output from create.depthmap()}
