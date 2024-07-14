@@ -2,7 +2,12 @@
 
 MinirhizotronR is a package which has been designed to make the analysis of minirhizotron root scans just a little less stupid. 
 The package relies on prior Image segmentation. We recommend using *RootDetector* or *RootPainter*. This packages enables the user to map various root features to a continues depth distributions. 
-The user has the choice to include the tube insertion angle and tube diameter - or ignore it (?). Rotational bias in root prevalence can be tested. A broad workflow outline could look something below.  
+The user has the choice to include the tube insertion angle and tube diameter - or ignore it (?). Rotational bias of root prevalence can be tested. Drop me a message if you have questions, improvements, or found bugs & errors.
+````
+# install the package
+devtools::install_github("jcunow/MinirhizotronR")
+````
+
 
 
 
