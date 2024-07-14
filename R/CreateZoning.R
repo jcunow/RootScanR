@@ -86,7 +86,7 @@ zone.fun = function(rootpic,binned.map,indexD,nn = 5,silent =F){
 #' @export
 #'
 #' @examples rotationZone1 = zone.rotation.fun(rootpic, k = c(1,2), nn = 7, mm = c(1500,3000))
-zone.rotation.fun = function(rootpic,k=c(3,4),nn = 5,mm = c(2000,5000)){
+zone.rotation.fun = function(rootpic,k=c(3,4),kk = 5,mm = c(2000,5000)){
 
   if(!is.array(rootpic) ){
     img0 = raster::as.array(rootpic)
@@ -94,17 +94,19 @@ zone.rotation.fun = function(rootpic,k=c(3,4),nn = 5,mm = c(2000,5000)){
     img0 = rootpic
   }
 
-
+if(exists("mm")){
   m = seq(mm[1],mm[2],length = mm[2])
   ## rotation wise test
 
   img0 = img0[,m,]
+}
+
 
 
   # lower row for the kth bin
-  q = (k[1]*(nrow(img0)/nn)) %>% floor()
+  q = (k[1]*(nrow(img0)/kk)) %>% floor()
   q = q +1
-  p = (k[2]*(nrow(img0)/nn)) %>% floor()
+  p = (k[2]*(nrow(img0)/kk)) %>% floor()
 
   img00 = img0
 
