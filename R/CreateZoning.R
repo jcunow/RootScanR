@@ -1,15 +1,26 @@
 #' Takes a continues depth map and bins it to a specified range
 #'
-#' @param depthmap image with depth information as illumination
-#' @param nn bandwidth in cm
+#' @param depthmap 1-layer raster, takes output from create.depthmap()
+#' @param nn bin width
+#' @param round.option choose the binning operation. Available are "rounding", "ceiling", and "floor".
 #'
-#' @return depths in bins
+#' @return raster with input depths in bins
 #' @export
 #'
 #' @examples image = binning(depthmap,nn = 5)
-binning = function(depthmap,nn){
-  im = round(round(depthmap*(1/nn),0)*nn)
-  #return(im)
+binning = function(depthmap,nn,round.option = "standard"){
+
+  if(round.option == "rounding"){
+    im = nn * round(depthmap / nn,0)
+  }
+  if(round.option == "ceiling"){
+    im = nn * ceiling(x / nn)
+  }
+  if(round.option == "floor"){
+    im = nn * floor(x / nn)
+  }
+
+  return(im)
 }
 
 
@@ -67,11 +78,11 @@ zone.fun = function(rootpic,binned.map,indexD,nn = 5,silent =F){
 #' RotationZones
 #'
 #' @param rootpic the "to be cut" image
-#' @param nn  number of total cut divisions
-#' @param k specifying which divisions to keep. Must be <= nn
-#' @param mm region along the tube. Adjust to your tube dimensions!
+#' @param nn  number of total cuts along rotation axis
+#' @param k specify which cuts to keep. Must be <= nn
+#' @param mm limit the region along the tube = c(start,end). Adjust to your tube dimensions!
 #'
-#' @return raster image
+#' @return raster, cut along rotation axis
 #' @export
 #'
 #' @examples rotationZone1 = zone.rotation.fun(rootpic, k = c(1,2), nn = 7, mm = c(1500,3000))
