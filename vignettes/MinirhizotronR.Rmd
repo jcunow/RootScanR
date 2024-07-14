@@ -126,7 +126,7 @@ DepthMap = MinirhizotronR::create.depthmap(img.segm, mask = mask,start.soil = s0
 
 # Now lets bin the depth to be able to calculate some stats. Analysis on continous depth will feature in a future release.
 # we use 5cm intervals here but any bandwidth can be used.
-bm = MinirhizotronR::binning(DepthMap, nn = 5)
+bm = MinirhizotronR::binning(DepthMap, nn = 5, "rounding")
 raster::extent(bm) <- c(0,dim(bm)[2],0,dim(bm)[1])
 # Binned Depthmap Plot
 RStoolbox::ggR(bm)+theme_void()
@@ -203,7 +203,7 @@ plot(av.space) + title("total available rooting space")
 rootpx_per_av.space =  root.sum
 rootpx_per_av.space[,2] = root.sum[,2] / av.space[,2]
 df.rootpx_per_av.space = as.data.frame(rootpx_per_av.space)
-ggplot(data=df.rootpx_per_av.space,aes(zone+5,sum)) + geom_point() + geom_smooth(span=0.25) + theme_classic() + ylab("% covered by roots") + xlab("Depth [cm]") +ggtitle("Roots per available rooting space")
+ggplot(data=df.rootpx_per_av.space,aes(zone,sum)) + geom_point() + geom_smooth(span=0.25) + theme_classic() + ylab("% covered by roots") + xlab("Depth [cm]") +ggtitle("Roots per available rooting space")
 #ggsave("C:/Users/jocu0013/Documents/GitHub/MinirhizotronR/figures/rootsperavailablespace.png")  
 ```
 
@@ -213,8 +213,8 @@ ggplot(data=df.rootpx_per_av.space,aes(zone+5,sum)) + geom_point() + geom_smooth
 root.seg = gray.roots
 raster::values(root.seg)[raster::values(raster::t(mask))==1] <- NA
 
-# create a buffer around pixels (12 px == ca. 1mm)
-buff.im = Halo(root.seg, width = 4, halo.only = FALSE)
+# create a buffer around pixels (12 px == ca. 1mm), Rhizophere exudates 2mm (source)
+buff.im = Halo(root.seg, width = 20, halo.only = FALSE)
 RStoolbox::ggR(buff.im) + ggtitle("The sphere of influence (roots + 0.3mm each side)") 
 
 
@@ -258,7 +258,6 @@ tx.mean = raster::zonal(void.tx[[1]],bm,"mean")
 plot(tx.mean) + title("second moment - peat texture characterization")
 ```
 
-
 ### as the tube insertion angle increases, the more we expect a differences between the upside of the tube and the downside. Let's estimate the rotational bias
 ```{r Asess Rotational Bias}
 # lets make the split in 1 cm intervals
@@ -266,11 +265,11 @@ splits = round(dim(root.color)[1]/300*2.54)
 rot.df = data.frame(rotation = 1:splits,rotation.rootpx = NA)
 
 for (k in 1:splits) {
-rotation.z = zone.rotation.fun(rootpic = root.seg, mm= c(4000,9000), nn = splits, k = c(k-1,k))  
+rotation.z = zone.rotation.fun(rootpic = root.seg, mm= c(4000,9000), kk = splits, k = c(k-1,k))  
 rot.df[k,2] = px.sum(root.zone = rotation.z)
 }
 rot.df$sc.rotationpx = scale(rot.df$rotation.rootpx)
-ggplot(data= rot.df, aes(rotation,sc.rotationpx)) + geom_point() +  theme_bw() + xlab("rotation cm") + ylab("root px") + geom_smooth(method="lm", formula = y ~ cos(x*pi/8),method.args = list(start=c(b=8)),aes(color = "cosine fit")) + geom_smooth(se=F,aes(color="local smooth"))
+ggplot(data= rot.df, aes(rotation,sc.rotationpx)) + geom_point() +  theme_bw() + xlab("rotation cm") + ylab("root px") + geom_smooth(method="lm", formula = y ~ cos(x*pi/8),method.args = list(start=c(b=8)),aes(color = "cosine fit")) + geom_smooth(se=F,aes(color="local smooth"),span = 0.5)
 
 ## fit a sine curve to the rotation-sliced image
 fitSinCurve(tt=rot.df$rotation,yy=rot.df$sc.rotationpx)
