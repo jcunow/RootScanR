@@ -17,9 +17,9 @@ RotCensor(
 
 \item{center.offset}{Rotational shift in rows. Can be retrieved from 'RotShiftDet()', reference image is 0 offset}
 
-\item{cut.buffer}{fixed ratio that will be cut in addition}
+\item{cut.buffer}{ratio of image dimensions that will be cut if fixed.rotation=FALSE}
 
-\item{fixed.rotation}{specifies whether censoring is applied to fixed output dimensions or proportional to input dimensions if FALSE}
+\item{fixed.rotation}{specifies whether censoring is applied to fixed output dimensions (=TRUE) or proportional to input dimensions (=FALSE)}
 
 \item{fixed.width}{if fixed.rotation is TRUE, fixed.width specifies the final amount of rows centered at center.offset}
 }

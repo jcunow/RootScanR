@@ -2,16 +2,17 @@
 % Please edit documentation in R/CreateDepthmap.R
 \name{create.depthmap}
 \alias{create.depthmap}
-\title{Create A Phase Shifted Cosine Depth Map}
+\title{Create A Phase-Shifted, Tilt-Amplitude Sine Depth Map}
 \usage{
 create.depthmap(
   im,
   mask,
+  sinoid = TRUE,
   tube.thicc = 7,
   tilt = 45,
   dpi = 300,
   start.soil = 0,
-  center.offset = 0.5
+  center.offset = 0
 )
 }
 \arguments{
@@ -19,21 +20,23 @@ create.depthmap(
 
 \item{mask}{indicating which pixels are foreign objects like tape. The mask will be: mask = im[[1]] - im[[2]] if 'RootDetector' format is used}
 
-\item{tube.thicc}{Diameter of Minirhizotron Tubes}
+\item{sinoid}{set sinoid = TRUE if true depth should be used. Otherwise, tube diameter is ignored.}
 
-\item{tilt}{Minirhiztron Tube insertion angle (typically 30-45 degrees)}
+\item{tube.thicc}{Diameter of minirhizotron tubes}
+
+\item{tilt}{Minirhiztron tube insertion angle (typically 30-45 degrees)}
 
 \item{dpi}{Image resolution}
 
 \item{start.soil}{indicates soil boundary 0cm. Can be retrieved from 'SoilSurfE()' but in-situ calibration is recommended}
 
-\item{center.offset}{rotational center. Set 0.5 if down facing tube side is perfectly in the middle}
+\item{center.offset}{rotational center. Set 0 if top facing tube side is perfectly in the middle}
 }
 \value{
 raster image
 }
 \description{
-Create A Phase Shifted Cosine Depth Map
+Create A Phase-Shifted, Tilt-Amplitude Sine Depth Map
 }
 \examples{
 map = create.depthmap(im,mask,start.soil = 290 )

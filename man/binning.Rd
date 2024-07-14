@@ -4,15 +4,17 @@
 \alias{binning}
 \title{Takes a continues depth map and bins it to a specified range}
 \usage{
-binning(depthmap, nn)
+binning(depthmap, nn, round.option = "standard")
 }
 \arguments{
-\item{depthmap}{image with depth information as illumination}
+\item{depthmap}{1-layer raster, takes output from create.depthmap()}
 
-\item{nn}{bandwidth in cm}
+\item{nn}{bin width}
+
+\item{round.option}{choose the binning operation. Available are "rounding", "ceiling", and "floor".}
 }
 \value{
-depths in bins
+raster with input depths in bins
 }
 \description{
 Takes a continues depth map and bins it to a specified range

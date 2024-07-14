@@ -2,7 +2,7 @@
 % Please edit documentation in R/Turnover.R
 \name{Turnover.TC}
 \alias{Turnover.TC}
-\title{Global root production and root turnover}
+\title{Global root production and root turnover from temporal comparison}
 \usage{
 Turnover.TC(im.t1, im.t2, method = "kimura", unit = "cm", dpi = 300)
 }
@@ -21,7 +21,7 @@ Turnover.TC(im.t1, im.t2, method = "kimura", unit = "cm", dpi = 300)
 standing roots at the start, standing roots at the end, root production, % of new roots compared to starting conditions, % of new roots at the second timepoint
 }
 \description{
-Global root production and root turnover
+Global root production and root turnover from temporal comparison
 }
 \details{
 Chosing kimura as method will return root length with default settings from RootLength()

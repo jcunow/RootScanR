@@ -2,7 +2,7 @@
 % Please edit documentation in R/Turnover.R
 \name{Turnover.PDC}
 \alias{Turnover.PDC}
-\title{Estimates New Root Production, Root Decay, and Roots without change}
+\title{Estimates New Root Production, Root Decay, and Roots without change. Relies on 'RootDetector'}
 \usage{
 Turnover.PDC(
   img,
@@ -10,27 +10,27 @@ Turnover.PDC(
   decay.layer = 1,
   blur.capture = 0.95,
   im.return = FALSE,
-  include.virtualroots = TRUE
+  include.virtualroots = FALSE
 )
 }
 \arguments{
-\item{img}{image in the 'RootDetector' format}
+\item{img}{image in the 'RootDetector' format - one layer for production, one layer for decay, one layer for stagnation}
 
 \item{product.layer}{layer indicating production}
 
 \item{decay.layer}{layer indicating decay & tape}
 
-\item{blur.capture}{saftey margin on production-decay-constant delination}
+\item{blur.capture}{pixel are included if:  value >= max value * blur.capture. Ensures that attenuated pixels (as a result of blurring or resizing) are also included}
 
 \item{im.return}{return images instead of values?}
 
-\item{include.virtualroots}{should all roots which were present at some point in one of the two time steps be considered?}
+\item{include.virtualroots}{should all roots which were present at some point in one of the two time steps be considered? Consider decay in production ratio, and production in decay ratio?}
 }
 \value{
 either pixel sums if im.return = F, or individual layers corresponding to tape, production, decay, and no change
 }
 \description{
-Estimates New Root Production, Root Decay, and Roots without change
+Estimates New Root Production, Root Decay, and Roots without change. Relies on 'RootDetector'
 }
 \examples{
  PDCs = Turnover.PDC(img = img, im.return = F)

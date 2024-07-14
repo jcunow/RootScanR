@@ -16,7 +16,7 @@ SoilSurfE(
 )
 }
 \arguments{
-\item{img}{image.tiff}
+\item{img}{raster,filename, or array input}
 
 \item{search.area}{ratio of image which is used to look for tape cover. Speeds up computation.}
 

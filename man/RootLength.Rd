@@ -7,7 +7,7 @@
 RootLength(im, unit = "cm", dpi = 300)
 }
 \arguments{
-\item{im}{a skeletonized root image}
+\item{im}{a skeletonized root image raster}
 
 \item{unit}{output unit}
 

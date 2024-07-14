@@ -14,7 +14,7 @@ RotShiftDet(img1, img2, cor.type = "phase")
 \item{cor.type}{Two correlation types available: "ccf" cross correlation, and "phase" phase correlation in frequency domain. See ??imagefx}
 }
 \value{
-numeric value corresponding to rotation in rows. Will be nonsens if image is rotated 90 degrees.
+numeric value corresponding to rotation in rows. Ensure correct image rotation i.e., rows == rotation
 }
 \description{
 Rotation Correlation

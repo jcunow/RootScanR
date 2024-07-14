@@ -4,18 +4,23 @@
 \alias{skeletonize}
 \title{Skeletonize a segmented image}
 \usage{
-skeletonize(img, itr = 2)
+skeletonize(img, itr = 2, kernel = "Skeleton:3")
 }
 \arguments{
-\item{img}{binary image, can be path or magick object}
+\item{img}{can be: path, array, raster, or magick object}
 
 \item{itr}{iterations of thinning. see magick::image_morphology}
+
+\item{kernel}{kernel used for image operation. Other operations than skeletonizing is possible.}
 }
 \value{
 image in as magick object
 }
 \description{
 Skeletonize a segmented image
+}
+\details{
+Uses magick::image_morphology but eases the image input format
 }
 \examples{
 img.skeleton = skeletonize("/path/image.png",itr = 2)

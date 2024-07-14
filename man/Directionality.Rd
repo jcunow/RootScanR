@@ -7,7 +7,9 @@
 Directionality(im, rotate = TRUE)
 }
 \arguments{
-\item{im}{a skeletonized image. Roots must be 1, background 0. The rotation of the image determines the output. The default is}
+\item{im}{skeletonized image raster. Roots must be 1, background 0. Consider the input image rotation to interpret the output}
+
+\item{rotate}{should the image be rotated 90 degrees before entering?}
 }
 \value{
 percentage of pixels with given neighbour pixel position

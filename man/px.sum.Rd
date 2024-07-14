@@ -2,18 +2,18 @@
 % Please edit documentation in R/Zonestats.R
 \name{px.sum}
 \alias{px.sum}
-\title{counts all pixels in a binarized root image}
+\title{counts all pixels in a segmented image}
 \usage{
 px.sum(root.zone)
 }
 \arguments{
-\item{root.zone}{a one layer raster layer}
+\item{root.zone}{one layer raster}
 }
 \value{
 a numeric value
 }
 \description{
-counts all pixels in a binarized root image
+counts all pixels in a segmented image
 }
 \examples{
 value  = px.sum(root.zone)
