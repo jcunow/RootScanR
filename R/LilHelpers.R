@@ -31,7 +31,7 @@ skeletonize = function(img,itr = 2, kernel = 'Skeleton:3'){
   if(is.character(img)){
     magick_img = magick::image_read(img)
   }else{
-    if(class(img) == "raster" |class(img) == "RasterBrick"){
+    if(is(img,"raster")){
       magick_img = magick::image_read(raster::as.array(img))
     }else{
       img_array <- as.array(img)
@@ -46,7 +46,7 @@ skeletonize = function(img,itr = 2, kernel = 'Skeleton:3'){
 
   grayscale_img = magick::image_channel(magick_img,"lightness")
   # core fucntion, Perform morphological thinning
-  thinned_img <- image_morphology(grayscale_img, 'Thinning', kernel= kernel,iterations = itr)
+  thinned_img <- magick::image_morphology(grayscale_img, 'Thinning', kernel= kernel,iterations = itr)
 
 
   return(thinned_img)
@@ -58,13 +58,14 @@ skeletonize = function(img,itr = 2, kernel = 'Skeleton:3'){
 #' @param group specify the grouping variable e.g., Plot
 #' @param depth specifiy column name which includes depth values
 #' @param variable accumulating values
+#' @importFrom dplyr %>%
 #'
 #' @return dataframe with one added column "cs" containing the cummulated values
 #' @export
 #'
 #' @examples data1 = root.accumulation(data,group = Plot, depth = depth, variable = rootpx)
 root.accumulation = function(data,group,depth,variable){
-  pdf = data %>% group_by(group) %>% arrange(depth) %>% mutate(cs = cumsum(rootpx))
+  pdf = data %>% dplyr::group_by(group) %>% dplyr::arrange(depth) %>% dplyr::mutate(cs = cumsum(variable))
   return(pdf)
 }
 
@@ -138,7 +139,8 @@ rgb2gray = function(img, r=0.21,g=0.72,b=0.07){
 #'
 #' @return image output
 #'
-#' @examples rrwr(Oulanka2023_T001_L001.tiff,pattern = "_L001", replace = "", dir = getwd(),dir.out = paste0(getwd(),"/renamed/"))
+#' @examples rrwr(Oulanka2023_T001_L001.tiff,
+#' pattern = "_L001", replace = "", dir = getwd(),dir.out = paste0(getwd(),"/renamed/"))
 rrwr = function(img,pattern,replace,dir,dir.out){
   im = tiff::readTIFF(paste0(dir,img))
   name = stringr::str_replace(img, pattern = "Ecfg",replacement = "Oulanka_2020")
