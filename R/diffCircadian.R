@@ -8,36 +8,36 @@
 
 
 #' Fit sin function
-##'
-##' Fit a sine curve where tt is time, and yy is expression value.
-##' @title Fit Data Based on Sine Curve
-##' @param tt Time vector.
-##' @param yy Expression vector.
-##' @param period Period of the sine curve. Default is 24.
-##' @param parStart Initial value for optimization purpose.
-##' @return A list of amp, phase, offset, peak, A, B, SST, SSE, R2.
-##' Formula 1: \eqn{yy = amp * sin(2\pi/period * (phase + tt)) + offset}
-##' Formula 2: \eqn{yy = A * sin(2\pi/period \times tt) + B * cos(2*\pi/period * tt) + offset}
-##' \item{amp}{Amplitude based on formula 1.}
-##' \item{phase}{Phase based on formula 1, phase is restricted within (0, period).}
-##' \item{offset}{Basal level (vertical shift) based on formula 1 or on formula 2.}
-##' \item{A}{A based on formula 2.}
-##' \item{B}{B based on formula 2.}
-##' \item{tss}{Total sum of square.}
-##' \item{rss}{Residual sum of square, SSE/n is the MLE of the variance sigma square.}
-##' \item{R2}{Pseudo R2 defined as (tss - rss)/tss.}
-##' @author Caleb
-##' @import minpack.lm
-##' @export
-##' @examples
-##' set.seed(32608)
-##' n <- 50
-##' tt <- runif(n,0,24)
-##' Amp <- 2
-##' Phase <- 6
-##' Offset <- 3
-##' yy <- Amp * sin(2*pi/24 * (tt + Phase)) + Offset + rnorm(n,0,1)
-##' fitSinCurve(tt, yy)
+#'
+#' Fit a sine curve where tt is time, and yy is expression value.
+#' @title Fit Data Based on Sine Curve
+#' @param tt Time vector.
+#' @param yy Expression vector.
+#' @param period Period of the sine curve. Default is 24.
+#' @param parStart Initial value for optimization purpose.
+#' @return A list of amp, phase, offset, peak, A, B, SST, SSE, R2.
+#' Formula 1: \eqn{yy = amp * sin(2\pi/period * (phase + tt)) + offset}
+#' Formula 2: \eqn{yy = A * sin(2\pi/period \times tt) + B * cos(2*\pi/period * tt) + offset}
+#' \item{amp}{Amplitude based on formula 1.}
+#' \item{phase}{Phase based on formula 1, phase is restricted within (0, period).}
+#' \item{offset}{Basal level (vertical shift) based on formula 1 or on formula 2.}
+#' \item{A}{A based on formula 2.}
+#' \item{B}{B based on formula 2.}
+#' \item{tss}{Total sum of square.}
+#' \item{rss}{Residual sum of square, SSE/n is the MLE of the variance sigma square.}
+#' \item{R2}{Pseudo R2 defined as (tss - rss)/tss.}
+#' @author Caleb
+#' @import minpack.lm
+#' @export
+#' @examples
+#' set.seed(32608)
+#' n <- 50
+#' tt <- runif(n,0,24)
+#' Amp <- 2
+#' Phase <- 6
+#' Offset <- 3
+#' yy <- Amp * sin(2*pi/24 * (tt + Phase)) + Offset + rnorm(n,0,1)
+#' fitSinCurve(tt, yy)
 
 fitSinCurve <- function(tt, yy, period = 24, parStart = list(amp=3,phase=0, offset=0)){
 
@@ -83,34 +83,34 @@ fitSinCurve <- function(tt, yy, period = 24, parStart = list(amp=3,phase=0, offs
 
 
 
-##' Fisher information matrix when two conditions exist
-##'
-##' Obtain the Fisher information matrix when two conditions exist
-##' @title Fisher information matrix when two conditions exist
-##' @param beta parameter vector of 8 with the following order: amp_1, phase_1, offset_1, theta_1, amp_2, phase_2, offset_2, theta_2
-##' @param tt1 time vector of condition 1
-##' @param yy1 expression vector of condition 1
-##' @param tt2 time vector of condition 2
-##' @param yy2 expression vector of condition 2
-##' @param period Period of the since curve. Default is 24.
-##' @return The Fisher information matrix, this is a 8*8 matrix, with the same order as the input beta parameter.
-##' @author Caleb
-##' @noRd
-##' @examples
-##' set.seed(32608)
-##' n <- 50
-##' tt1 <- runif(n,0,24)
-##' Amp1 <- 2
-##' Phase1 <- 6
-##' Offset1 <- 3
-##' yy1 <- Amp1 * sin(2*pi/24 * (tt1 + Phase1)) + Offset1 + rnorm(n,0,1)
-##' tt2 <- runif(n,0,24)
-##' Amp2 <- 3
-##' Phase2 <- 15
-##' Offset2 <- 2
-##' yy2 <- Amp2 * sin(2*pi/24 * (tt2 + Phase2)) + Offset2 + rnorm(n,0,1)
-##' beta <- c(Amp1,Phase1,Offset1,1,Amp2,Phase2,Offset2,2)
-##' fisherInformation2(beta, tt1, yy1, tt2, yy2)
+#' Fisher information matrix when two conditions exist
+#'
+#' Obtain the Fisher information matrix when two conditions exist
+#' @title Fisher information matrix when two conditions exist
+#' @param beta parameter vector of 8 with the following order: amp_1, phase_1, offset_1, theta_1, amp_2, phase_2, offset_2, theta_2
+#' @param tt1 time vector of condition 1
+#' @param yy1 expression vector of condition 1
+#' @param tt2 time vector of condition 2
+#' @param yy2 expression vector of condition 2
+#' @param period Period of the since curve. Default is 24.
+#' @return The Fisher information matrix, this is a 8*8 matrix, with the same order as the input beta parameter.
+#' @author Caleb
+#' @noRd
+#' @examples
+#' set.seed(32608)
+#' n <- 50
+#' tt1 <- runif(n,0,24)
+#' Amp1 <- 2
+#' Phase1 <- 6
+#' Offset1 <- 3
+#' yy1 <- Amp1 * sin(2*pi/24 * (tt1 + Phase1)) + Offset1 + rnorm(n,0,1)
+#' tt2 <- runif(n,0,24)
+#' Amp2 <- 3
+#' Phase2 <- 15
+#' Offset2 <- 2
+#' yy2 <- Amp2 * sin(2*pi/24 * (tt2 + Phase2)) + Offset2 + rnorm(n,0,1)
+#' beta <- c(Amp1,Phase1,Offset1,1,Amp2,Phase2,Offset2,2)
+#' fisherInformation2(beta, tt1, yy1, tt2, yy2)
 
 fisherInformation2 <- function(beta, tt1, yy1, tt2, yy2, period = 24){
 
@@ -205,40 +205,40 @@ fisherInformation2 <- function(beta, tt1, yy1, tt2, yy2, period = 24){
 
 
 #' Finite sample/Large sample Wald test for differential amplitude.
-##'
-##' Test differential amplitude of circadian curve fitting using Wald test
-##' @title Wald test for detecting differential amplitude
-##' @param tt1 Time vector of condition 1
-##' @param yy1 Expression vector of condition 1
-##' @param tt2 Time vector of condition 2
-##' @param yy2 Expression vector of condition 2
-##' @param period Period of the since curve. Default is 24.
-##' @param type Type of Wald test to use, "FN" or "LS". Default is finite sample.
-##' @return A list, see details below.
-##' Formula 1: \eqn{yy = amp \times sin(2\pi/period \times (phase + tt)) + offset}
-##' Formula 2: \eqn{yy = A \times sin(2\pi/period \times tt) + B * cos(2*pi/period * tt) + offset}
-##' \item{amp_1}{Amplitude estimate of the 1st data}
-##' \item{amp_2}{Amplitude estimate of the 2nd data}
-##' \item{amp_c}{Amplitude estimate pooling all data together}
-##' \item{df}{Degree of freedom for the Wald test}
-##' \item{stat}{Wald statistics}
-##' \item{pvalue}{P-value from the Wald test}
-##' @author Caleb
-##' @noRd
-##' @examples
-##' set.seed(32608)
-##' n <- 50
-##' tt1 <- runif(n,0,24)
-##' Amp1 <- 2
-##' Phase1 <- 6
-##' Offset1 <- 3
-##' yy1 <- Amp1 * sin(2*pi/24 * (tt1 + Phase1)) + Offset1 + rnorm(n,0,1)
-##' tt2 <- runif(n,0,24)
-##' Amp2 <- 3
-##' Phase2 <- 5
-##' Offset2 <- 2
-##' yy2 <- Amp2 * sin(2*pi/24 * (tt2 + Phase2)) + Offset2 + rnorm(n,0,1)
-##' WaldTest_diff_amp(tt1, yy1, tt2, yy2)
+#'
+#' Test differential amplitude of circadian curve fitting using Wald test
+#' @title Wald test for detecting differential amplitude
+#' @param tt1 Time vector of condition 1
+#' @param yy1 Expression vector of condition 1
+#' @param tt2 Time vector of condition 2
+#' @param yy2 Expression vector of condition 2
+#' @param period Period of the since curve. Default is 24.
+#' @param type Type of Wald test to use, "FN" or "LS". Default is finite sample.
+#' @return A list, see details below.
+#' Formula 1: \eqn{yy = amp \times sin(2\pi/period \times (phase + tt)) + offset}
+#' Formula 2: \eqn{yy = A \times sin(2\pi/period \times tt) + B * cos(2*pi/period * tt) + offset}
+#' \item{amp_1}{Amplitude estimate of the 1st data}
+#' \item{amp_2}{Amplitude estimate of the 2nd data}
+#' \item{amp_c}{Amplitude estimate pooling all data together}
+#' \item{df}{Degree of freedom for the Wald test}
+#' \item{stat}{Wald statistics}
+#' \item{pvalue}{P-value from the Wald test}
+#' @author Caleb
+#' @noRd
+#' @examples
+#' set.seed(32608)
+#' n <- 50
+#' tt1 <- runif(n,0,24)
+#' Amp1 <- 2
+#' Phase1 <- 6
+#' Offset1 <- 3
+#' yy1 <- Amp1 * sin(2*pi/24 * (tt1 + Phase1)) + Offset1 + rnorm(n,0,1)
+#' tt2 <- runif(n,0,24)
+#' Amp2 <- 3
+#' Phase2 <- 5
+#' Offset2 <- 2
+#' yy2 <- Amp2 * sin(2*pi/24 * (tt2 + Phase2)) + Offset2 + rnorm(n,0,1)
+#' WaldTest_diff_amp(tt1, yy1, tt2, yy2)
 
 
 WaldTest_diff_amp <- function(tt1, yy1, tt2, yy2, period = 24,FN=TRUE){
@@ -406,41 +406,41 @@ WaldTest_diff_amp <- function(tt1, yy1, tt2, yy2, period = 24,FN=TRUE){
 }
 
 
-##' Finite sample/Large sample Wald test for differential basal level (vertical shift).
-##'
-##' Test differential basal level of circadian curve fitting using Wald test
-##' @title Wald test for detecting differential offset
-##' @param tt1 Time vector of condition 1
-##' @param yy1 Expression vector of condition 1
-##' @param tt2 Time vector of condition 2
-##' @param yy2 Expression vector of condition 2
-##' @param period Period of the since curve. Default is 24.
-##' @param type Type of Wald test to use, "FN" or "LS". Default is finite sample.
-##' @return A list, see details below.
-##' Formula 1: \eqn{yy = amp \times sin(2\pi/period \times (phase + tt)) + offset}
-##' Formula 2: \eqn{yy = A \times sin(2\pi/period \times tt) + B * cos(2*pi/period * tt) + offset}
-##' \item{offset_1}{Basal level estimate of the 1st data}
-##' \item{offset_2}{Basal level estimate of the 2nd data}
-##' \item{offset_c}{Basal level estimate pooling all data together}
-##' \item{df}{Degree of freedom for the Wald test}
-##' \item{stat}{Wald statistics}
-##' \item{pvalue}{P-value from the Wald test}
-##' @author Caleb
-##' @noRd
-##' @examples
-##' set.seed(32608)
-##' n <- 50
-##' tt1 <- runif(n,0,24)
-##' Amp1 <- 2
-##' Phase1 <- 6
-##' Offset1 <- 3
-##' yy1 <- Amp1 * sin(2*pi/24 * (tt1 + Phase1)) + Offset1 + rnorm(n,0,1)
-##' tt2 <- runif(n,0,24)
-##' Amp2 <- 3
-##' Phase2 <- 5
-##' Offset2 <- 2
-##' yy2 <- Amp2 * sin(2*pi/24 * (tt2 + Phase2)) + Offset2 + rnorm(n,0,1)
-##' WaldTest_diff_offset(tt1, yy1, tt2, yy2)
+#' Finite sample/Large sample Wald test for differential basal level (vertical shift).
+#'
+#' Test differential basal level of circadian curve fitting using Wald test
+#' @title Wald test for detecting differential offset
+#' @param tt1 Time vector of condition 1
+#' @param yy1 Expression vector of condition 1
+#' @param tt2 Time vector of condition 2
+#' @param yy2 Expression vector of condition 2
+#' @param period Period of the since curve. Default is 24.
+#' @param type Type of Wald test to use, "FN" or "LS". Default is finite sample.
+#' @return A list, see details below.
+#' Formula 1: \eqn{yy = amp \times sin(2\pi/period \times (phase + tt)) + offset}
+#' Formula 2: \eqn{yy = A \times sin(2\pi/period \times tt) + B * cos(2*pi/period * tt) + offset}
+#' \item{offset_1}{Basal level estimate of the 1st data}
+#' \item{offset_2}{Basal level estimate of the 2nd data}
+#' \item{offset_c}{Basal level estimate pooling all data together}
+#' \item{df}{Degree of freedom for the Wald test}
+#' \item{stat}{Wald statistics}
+#' \item{pvalue}{P-value from the Wald test}
+#' @author Caleb
+#' @noRd
+#' @examples
+#' set.seed(32608)
+#' n <- 50
+#' tt1 <- runif(n,0,24)
+#' Amp1 <- 2
+#' Phase1 <- 6
+#' Offset1 <- 3
+#' yy1 <- Amp1 * sin(2*pi/24 * (tt1 + Phase1)) + Offset1 + rnorm(n,0,1)
+#' tt2 <- runif(n,0,24)
+#' Amp2 <- 3
+#' Phase2 <- 5
+#' Offset2 <- 2
+#' yy2 <- Amp2 * sin(2*pi/24 * (tt2 + Phase2)) + Offset2 + rnorm(n,0,1)
+#' WaldTest_diff_offset(tt1, yy1, tt2, yy2)
 
 
 
@@ -611,41 +611,41 @@ WaldTest_diff_offset <- function(tt1, yy1, tt2, yy2, period = 24,FN=TRUE){
 }
 
 
-##' Finite sample/Large sample Wald test for differential phase.
-##'
-##' Test differential phase of circadian curve fitting using Wald test
-##' @title Wald test for detecting differential phase
-##' @param tt1 Time vector of condition 1
-##' @param yy1 Expression vector of condition 1
-##' @param tt2 Time vector of condition 2
-##' @param yy2 Expression vector of condition 2
-##' @param period Period of the since curve. Default is 24.
-##' @param type Type of Wald test to use, "FN" or "LS". Default is finite sample.
-##' @return A list, see details below.
-##' Formula 1: \eqn{yy = amp \times sin(2\pi/period \times (phase + tt)) + offset}
-##' Formula 2: \eqn{yy = A \times sin(2\pi/period \times tt) + B * cos(2*pi/period * tt) + offset}
-##' \item{phase_1}{Phase estimate of the 1st data, phase is restricted in (0, period)}
-##' \item{phase_2}{Phase estimate of the 2nd data, phase is restricted in (0, period)}
-##' \item{phase_c}{Phase estimate pooling all data together, phase is restricted in (0, period)}
-##' \item{df}{Degree of freedom for the Wald test}
-##' \item{stat}{Wald statistics}
-##' \item{pvalue}{P-value from the Wald test}
-##' @author Caleb
-##' @noRd
-##' @examples
-##' set.seed(32608)
-##' n <- 50
-##' tt1 <- runif(n,0,24)
-##' Amp1 <- 2
-##' Phase1 <- 6
-##' Offset1 <- 3
-##' yy1 <- Amp1 * sin(2*pi/24 * (tt1 + Phase1)) + Offset1 + rnorm(n,0,1)
-##' tt2 <- runif(n,0,24)
-##' Amp2 <- 3
-##' Phase2 <- 5
-##' Offset2 <- 2
-##' yy2 <- Amp2 * sin(2*pi/24 * (tt2 + Phase2)) + Offset2 + rnorm(n,0,1)
-##' WaldTest_diff_phase(tt1, yy1, tt2, yy2)
+#' Finite sample/Large sample Wald test for differential phase.
+#'
+#' Test differential phase of circadian curve fitting using Wald test
+#' @title Wald test for detecting differential phase
+#' @param tt1 Time vector of condition 1
+#' @param yy1 Expression vector of condition 1
+#' @param tt2 Time vector of condition 2
+#' @param yy2 Expression vector of condition 2
+#' @param period Period of the since curve. Default is 24.
+#' @param type Type of Wald test to use, "FN" or "LS". Default is finite sample.
+#' @return A list, see details below.
+#' Formula 1: \eqn{yy = amp \times sin(2\pi/period \times (phase + tt)) + offset}
+#' Formula 2: \eqn{yy = A \times sin(2\pi/period \times tt) + B * cos(2*pi/period * tt) + offset}
+#' \item{phase_1}{Phase estimate of the 1st data, phase is restricted in (0, period)}
+#' \item{phase_2}{Phase estimate of the 2nd data, phase is restricted in (0, period)}
+#' \item{phase_c}{Phase estimate pooling all data together, phase is restricted in (0, period)}
+#' \item{df}{Degree of freedom for the Wald test}
+#' \item{stat}{Wald statistics}
+#' \item{pvalue}{P-value from the Wald test}
+#' @author Caleb
+#' @noRd
+#' @examples
+#' set.seed(32608)
+#' n <- 50
+#' tt1 <- runif(n,0,24)
+#' Amp1 <- 2
+#' Phase1 <- 6
+#' Offset1 <- 3
+#' yy1 <- Amp1 * sin(2*pi/24 * (tt1 + Phase1)) + Offset1 + rnorm(n,0,1)
+#' tt2 <- runif(n,0,24)
+#' Amp2 <- 3
+#' Phase2 <- 5
+#' Offset2 <- 2
+#' yy2 <- Amp2 * sin(2*pi/24 * (tt2 + Phase2)) + Offset2 + rnorm(n,0,1)
+#' WaldTest_diff_phase(tt1, yy1, tt2, yy2)
 
 
 WaldTest_diff_phase <- function(tt1, yy1, tt2, yy2, period = 24,FN=TRUE){
@@ -824,41 +824,41 @@ WaldTest_diff_phase <- function(tt1, yy1, tt2, yy2, period = 24,FN=TRUE){
 
 
 
-##' Finite sample/Large sample Wald test for differential sigma square.
-##'
-##' Test differential sigma square of circadian curve fitting using Wald test
-##' @title Wald test for detecting differential sigma square
-##' @param tt1 Time vector of condition 1
-##' @param yy1 Expression vector of condition 1
-##' @param tt2 Time vector of condition 2
-##' @param yy2 Expression vector of condition 2
-##' @param period Period of the since curve. Default is 24.
-##' @param type Type of Wald test to use, "FN" or "LS". Default is finite sample.
-##' @return A list, see details below.
-##' Formula 1: \eqn{yy = amp \times sin(2\pi/period \times (phase + tt)) + offset}
-##' Formula 2: \eqn{yy = A \times sin(2\pi/period \times tt) + B * cos(2*pi/period * tt) + offset}
-##' \item{sigma2_1}{Variance estimate of the 1st data}
-##' \item{sigma2_2}{Variance estimate of the 2nd data}
-##' \item{sigma2_C}{Variance estimate pooling all data together}
-##' \item{df}{Degree of freedom for the Wald test}
-##' \item{stat}{Wald statistics}
-##' \item{pvalue}{P-value from the Wald test}
-##' @author Caleb
-##' @noRd
-##' @examples
-##' set.seed(32608)
-##' n <- 50
-##' tt1 <- runif(n,0,24)
-##' Amp1 <- 2
-##' Phase1 <- 6
-##' Offset1 <- 3
-##' yy1 <- Amp1 * sin(2*pi/24 * (tt1 + Phase1)) + Offset1 + rnorm(n,0,1)
-##' tt2 <- runif(n,0,24)
-##' Amp2 <- 3
-##' Phase2 <- 5
-##' Offset2 <- 2
-##' yy2 <- Amp2 * sin(2*pi/24 * (tt2 + Phase2)) + Offset2 + rnorm(n,0,1)
-##' WaldTest_diff_sigma2(tt1, yy1, tt2, yy2)
+#' Finite sample/Large sample Wald test for differential sigma square.
+#'
+#' Test differential sigma square of circadian curve fitting using Wald test
+#' @title Wald test for detecting differential sigma square
+#' @param tt1 Time vector of condition 1
+#' @param yy1 Expression vector of condition 1
+#' @param tt2 Time vector of condition 2
+#' @param yy2 Expression vector of condition 2
+#' @param period Period of the since curve. Default is 24.
+#' @param type Type of Wald test to use, "FN" or "LS". Default is finite sample.
+#' @return A list, see details below.
+#' Formula 1: \eqn{yy = amp \times sin(2\pi/period \times (phase + tt)) + offset}
+#' Formula 2: \eqn{yy = A \times sin(2\pi/period \times tt) + B * cos(2*pi/period * tt) + offset}
+#' \item{sigma2_1}{Variance estimate of the 1st data}
+#' \item{sigma2_2}{Variance estimate of the 2nd data}
+#' \item{sigma2_C}{Variance estimate pooling all data together}
+#' \item{df}{Degree of freedom for the Wald test}
+#' \item{stat}{Wald statistics}
+#' \item{pvalue}{P-value from the Wald test}
+#' @author Caleb
+#' @noRd
+#' @examples
+#' set.seed(32608)
+#' n <- 50
+#' tt1 <- runif(n,0,24)
+#' Amp1 <- 2
+#' Phase1 <- 6
+#' Offset1 <- 3
+#' yy1 <- Amp1 * sin(2*pi/24 * (tt1 + Phase1)) + Offset1 + rnorm(n,0,1)
+#' tt2 <- runif(n,0,24)
+#' Amp2 <- 3
+#' Phase2 <- 5
+#' Offset2 <- 2
+#' yy2 <- Amp2 * sin(2*pi/24 * (tt2 + Phase2)) + Offset2 + rnorm(n,0,1)
+#' WaldTest_diff_sigma2(tt1, yy1, tt2, yy2)
 
 
 WaldTest_diff_sigma2 <- function(tt1, yy1, tt2, yy2, period = 24,FN=TRUE){
@@ -930,38 +930,38 @@ WaldTest_diff_sigma2 <- function(tt1, yy1, tt2, yy2, period = 24,FN=TRUE){
 
 
 
-##' Finite sample/ Large sample Wald test for circadian pattern detection
-##'
-##' Test the significance of circadian curve fitting using finite sample Wald test
-##' @title Wald test for detecting circadian pattern.
-##' @param tt Time vector
-##' @param yy Expression vector
-##' @param period Period of the since curve. Default is 24.
-##' @param type Type of Test, finite sample "FN" or large sample "LS", default is "FN".
-##' @return A list of A, B, offset, df, stat, and pvalue
-##' Formula 1: \eqn{yy = amp \times sin(2\pi/period \times (phase + tt)) + offset}
-##' Formula 2: \eqn{yy = A \times sin(2\pi/period \times tt) + B * cos(2*pi/period * tt) + offset}
-##' \item{A}{A based on formula 2}
-##' \item{B}{B based on formula 2}
-##' \item{amp}{Amplitude based on formula 1}
-##' \item{phase}{Phase based on formula 1, phase is restricted within (0, period)}
-##' \item{peakTime}{Phase based on formula 1, peakTime is restricted within (0, period). phase + peakTime = period/4}
-##' \item{offset}{Basal level based on formula 1 or on formula 2}
-##' \item{df}{Degree of freedom for the Wald test}
-##' \item{stat}{Wald statistics}
-##' \item{pvalue}{P-value from the Wald test}
-##' \item{R2}{Pseudo R2 defined as (tss - rss)/tss}
-##' @author Caleb
-##' @noRd
-##' @examples
-##' set.seed(32608)
-##' n <- 50
-##' tt <- runif(n,0,24)
-##' Amp <- 2
-##' Phase <- 6
-##' Offset <- 3
-##' yy <- Amp * sin(2*pi/24 * (tt + Phase)) + Offset + rnorm(n,0,1)
-##' WaldTest(tt, yy)
+#' Finite sample/ Large sample Wald test for circadian pattern detection
+#'
+#' Test the significance of circadian curve fitting using finite sample Wald test
+#' @title Wald test for detecting circadian pattern.
+#' @param tt Time vector
+#' @param yy Expression vector
+#' @param period Period of the since curve. Default is 24.
+#' @param type Type of Test, finite sample "FN" or large sample "LS", default is "FN".
+#' @return A list of A, B, offset, df, stat, and pvalue
+#' Formula 1: \eqn{yy = amp \times sin(2\pi/period \times (phase + tt)) + offset}
+#' Formula 2: \eqn{yy = A \times sin(2\pi/period \times tt) + B * cos(2*pi/period * tt) + offset}
+#' \item{A}{A based on formula 2}
+#' \item{B}{B based on formula 2}
+#' \item{amp}{Amplitude based on formula 1}
+#' \item{phase}{Phase based on formula 1, phase is restricted within (0, period)}
+#' \item{peakTime}{Phase based on formula 1, peakTime is restricted within (0, period). phase + peakTime = period/4}
+#' \item{offset}{Basal level based on formula 1 or on formula 2}
+#' \item{df}{Degree of freedom for the Wald test}
+#' \item{stat}{Wald statistics}
+#' \item{pvalue}{P-value from the Wald test}
+#' \item{R2}{Pseudo R2 defined as (tss - rss)/tss}
+#' @author Caleb
+#' @noRd
+#' @examples
+#' set.seed(32608)
+#' n <- 50
+#' tt <- runif(n,0,24)
+#' Amp <- 2
+#' Phase <- 6
+#' Offset <- 3
+#' yy <- Amp * sin(2*pi/24 * (tt + Phase)) + Offset + rnorm(n,0,1)
+#' WaldTest(tt, yy)
 
 WaldTest <- function(tt, yy, period = 24, type=TRUE){
   afit <- fitSinCurve(tt, yy, period=period)
@@ -1039,43 +1039,43 @@ WaldTest <- function(tt, yy, period = 24, type=TRUE){
 
 
 
-##' Finite sample/Large sample Likelihood ratio test for differential basal level.
-##'
-##' Test differential offset of circadian curve fitting using likelihood ratio test
-##' @title Likelihood ratio test for detecting differential basal level.
-##' @param tt1 Time vector of condition 1
-##' @param yy1 Expression vector of condition 1
-##' @param tt2 Time vector of condition 2
-##' @param yy2 Expression vector of condition 2
-##' @param period Period of the since curve. Default is 24.
-##' @param type Type of likelihood ratio test to use, "FN" or "LS". Default is finite sample.
-##' @return A list, see details below.
-##' Formula 1: \eqn{yy = amp \times sin(2\pi/period \times (phase + tt)) + offset}
-##' Formula 2: \eqn{yy = A \times sin(2\pi/period \times tt) + B * cos(2*pi/period * tt) + offset}
-##' \item{offset_1}{Basal level estimate of the 1st data}
-##' \item{offset_2}{Basal level estimate of the 2nd data}
-##' \item{offset_c}{Basal level estimate pooling all data together}
-##' \item{l0}{Log likelihood under the null (same variance between the two groups)}
-##' \item{l1}{Log likelihood under the alternative (different variance between the two groups)}
-##' \item{df}{Degree of freedom for the LR test}
-##' \item{stat}{LR statistics}
-##' \item{pvalue}{P-value from the LR test}
-##' @author Caleb
-##' @noRd
-##' @examples
-##' set.seed(32608)
-##' n <- 50
-##' tt1 <- runif(n,0,24)
-##' Amp1 <- 2
-##' Phase1 <- 6
-##' Offset1 <- 3
-##' yy1 <- Amp1 * sin(2*pi/24 * (tt1 + Phase1)) + Offset1 + rnorm(n,0,1)
-##' tt2 <- runif(n,0,24)
-##' Amp2 <- 3
-##' Phase2 <- 5
-##' Offset2 <- 2
-##' yy2 <- Amp2 * sin(2*pi/24 * (tt2 + Phase2)) + Offset2 + rnorm(n,0,1)
-##' LRTest_diff_offset(tt1, yy1, tt2, yy2)
+#' Finite sample/Large sample Likelihood ratio test for differential basal level.
+#'
+#' Test differential offset of circadian curve fitting using likelihood ratio test
+#' @title Likelihood ratio test for detecting differential basal level.
+#' @param tt1 Time vector of condition 1
+#' @param yy1 Expression vector of condition 1
+#' @param tt2 Time vector of condition 2
+#' @param yy2 Expression vector of condition 2
+#' @param period Period of the since curve. Default is 24.
+#' @param type Type of likelihood ratio test to use, "FN" or "LS". Default is finite sample.
+#' @return A list, see details below.
+#' Formula 1: \eqn{yy = amp \times sin(2\pi/period \times (phase + tt)) + offset}
+#' Formula 2: \eqn{yy = A \times sin(2\pi/period \times tt) + B * cos(2*pi/period * tt) + offset}
+#' \item{offset_1}{Basal level estimate of the 1st data}
+#' \item{offset_2}{Basal level estimate of the 2nd data}
+#' \item{offset_c}{Basal level estimate pooling all data together}
+#' \item{l0}{Log likelihood under the null (same variance between the two groups)}
+#' \item{l1}{Log likelihood under the alternative (different variance between the two groups)}
+#' \item{df}{Degree of freedom for the LR test}
+#' \item{stat}{LR statistics}
+#' \item{pvalue}{P-value from the LR test}
+#' @author Caleb
+#' @noRd
+#' @examples
+#' set.seed(32608)
+#' n <- 50
+#' tt1 <- runif(n,0,24)
+#' Amp1 <- 2
+#' Phase1 <- 6
+#' Offset1 <- 3
+#' yy1 <- Amp1 * sin(2*pi/24 * (tt1 + Phase1)) + Offset1 + rnorm(n,0,1)
+#' tt2 <- runif(n,0,24)
+#' Amp2 <- 3
+#' Phase2 <- 5
+#' Offset2 <- 2
+#' yy2 <- Amp2 * sin(2*pi/24 * (tt2 + Phase2)) + Offset2 + rnorm(n,0,1)
+#' LRTest_diff_offset(tt1, yy1, tt2, yy2)
 
 
 LRTest_diff_offset <- function(tt1, yy1, tt2, yy2, period = 24,FN=TRUE){
@@ -1278,43 +1278,43 @@ LRTest_diff_offset <- function(tt1, yy1, tt2, yy2, period = 24,FN=TRUE){
 }
 
 
-##' Finite sample/Large sample Likelihood ratio test for differential amplitude.
-##'
-##' Test differential amplitude of circadian curve fitting using likelihood ratio test
-##' @title Likelihood ratio test for detecting differential amplitudes.
-##' @param tt1 Time vector of condition 1
-##' @param yy1 Expression vector of condition 1
-##' @param tt2 Time vector of condition 2
-##' @param yy2 Expression vector of condition 2
-##' @param period Period of the since curve. Default is 24.
-##' @param type Type of likelihood ratio test to use, "FN" or "LS". Default is finite sample.
-##' @return A list, see details below.
-##' Formula 1: \eqn{yy = amp \times sin(2\pi/period \times (phase + tt)) + offset}
-##' Formula 2: \eqn{yy = A \times sin(2\pi/period \times tt) + B * cos(2*pi/period * tt) + offset}
-##' \item{amp_1}{Amplitude estimate of the 1st data}
-##' \item{amp_2}{Amplitude estimate of the 2nd data}
-##' \item{amp_c}{Amplitude estimate pooling all data together}
-##' \item{l0}{Log likelihood under the null (same variance between the two groups)}
-##' \item{l1}{Log likelihood under the alternative (different variance between the two groups)}
-##' \item{df}{Degree of freedom for the LR test}
-##' \item{stat}{LR statistics}
-##' \item{pvalue}{P-value from the LR test}
-##' @author Caleb
-##' @noRd
-##' @examples
-##' set.seed(32608)
-##' n <- 50
-##' tt1 <- runif(n,0,24)
-##' Amp1 <- 2
-##' Phase1 <- 6
-##' Offset1 <- 3
-##' yy1 <- Amp1 * sin(2*pi/24 * (tt1 + Phase1)) + Offset1 + rnorm(n,0,1)
-##' tt2 <- runif(n,0,24)
-##' Amp2 <- 3
-##' Phase2 <- 5
-##' Offset2 <- 2
-##' yy2 <- Amp2 * sin(2*pi/24 * (tt2 + Phase2)) + Offset2 + rnorm(n,0,1)
-##' LRTest_diff_amp(tt1, yy1, tt2, yy2)
+#' Finite sample/Large sample Likelihood ratio test for differential amplitude.
+#'
+#' Test differential amplitude of circadian curve fitting using likelihood ratio test
+#' @title Likelihood ratio test for detecting differential amplitudes.
+#' @param tt1 Time vector of condition 1
+#' @param yy1 Expression vector of condition 1
+#' @param tt2 Time vector of condition 2
+#' @param yy2 Expression vector of condition 2
+#' @param period Period of the since curve. Default is 24.
+#' @param type Type of likelihood ratio test to use, "FN" or "LS". Default is finite sample.
+#' @return A list, see details below.
+#' Formula 1: \eqn{yy = amp \times sin(2\pi/period \times (phase + tt)) + offset}
+#' Formula 2: \eqn{yy = A \times sin(2\pi/period \times tt) + B * cos(2*pi/period * tt) + offset}
+#' \item{amp_1}{Amplitude estimate of the 1st data}
+#' \item{amp_2}{Amplitude estimate of the 2nd data}
+#' \item{amp_c}{Amplitude estimate pooling all data together}
+#' \item{l0}{Log likelihood under the null (same variance between the two groups)}
+#' \item{l1}{Log likelihood under the alternative (different variance between the two groups)}
+#' \item{df}{Degree of freedom for the LR test}
+#' \item{stat}{LR statistics}
+#' \item{pvalue}{P-value from the LR test}
+#' @author Caleb
+#' @noRd
+#' @examples
+#' set.seed(32608)
+#' n <- 50
+#' tt1 <- runif(n,0,24)
+#' Amp1 <- 2
+#' Phase1 <- 6
+#' Offset1 <- 3
+#' yy1 <- Amp1 * sin(2*pi/24 * (tt1 + Phase1)) + Offset1 + rnorm(n,0,1)
+#' tt2 <- runif(n,0,24)
+#' Amp2 <- 3
+#' Phase2 <- 5
+#' Offset2 <- 2
+#' yy2 <- Amp2 * sin(2*pi/24 * (tt2 + Phase2)) + Offset2 + rnorm(n,0,1)
+#' LRTest_diff_amp(tt1, yy1, tt2, yy2)
 
 
 LRTest_diff_amp<- function(tt1, yy1, tt2, yy2, period = 24,FN=TRUE){
@@ -1471,7 +1471,7 @@ LRTest_diff_amp<- function(tt1, yy1, tt2, yy2, period = 24,FN=TRUE){
                 #"check_derivatives"=TRUE
   )
 
-  res <- nloptr:nloptr( x0 = x_Ha,
+  res <- nloptr::nloptr( x0 = x_Ha,
                   eval_f = eval_f_list,
                   #eval_grad_f=eval_g,
                   lb = lb,
@@ -1520,43 +1520,43 @@ LRTest_diff_amp<- function(tt1, yy1, tt2, yy2, period = 24,FN=TRUE){
 }
 
 
-##' Finite sample/Large sample Likelihood ratio test for differential phase.
-##'
-##' Test differential phase of circadian curve fitting using likelihood ratio test
-##' @title Likelihood ratio test for detecting differential phase.
-##' @param tt1 Time vector of condition 1
-##' @param yy1 Expression vector of condition 1
-##' @param tt2 Time vector of condition 2
-##' @param yy2 Expression vector of condition 2
-##' @param period Period of the since curve. Default is 24.
-##' @param type Type of likelihood ratio test to use, "FN" or "LS". Default is finite sample.
-##' @return A list, see details below.
-##' Formula 1: \eqn{yy = amp \times sin(2\pi/period \times (phase + tt)) + offset}
-##' Formula 2: \eqn{yy = A \times sin(2\pi/period \times tt) + B * cos(2*pi/period * tt) + offset}
-##' \item{phase_1}{Phase estimate of the 1st data, phase is restricted in (0, period)}
-##' \item{phase_2}{Phase estimate of the 2nd data, phase is restricted in (0, period)}
-##' \item{phase_c}{Phase estimate pooling all data together, phase is restricted in (0, period)}
-##' \item{l0}{Log likelihood under the null (same variance between the two groups)}
-##' \item{l1}{Log likelihood under the alternative (different variance between the two groups)}
-##' \item{df}{Degree of freedom for the LR test}
-##' \item{stat}{LR statistics}
-##' \item{pvalue}{P-value from the LR test}
-##' @author Caleb
-##' @noRd
-##' @examples
-##' set.seed(32608)
-##' n <- 50
-##' tt1 <- runif(n,0,24)
-##' Amp1 <- 2
-##' Phase1 <- 6
-##' Offset1 <- 3
-##' yy1 <- Amp1 * sin(2*pi/24 * (tt1 + Phase1)) + Offset1 + rnorm(n,0,1)
-##' tt2 <- runif(n,0,24)
-##' Amp2 <- 3
-##' Phase2 <- 5
-##' Offset2 <- 2
-##' yy2 <- Amp2 * sin(2*pi/24 * (tt2 + Phase2)) + Offset2 + rnorm(n,0,1)
-##' LRTest_diff_phase(tt1, yy1, tt2, yy2)
+#' Finite sample/Large sample Likelihood ratio test for differential phase.
+#'
+#' Test differential phase of circadian curve fitting using likelihood ratio test
+#' @title Likelihood ratio test for detecting differential phase.
+#' @param tt1 Time vector of condition 1
+#' @param yy1 Expression vector of condition 1
+#' @param tt2 Time vector of condition 2
+#' @param yy2 Expression vector of condition 2
+#' @param period Period of the since curve. Default is 24.
+#' @param type Type of likelihood ratio test to use, "FN" or "LS". Default is finite sample.
+#' @return A list, see details below.
+#' Formula 1: \eqn{yy = amp \times sin(2\pi/period \times (phase + tt)) + offset}
+#' Formula 2: \eqn{yy = A \times sin(2\pi/period \times tt) + B * cos(2*pi/period * tt) + offset}
+#' \item{phase_1}{Phase estimate of the 1st data, phase is restricted in (0, period)}
+#' \item{phase_2}{Phase estimate of the 2nd data, phase is restricted in (0, period)}
+#' \item{phase_c}{Phase estimate pooling all data together, phase is restricted in (0, period)}
+#' \item{l0}{Log likelihood under the null (same variance between the two groups)}
+#' \item{l1}{Log likelihood under the alternative (different variance between the two groups)}
+#' \item{df}{Degree of freedom for the LR test}
+#' \item{stat}{LR statistics}
+#' \item{pvalue}{P-value from the LR test}
+#' @author Caleb
+#' @noRd
+#' @examples
+#' set.seed(32608)
+#' n <- 50
+#' tt1 <- runif(n,0,24)
+#' Amp1 <- 2
+#' Phase1 <- 6
+#' Offset1 <- 3
+#' yy1 <- Amp1 * sin(2*pi/24 * (tt1 + Phase1)) + Offset1 + rnorm(n,0,1)
+#' tt2 <- runif(n,0,24)
+#' Amp2 <- 3
+#' Phase2 <- 5
+#' Offset2 <- 2
+#' yy2 <- Amp2 * sin(2*pi/24 * (tt2 + Phase2)) + Offset2 + rnorm(n,0,1)
+#' LRTest_diff_phase(tt1, yy1, tt2, yy2)
 
 
 LRTest_diff_phase <- function(tt1, yy1, tt2, yy2, period = 24,FN=TRUE){
@@ -1727,43 +1727,43 @@ LRTest_diff_phase <- function(tt1, yy1, tt2, yy2, period = 24,FN=TRUE){
 }
 
 
-##' Finite sample/Large sample Likelihood ratio test for differential sigma square.
-##'
-##' Test differential sigma2 of circadian curve fitting using likelihood ratio test
-##' @title Likelihood ratio test for detecting differential sigma square.
-##' @param tt1 Time vector of condition 1
-##' @param yy1 Expression vector of condition 1
-##' @param tt2 Time vector of condition 2
-##' @param yy2 Expression vector of condition 2
-##' @param period Period of the since curve. Default is 24.
-##' @param type Type of likelihood ratio test to use, "FN" or "LS". Default is finite sample.
-##' @return A list, see details below.
-##' Formula 1: \eqn{yy = amp \times sin(2\pi/period \times (phase + tt)) + offset}
-##' Formula 2: \eqn{yy = A \times sin(2\pi/period \times tt) + B * cos(2*pi/period * tt) + offset}
-##' \item{sigma2_1}{Variance estimate of the 1st data}
-##' \item{sigma2_2}{Variance estimate of the 2nd data}
-##' \item{sigma2_C}{Variance estimate pooling all data together}
-##' \item{l0}{Log likelihood under the null (same variance between the two groups)}
-##' \item{l1}{Log likelihood under the alternative (different variance between the two groups)}
-##' \item{df}{Degree of freedom for the LR test}
-##' \item{stat}{LR statistics}
-##' \item{pvalue}{P-value from the LR test}
-##' @author Caleb
-##' @noRd
-##' @examples
-##' set.seed(32608)
-##' n <- 50
-##' tt1 <- runif(n,0,24)
-##' Amp1 <- 2
-##' Phase1 <- 6
-##' Offset1 <- 3
-##' yy1 <- Amp1 * sin(2*pi/24 * (tt1 + Phase1)) + Offset1 + rnorm(n,0,1)
-##' tt2 <- runif(n,0,24)
-##' Amp2 <- 3
-##' Phase2 <- 5
-##' Offset2 <- 2
-##' yy2 <- Amp2 * sin(2*pi/24 * (tt2 + Phase2)) + Offset2 + rnorm(n,0,1)
-##' LRTest_diff_sigma2(tt1, yy1, tt2, yy2)
+#' Finite sample/Large sample Likelihood ratio test for differential sigma square.
+#'
+#' Test differential sigma2 of circadian curve fitting using likelihood ratio test
+#' @title Likelihood ratio test for detecting differential sigma square.
+#' @param tt1 Time vector of condition 1
+#' @param yy1 Expression vector of condition 1
+#' @param tt2 Time vector of condition 2
+#' @param yy2 Expression vector of condition 2
+#' @param period Period of the since curve. Default is 24.
+#' @param type Type of likelihood ratio test to use, "FN" or "LS". Default is finite sample.
+#' @return A list, see details below.
+#' Formula 1: \eqn{yy = amp \times sin(2\pi/period \times (phase + tt)) + offset}
+#' Formula 2: \eqn{yy = A \times sin(2\pi/period \times tt) + B * cos(2*pi/period * tt) + offset}
+#' \item{sigma2_1}{Variance estimate of the 1st data}
+#' \item{sigma2_2}{Variance estimate of the 2nd data}
+#' \item{sigma2_C}{Variance estimate pooling all data together}
+#' \item{l0}{Log likelihood under the null (same variance between the two groups)}
+#' \item{l1}{Log likelihood under the alternative (different variance between the two groups)}
+#' \item{df}{Degree of freedom for the LR test}
+#' \item{stat}{LR statistics}
+#' \item{pvalue}{P-value from the LR test}
+#' @author Caleb
+#' @noRd
+#' @examples
+#' set.seed(32608)
+#' n <- 50
+#' tt1 <- runif(n,0,24)
+#' Amp1 <- 2
+#' Phase1 <- 6
+#' Offset1 <- 3
+#' yy1 <- Amp1 * sin(2*pi/24 * (tt1 + Phase1)) + Offset1 + rnorm(n,0,1)
+#' tt2 <- runif(n,0,24)
+#' Amp2 <- 3
+#' Phase2 <- 5
+#' Offset2 <- 2
+#' yy2 <- Amp2 * sin(2*pi/24 * (tt2 + Phase2)) + Offset2 + rnorm(n,0,1)
+#' LRTest_diff_sigma2(tt1, yy1, tt2, yy2)
 
 
 LRTest_diff_sigma2 <- function(tt1, yy1, tt2, yy2, period = 24,FN=TRUE){
@@ -1812,40 +1812,40 @@ LRTest_diff_sigma2 <- function(tt1, yy1, tt2, yy2, period = 24,FN=TRUE){
 
 
 
-##' Finite sample/ large sample Likelihood ratio test for circadian pattern detection
-##'
-##' Test the significance of circadian curve fitting using finite sample likelihood ratio test
-##' @title LR Test for detecting circadian pattern.
-##' @param tt Time vector
-##' @param yy Expression vector
-##' @param period Period of the since curve. Default is 24.
-##' @param type Type of Test, finite sample "FN" or large sample "LS", default is "FN".
-##' @return A list of amp, phase, offset, sigma02, sigmaA2, l0, l1, df, stat, and pvalue.
-##' Formula 1: \eqn{yy = amp \times sin(2\pi/period \times (phase + tt)) + offset}
-##' Formula 2: \eqn{yy = A \times sin(2\pi/period \times tt) + B * cos(2*pi/period * tt) + offset}
-##' \item{amp}{Amplitude based on formula 1}
-##' \item{phase}{Phase based on formula 1, phase is restricted within (0, period)}
-##' \item{peakTime}{Phase based on formula 1, peakTime is restricted within (0, period). phase + peakTime = period/4}
-##' \item{offset}{Basal level(vertical shift) based on formula 1 or on formula 2}
-##' \item{sigma02}{Variance estimate under the null (intercept only)}
-##' \item{sigmaA2}{Variance estimate under the alternative (since curve fitting)}
-##' \item{l0}{Log likelihood under the null (intercept only)}
-##' \item{l1}{Log likelihood under the alternative (since curve fitting)}
-##' \item{df}{Degree of freedom for the LR test}
-##' \item{stat}{LR statistics}
-##' \item{pvalue}{P-value from the LR test}
-##' \item{R2}{Pseudo R2 defined as (tss - rss)/tss}
-##' @author Caleb
-##' @noRd
-##' @examples
-##' set.seed(32608)
-##' n <- 50
-##' tt <- runif(n,0,24)
-##' Amp <- 2
-##' Phase <- 6
-##' Offset <- 3
-##' yy <- Amp * sin(2*pi/24 * (tt + Phase)) + Offset + rnorm(n,0,1)
-##' LRTest(tt, yy)
+#' Finite sample/ large sample Likelihood ratio test for circadian pattern detection
+#'
+#' Test the significance of circadian curve fitting using finite sample likelihood ratio test
+#' @title LR Test for detecting circadian pattern.
+#' @param tt Time vector
+#' @param yy Expression vector
+#' @param period Period of the since curve. Default is 24.
+#' @param type Type of Test, finite sample "FN" or large sample "LS", default is "FN".
+#' @return A list of amp, phase, offset, sigma02, sigmaA2, l0, l1, df, stat, and pvalue.
+#' Formula 1: \eqn{yy = amp \times sin(2\pi/period \times (phase + tt)) + offset}
+#' Formula 2: \eqn{yy = A \times sin(2\pi/period \times tt) + B * cos(2*pi/period * tt) + offset}
+#' \item{amp}{Amplitude based on formula 1}
+#' \item{phase}{Phase based on formula 1, phase is restricted within (0, period)}
+#' \item{peakTime}{Phase based on formula 1, peakTime is restricted within (0, period). phase + peakTime = period/4}
+#' \item{offset}{Basal level(vertical shift) based on formula 1 or on formula 2}
+#' \item{sigma02}{Variance estimate under the null (intercept only)}
+#' \item{sigmaA2}{Variance estimate under the alternative (since curve fitting)}
+#' \item{l0}{Log likelihood under the null (intercept only)}
+#' \item{l1}{Log likelihood under the alternative (since curve fitting)}
+#' \item{df}{Degree of freedom for the LR test}
+#' \item{stat}{LR statistics}
+#' \item{pvalue}{P-value from the LR test}
+#' \item{R2}{Pseudo R2 defined as (tss - rss)/tss}
+#' @author Caleb
+#' @noRd
+#' @examples
+#' set.seed(32608)
+#' n <- 50
+#' tt <- runif(n,0,24)
+#' Amp <- 2
+#' Phase <- 6
+#' Offset <- 3
+#' yy <- Amp * sin(2*pi/24 * (tt + Phase)) + Offset + rnorm(n,0,1)
+#' LRTest(tt, yy)
 
 #model: y=A*sin(2*pi*x+B)+C
 #y: a 1*n vector of data y
@@ -1901,40 +1901,40 @@ LRTest <- function(tt,yy, period = 24,type=TRUE){
 }
 
 
-##' Likelihood-based tests for circadian pattern detection.
-##'
-##' Test the significance of circadian curve fitting using likelihood-based tests.
-##' @title Likelihood-based Tests for Detecting Circadian Pattern.
-##' @param tt Time vector
-##' @param yy Expression vector
-##' @param period Period of the since curve. Default is 24.
-##' @param method Testing methods can be "Wald" or "LR". Default is "LR".
-##' @param FN Type of Test, finite sample if TRUE or large sample if FALSE. Default is TRUE.
-##' @return A list of amp, phase, offset, sigma02, sigmaA2, l0, l1, df, stat, and pvalue.
-##' Formula 1: \eqn{yy = amp * sin(2\pi/period * (phase + tt)) + offset}
-##' Formula 2: \eqn{yy = A * sin(2\pi/period * tt) + B * cos(2*\pi/period * tt) + offset}
-##' \item{amp}{Amplitude based on formula 1.}
-##' \item{phase}{Phase based on formula 1, phase is restricted within (0, period).}
-##' \item{peakTime}{Phase based on formula 1, peakTime is restricted within (0, period). phase + peakTime = period/4}
-##' \item{offset}{Basal level (vertical shift) based on formula 1 or on formula 2.}
-##' \item{sigma02}{Variance estimate under the null (intercept only).}
-##' \item{sigmaA2}{Variance estimate under the alternative (since curve fitting).}
-##' \item{l0}{Log likelihood under the null (intercept only).}
-##' \item{l1}{Log likelihood under the alternative (since curve fitting).}
-##' \item{stat}{Test statistic.}
-##' \item{pvalue}{P-value from the test.}
-##' \item{R2}{Pseudo R2 defined as (tss - rss)/tss.}
-##' @author Zhiguang Huo, Haocheng Ding
-##' @export
-##' @examples
-##' set.seed(32608)
-##' n <- 50
-##' tt <- runif(n,0,24)
-##' Amp <- 2
-##' Phase <- 6
-##' Offset <- 3
-##' yy <- Amp * sin(2*pi/24 * (tt + Phase)) + Offset + rnorm(n,0,1)
-##' LR_rhythmicity(tt, yy, period=24, method="LR", FN=TRUE)
+#' Likelihood-based tests for circadian pattern detection.
+#'
+#' Test the significance of circadian curve fitting using likelihood-based tests.
+#' @title Likelihood-based Tests for Detecting Circadian Pattern.
+#' @param tt Time vector
+#' @param yy Expression vector
+#' @param period Period of the since curve. Default is 24.
+#' @param method Testing methods can be "Wald" or "LR". Default is "LR".
+#' @param FN Type of Test, finite sample if TRUE or large sample if FALSE. Default is TRUE.
+#' @return A list of amp, phase, offset, sigma02, sigmaA2, l0, l1, df, stat, and pvalue.
+#' Formula 1: \eqn{yy = amp * sin(2\pi/period * (phase + tt)) + offset}
+#' Formula 2: \eqn{yy = A * sin(2\pi/period * tt) + B * cos(2*\pi/period * tt) + offset}
+#' \item{amp}{Amplitude based on formula 1.}
+#' \item{phase}{Phase based on formula 1, phase is restricted within (0, period).}
+#' \item{peakTime}{Phase based on formula 1, peakTime is restricted within (0, period). phase + peakTime = period/4}
+#' \item{offset}{Basal level (vertical shift) based on formula 1 or on formula 2.}
+#' \item{sigma02}{Variance estimate under the null (intercept only).}
+#' \item{sigmaA2}{Variance estimate under the alternative (since curve fitting).}
+#' \item{l0}{Log likelihood under the null (intercept only).}
+#' \item{l1}{Log likelihood under the alternative (since curve fitting).}
+#' \item{stat}{Test statistic.}
+#' \item{pvalue}{P-value from the test.}
+#' \item{R2}{Pseudo R2 defined as (tss - rss)/tss.}
+#' @author Zhiguang Huo, Haocheng Ding
+#' @export
+#' @examples
+#' set.seed(32608)
+#' n <- 50
+#' tt <- runif(n,0,24)
+#' Amp <- 2
+#' Phase <- 6
+#' Offset <- 3
+#' yy <- Amp * sin(2*pi/24 * (tt + Phase)) + Offset + rnorm(n,0,1)
+#' LR_rhythmicity(tt, yy, period=24, method="LR", FN=TRUE)
 LR_rhythmicity <- function(tt,yy,period=24,method="LR",FN=TRUE){
   if(method=="Wald"){
     WaldTest(tt=tt, yy=yy, period = period, type=FN)
@@ -1946,33 +1946,33 @@ LR_rhythmicity <- function(tt,yy,period=24,method="LR",FN=TRUE){
 }
 
 
-##' F test for sin function.
-##'
-##' Test the significance of circadian curve fitting using F test.
-##' @title F test for detecting circadian pattern
-##' @param tt Time vector
-##' @param yy Expression vector
-##' @param period Period of the since curve. Default is 24.
-##' @return A list of amp, phase, offset, peak, SST, SSE, R2.
-##' Formula 1: \eqn{yy = amp \times sin(2\pi/period \times (phase + tt)) + offset}
-##' Formula 2: \eqn{yy = A \times sin(2\pi/period \times tt) + B * cos(2*pi/period * tt) + offset}
-##' \item{amp}{Amplitude based on formula 1}
-##' \item{phase}{Phase based on formula 1, phase is restricted within (0, period)}
-##' \item{offset}{Basal level(vertical shift) based on formula 1 or on formula 2}
-##' \item{tss}{Total sum of square}
-##' \item{rss}{Residual sum of square, SSE/n is the MLE of the variance sigma2}
-##' \item{R2}{Pseudo R2 defined as (tss - rss)/tss}
-##' @author Caleb
-##' @noRd
-##' @examples
-##' set.seed(32608)
-##' n <- 50
-##' tt <- runif(n,0,24)
-##' Amp <- 2
-##' Phase <- 6
-##' Offset <- 3
-##' yy <- Amp * sin(2*pi/24 * (tt + Phase)) + Offset + rnorm(n,0,1)
-##' FTest(tt, yy)
+#' F test for sin function.
+#'
+#' Test the significance of circadian curve fitting using F test.
+#' @title F test for detecting circadian pattern
+#' @param tt Time vector
+#' @param yy Expression vector
+#' @param period Period of the since curve. Default is 24.
+#' @return A list of amp, phase, offset, peak, SST, SSE, R2.
+#' Formula 1: \eqn{yy = amp \times sin(2\pi/period \times (phase + tt)) + offset}
+#' Formula 2: \eqn{yy = A \times sin(2\pi/period \times tt) + B * cos(2*pi/period * tt) + offset}
+#' \item{amp}{Amplitude based on formula 1}
+#' \item{phase}{Phase based on formula 1, phase is restricted within (0, period)}
+#' \item{offset}{Basal level(vertical shift) based on formula 1 or on formula 2}
+#' \item{tss}{Total sum of square}
+#' \item{rss}{Residual sum of square, SSE/n is the MLE of the variance sigma2}
+#' \item{R2}{Pseudo R2 defined as (tss - rss)/tss}
+#' @author Caleb
+#' @noRd
+#' @examples
+#' set.seed(32608)
+#' n <- 50
+#' tt <- runif(n,0,24)
+#' Amp <- 2
+#' Phase <- 6
+#' Offset <- 3
+#' yy <- Amp * sin(2*pi/24 * (tt + Phase)) + Offset + rnorm(n,0,1)
+#' FTest(tt, yy)
 
 FTest <- function(tt,yy, period = 24){
   fitCurveOut <- fitSinCurve(tt,yy,period=period)
