@@ -24,5 +24,6 @@ image output
 read rename write wrapper
 }
 \examples{
-rrwr(Oulanka2023_T001_L001.tiff,pattern = "_L001", replace = "", dir = getwd(),dir.out = paste0(getwd(),"/renamed/"))
+rrwr(Oulanka2023_T001_L001.tiff,
+pattern = "_L001", replace = "", dir = getwd(),dir.out = paste0(getwd(),"/renamed/"))
 }

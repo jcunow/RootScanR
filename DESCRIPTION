@@ -1,18 +1,23 @@
 Package: MinirhizotronR
 Type: Package
-Title: Minirhizotron Root Scan Depth Resolved Analysis
+Title: Extracting Depth Resolved Metrics from Minirhizotron Root Scans
 Version: 0.1.0
-Author: Johannes Cunow
+Author: Authors@R: c(
+    person("Johannes", "Cunow", , "johannes.cunow@gmail.com", role = c("aut", "cre")),
+  )
 Maintainer: Johannes Cunow <johannes.cunow@gmail.com>
-Description: This package calculates some metrics related to depth distribion to an minirhizotron scan. It relies on outside handling of Image Segmentation. The package was tested with 'RootDetector' by Peters et al. 2023 Scientific Reports 13
+Description: With MinirhizotronR, analyzing root scans from minirhizotron tubes becomes a piece of cake. It enables the user to extract various root metrics and relate them to a depth distribution, or assess rotational biases. It relies on outside handling of Image Segmentation. 
 License: GPL (>= 3)
+Depends: R (>= 4.3.1)
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.3.1
-Imports: raster, terra, stars, sf, imagefx, magick, OpenImageR, landscapemetrics, RStoolbox, dplyr, glcm, png, tiff, stringr, cowplot, nloptr, minpack.lm
+Imports: raster, terra, stars, sf, imagefx, magick,  landscapemetrics, RStoolbox, dplyr, glcm, png, tiff, stringr,  nloptr, minpack.lm
 Suggests: 
     knitr,
     rmarkdown,
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    OpenImageR,
+    cowplot
 VignetteBuilder: knitr
 Config/testthat/edition: 3
