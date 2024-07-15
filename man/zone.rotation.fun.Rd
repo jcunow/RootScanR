@@ -11,9 +11,9 @@ zone.rotation.fun(rootpic, k = c(3, 4), kk = 5, mm = c(2000, 5000))
 
 \item{k}{specify which cuts to keep. Must be <= nn}
 
-\item{mm}{limit the region along the tube = c(start,end). Adjust to your tube dimensions!}
+\item{kk}{number of total cuts along rotation axis}
 
-\item{nn}{number of total cuts along rotation axis}
+\item{mm}{limit the region along the tube = c(start,end). Adjust to your tube dimensions!}
 }
 \value{
 raster, cut along rotation axis
