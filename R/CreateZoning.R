@@ -31,6 +31,7 @@ im
 #' @param indexD the condition
 #' @param nn bin width in binned.map. Should be the same as used in 'binning()'
 #' @param silent verbose
+#' @importFrom dplyr %>%
 #'
 #' @return a cutout of the root pic image
 #' @export
@@ -77,9 +78,10 @@ zone.fun = function(rootpic,binned.map,indexD,nn = 5,silent =F){
 #' RotationZones
 #'
 #' @param rootpic the "to be cut" image
-#' @param nn  number of total cuts along rotation axis
+#' @param kk  number of total cuts along rotation axis
 #' @param k specify which cuts to keep. Must be <= nn
 #' @param mm limit the region along the tube = c(start,end). Adjust to your tube dimensions!
+#' @importFrom dplyr %>%
 #'
 #' @return raster, cut along rotation axis
 #' @export

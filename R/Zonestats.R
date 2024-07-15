@@ -191,6 +191,7 @@ Halo = function(im,width=1, halo.only = T){
 #' @param r weight for first channel - typically red
 #' @param g weight for second channel - typically green
 #' @param b weight for third channel - typically blue
+#' @importFrom dplyr %>%
 #'
 #' @return a vector with chromatic coordinates,luminosity, brightness, luminosity, color values, saturation
 #' @export
