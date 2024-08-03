@@ -49,7 +49,7 @@ The following is needed to use this package to it's full potential:
 
 ## Install Package
 ```{r Install Package}
-# devtools::install_git("jcunow/MinirhizotronR")
+# devtools::install_github("jcunow/MinirhizotronR")
 # remotes::install_github("jcunow/MinirhizotronR")
 ```
 
@@ -63,11 +63,11 @@ Segment the stitched Image. You can use this: ....Link
 Tipp: use split_im() function to cut the root image in pieces in case 'RootDetetcor' has trouble with the amount of roots of roots. You can rejoin the segmented images afterwards with join_im(). But first, look change the settings of 'RootDetector' and crank up the maximum root limit.  
 
 ```{r Input Example Showcase, fig.height=4.9, fig.width=9, message=FALSE, warning=FALSE, paged.print=FALSE}
-p1 <- ggdraw() + draw_image(paste0(getwd(),"/demo_images/Oulanka2023_Session03_T067.jpg"), scale = 0.9)
-p2 <- ggdraw() + draw_image(paste0(getwd(),"/demo_images/Oulanka2023_Session03_T067_segmented.jpg"), scale = 0.9)
-p3 <- ggdraw() + draw_image(paste0(getwd(),"/demo_images/Oulanka2023_Session03_T067_skeleton.jpg"),scale = 0.9)
+p1 <- ggdraw() + draw_image(paste0(getwd(),"/demo_images/Oulanka2023_Session03_T067.jpg"), scale = 0.6)
+p2 <- ggdraw() + draw_image(paste0(getwd(),"/demo_images/Oulanka2023_Session03_T067_segmented.jpg"), scale = 0.6)
+p3 <- ggdraw() + draw_image(paste0(getwd(),"/demo_images/Oulanka2023_Session03_T067_skeleton.jpg"),scale = 0.6)
 
-plot_grid(p1, p2, p3,nrow = 3)
+cowplot::plot_grid(p1,p2,p3,ncol = 1)
 ```
 
 
@@ -77,11 +77,11 @@ First, we need to load the images and then estimate the soil surface and the rot
 ```{r Start the package, echo=FALSE,  warning=FALSE}
 library(MinirhizotronR)
 library(dplyr)
-# read tiffs
-img.color = raster::brick(paste0(getwd(),"/demo_images/Oulanka2023_Session03_T067.tiff"))
-img.segm  = raster::brick(paste0(getwd(),"/demo_images/Oulanka2023_Session03_T067_segmented.tiff"))
-img.skel  = raster::brick(paste0(getwd(),"/demo_images/Oulanka2023_Session03_T067_skeleton.tiff"))
-#img.skel  = raster::brick(paste0(getwd(),"/demo_images/horizontal lines.png"))
+# read color image, segmented, and skeletonized
+data(rgb_Oulanka2023_Session03_T067)
+data(seg_Oulanka2023_Session03_T067)
+seg_Oulanka2023_Session03_T067 = blur.correction(seg_Oulanka2023_Session03_T067,0.1)
+skl_Oulanka2023_Session03_T067 = (skeletonize(seg_Oulanka2023_Session03_T067[[2]], itr= 3))
 
 ```
 
@@ -104,10 +104,10 @@ s0 = s0 %>% round()
 ### If you don't have any data meta-deta available - too bad!
 ## Try this instead:
 # Based on Tape Cover, soil start is estimated
-s0 = MinirhizotronR::SoilSurfE(img.color)
+s0 = MinirhizotronR::SoilSurfE(rgb_Oulanka2023_Session03_T067)
 print(paste0("Soil Surface Beginning in columns: ",s0$soil0))
 # While we're at it, lets estimate the rotion center (Here, we assume that the tape extrusion on the upside of the Tube is perfectly centered - go and calibrate !!!)
-r0 = MinirhizotronR::RotationE(img.color)
+r0 = MinirhizotronR::RotationE(rgb_Oulanka2023_Session03_T067)
 print(paste0("Rotation Center in rows: ",r0))
 ```
 
@@ -118,15 +118,15 @@ print(paste0("Rotation Center in rows: ",r0))
 
 ## We want to exclude pixels with tape as part of the soil. Create a mask:
 # The format of 'RootDetector' uses the red channel to show mask and root px, while blue and green only show root px
-mask = (img.segm[[1]] - img.segm[[2]] ) / 255
+mask = (seg_Oulanka2023_Session03_T067[[1]] - seg_Oulanka2023_Session03_T067[[2]] ) / 255
 mask = raster::t(mask)
 ## Create the Map (cosine.option missing!)
-center.offset = r0  / dim(img.segm)[1]
-DepthMap = MinirhizotronR::create.depthmap(img.segm, mask = mask,start.soil = s0$soil0, center.offset = center.offset )
+center.offset = r0  / dim(seg_Oulanka2023_Session03_T067)[1]
+DepthMap = MinirhizotronR::create.depthmap(seg_Oulanka2023_Session03_T067, mask = mask,start.soil = s0$soil0, center.offset = center.offset )
 
 # Now lets bin the depth to be able to calculate some stats. Analysis on continous depth will feature in a future release.
 # we use 5cm intervals here but any bandwidth can be used.
-bm = MinirhizotronR::binning(DepthMap, nn = 5, "rounding")
+bm = MinirhizotronR::binning(DepthMap, nn = 2, "rounding")
 raster::extent(bm) <- c(0,dim(bm)[2],0,dim(bm)[1])
 # Binned Depthmap Plot
 RStoolbox::ggR(bm)+theme_void()
@@ -139,24 +139,24 @@ RStoolbox::ggR(bm)+theme_void()
 
 ## We only need one binarized layer
 # one layer gray would usually be a good option, however, there is distinct information stored in the various layers when using 'RootDetector'
-gray.roots = rgb2gray(img.segm)
+gray.roots = rgb2gray(seg_Oulanka2023_Session03_T067)
 # In this format, we can simply do this:
-gray.roots = img.segm[[2]] / 255
+gray.roots = seg_Oulanka2023_Session03_T067[[2]] 
 
 # extracts a depth band from the root image based on the depth map 
-rootzone = zone.fun(rootpic = gray.roots, binned.map = bm, indexD = -10, nn = 5 )
+rootzone = zone.fun(rootpic = gray.roots, binned.map = bm, indexD = -10, nn = 2 )
 # the output message tells us the there are not enough proper values in the root zone. Lets try again
-rootzone = zone.fun(rootpic = gray.roots, binned.map = bm, indexD = 20, nn = 5 )
+rootzone = zone.fun(rootpic = gray.roots, binned.map = bm, indexD = 20, nn = 2 )
 raster::extent(rootzone) <- c(0,dim(rootzone)[2],0,dim(rootzone)[1])
 RStoolbox::ggR(rootzone) + theme_void()
 # Also do it for the skeletonized version
-rootzone.skeleton = zone.fun(img.skel[[2]], binned.map = bm, indexD = 20, nn = 5)
+rootzone.skeleton = zone.fun(skl_Oulanka2023_Session03_T067, binned.map = bm, indexD = 20, nn = 2)
 raster::extent(rootzone.skeleton) <- c(0,dim(rootzone.skeleton)[2],0,dim(rootzone.skeleton)[1])
 
 
 # Get the landscape metrics of the root scape - keep the output units in mind (assuming... input and deliver hectar output)
-rsm = RootScapeMetrics(rootzone,indexD = 20, metrics = c( "lsm_c_ca","lsm_l_ent","lsm_c_pd","lsm_c_np","lsm_c_pland",
-                                      "lsm_c_area_mn","lsm_c_area_cv","lsm_c_enn_mn","lsm_c_enn_cv")) 
+rsm = RootScapeMetrics(rootzone,indexD = 20, metrics = c( "lsm_c_ca","lsm_l_ent","lsm_c_pd",
+                                      "lsm_c_enn_mn")) 
 print(rsm) 
 
 
@@ -208,18 +208,18 @@ ggplot(data=df.rootpx_per_av.space,aes(zone,sum)) + geom_point() + geom_smooth(s
 ```
 
 ## what if we want to consider a sphere of influence around the roots ?
-```{r}
+```{r rhizosphere}
 ## set hard limits
-root.seg = gray.roots
+root.seg = gray.roots * 255
 raster::values(root.seg)[raster::values(raster::t(mask))==1] <- NA
 
 # create a buffer around pixels (12 px == ca. 1mm), Rhizophere exudates 2mm (source)
-buff.im = Halo(root.seg, width = 20, halo.only = FALSE)
+buff.im = Halo(root.seg, width = 2, halo.only = FALSE)
 RStoolbox::ggR(buff.im) + ggtitle("The sphere of influence (roots + 0.3mm each side)") 
 
 
 ## lets do some stats on the sphere of influence
-buffer.sum = raster::zonal( buff.im,bm, "sum" )
+buffer.sum = terra::zonal( raster::brick(buff.im),bm, "sum" )
 plot(scale(buffer.sum)); points(scale(root.sum),col="red") + title("The difference between distribution of influence (black) vs distribution of rotos (red)")
 
 # Hint: sphere of influence might not be the same across depth with varying physiology and hydraulic conductivity
@@ -229,10 +229,10 @@ plot(scale(buffer.sum)); points(scale(root.sum),col="red") + title("The differen
 
 
 
-Can we characterize the Peat too ?
+## Can we characterize the Peat too ?
 ```{r}
 # only consider soil pixels - not tape nor roots
-peat.color = raster::crop(img.color,gray.roots)
+peat.color = raster::crop(rgb_Oulanka2023_Session03_T067,gray.roots)
 raster::values(peat.color)[raster::values(buff.im) == 1] = NA 
 raster::values(peat.color)[raster::values(raster::t(mask)) == 1] = NA 
 # plot & color
@@ -241,7 +241,7 @@ tube.color.peat = Tube.coloration(peat.color);tube.color.peat
 
 
 # now only consider roots
-root.color = raster::crop(img.color,gray.roots)
+root.color = raster::crop(rgb_Oulanka2023_Session03_T067,gray.roots)
 raster::values(root.color)[raster::values(gray.roots) == 0] = NA 
 raster::values(root.color)[raster::values(raster::t(mask)) == 1] = NA 
 # plot & color
@@ -251,14 +251,17 @@ tube.color.root = Tube.coloration(root.color);tube.color.root
 ##  Lets try to get texture information as well
 gray.peat = rgb2gray(peat.color)
 void.tx = glcm::glcm(gray.peat,n_grey = 7,window = c(9,9), 
-                     statistics = c("second_moment","homogeneity","entropy"),
+                     statistics = c("second_moment","homogeneity"),
                      shift=list(c(0,1), c(1,1), c(1,0), c(1,-1)))
 RStoolbox::ggR(void.tx[[1]]) + ggtitle("available texture pixels and their second moment characteristic ")
-tx.mean = raster::zonal(void.tx[[1]],bm,"mean")
+## extent don't match
+bm2 = raster::raster(raster::as.array(bm)[,1:3000,])
+raster::extent(bm2) = raster::extent(void.tx) 
+tx.mean = raster::zonal(void.tx[[1]],bm2,"mean")
 plot(tx.mean) + title("second moment - peat texture characterization")
 ```
 
-### as the tube insertion angle increases, the more we expect a differences between the upside of the tube and the downside. Let's estimate the rotational bias
+## as the tube insertion angle increases, the more we expect a differences between the upside of the tube and the downside. Let's estimate the rotational bias
 ```{r Asess Rotational Bias}
 # lets make the split in 1 cm intervals
 splits = round(dim(root.color)[1]/300*2.54)
@@ -367,46 +370,46 @@ ggplot(data=df,aes(x=x)) +
 
 
 
-```{r a quick and dirty fix to bring dimensions to the same level}
-dir = "C:/Users/jocu0013/Desktop/Oulanka/Scan_comparsion/2023_01/"
-#dir.out = dir
-dir.out = "C:/Users/jocu0013/Desktop/Oulanka/Scan_comparsion/censor_2023_01/"
- file.names = list.files(dir)[-1]
- for (i in file.names) {
-   im = tiff::readTIFF(paste0(dir,i))
-   name = i
-   
-   #name = stringr::str_replace(i, pattern = "_Session03_",replacement = "_")
-   #name = stringr::str_replace(name, pattern = ".tiff",replacement = "_L001_03.tiff")
-   
-   # name = stringr::str_replace(i, pattern = "Split_dwn_O",replacement = "O")
-   # name = stringr::str_replace(name, pattern = "Split_top_O",replacement = "O")
-   # name = stringr::str_replace(name, pattern = "2023",replacement = "_2023")
- 
-   
-    
-    
-    
-    if(dim(im)[2] > 7200){
-    im = DepthLimiter(im,fixed.depth = 7200)  
-    }else{
-      if(dim(im)[2] > 6100){
-    im = DepthLimiter(im,fixed.depth = 6100)  
-      }else{
-    if(dim(im)[2] > 4900){
-    im = DepthLimiter(im,fixed.depth = 4900)    
-    }
-    }
-    }
-   im = RotCensor(im)
- 
-   im = im / max(raster::values(im))
-   im = raster::as.array(im)
-   tiff::writeTIFF(im,paste0(dir.out,"/",name)) 
-   
-   
-   print(i)
- }
+ ```{r a quick and dirty fix to bring dimensions to the same level}
+# dir = "C:/Users/jocu0013/Desktop/Oulanka/Scan_comparsion/2023_01/"
+# #dir.out = dir
+# dir.out = "C:/Users/jocu0013/Desktop/Oulanka/Scan_comparsion/censor_2023_01/"
+#  file.names = list.files(dir)[-1]
+#  for (i in file.names) {
+#    im = tiff::readTIFF(paste0(dir,i))
+#    name = i
+#    
+#    #name = stringr::str_replace(i, pattern = "_Session03_",replacement = "_")
+#    #name = stringr::str_replace(name, pattern = ".tiff",replacement = "_L001_03.tiff")
+#    
+#    # name = stringr::str_replace(i, pattern = "Split_dwn_O",replacement = "O")
+#    # name = stringr::str_replace(name, pattern = "Split_top_O",replacement = "O")
+#    # name = stringr::str_replace(name, pattern = "2023",replacement = "_2023")
+#  
+#    
+#     
+#     
+#     
+#     if(dim(im)[2] > 7200){
+#     im = DepthLimiter(im,fixed.depth = 7200)  
+#     }else{
+#       if(dim(im)[2] > 6100){
+#     im = DepthLimiter(im,fixed.depth = 6100)  
+#       }else{
+#     if(dim(im)[2] > 4900){
+#     im = DepthLimiter(im,fixed.depth = 4900)    
+#     }
+#     }
+#     }
+#    im = RotCensor(im)
+#  
+#    im = im / max(raster::values(im))
+#    im = raster::as.array(im)
+#    tiff::writeTIFF(im,paste0(dir.out,"/",name)) 
+#    
+#    
+#    print(i)
+#  }
 
 ```
 
