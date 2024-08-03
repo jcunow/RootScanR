@@ -14,7 +14,11 @@
 #' @return raster image
 #' @export
 #'
-#' @examples map = create.depthmap(im,mask,start.soil = 290 )
+#' @examples
+#' img = seg_Oulanka2023_Session01_T067[[2]]
+#' mask = seg_Oulanka2023_Session01_T067[[1]] - seg_Oulanka2023_Session01_T067[[2]]
+#' mask[mask == 255] <- NA
+#' map = create.depthmap(img,mask,start.soil = 290 )
 create.depthmap = function(im, mask, sinoid = TRUE,
                            tube.thicc = 7,tilt = 45,dpi = 300,
                            start.soil = 0,center.offset = 0){
@@ -59,9 +63,9 @@ create.depthmap = function(im, mask, sinoid = TRUE,
   df.depthmap = df + (start.soil* px.to.cm.h)
 
   # masking tape
-  masked.depthmap= raster::raster(df.depthmap)
+  masked.depthmap= terra::rast(df.depthmap)
   # set mask NA
-  raster::values(masked.depthmap)[raster::values(mask) == 1] <- NA
+  terra::values(masked.depthmap)[terra::values(mask) == 1] <- NA
 
   return(masked.depthmap)
 

@@ -12,7 +12,10 @@
 #' Chosing kimura as method will return root length with default settings from RootLength()
 #'
 #'
-#' @examples tunrover.values = TurnoverE(im.t1 = time1, im.t2 = time2, method= "kimura")
+#' @examples
+#' time1 =  skl_Oulanka2023_Session01_T067
+#' time2 =  skl_Oulanka2023_Session03_T067
+#' turnover.values = Turnover.TC(im.t1 = time1, im.t2 = time2, method= "kimura")
 Turnover.TC = function(im.t1, im.t2,method="kimura",unit = "cm",dpi = 300){
 
   if(method == "rootpx"){
@@ -36,7 +39,7 @@ Turnover.TC = function(im.t1, im.t2,method="kimura",unit = "cm",dpi = 300){
 
 
 
-#' Estimates New Root Production, Root Decay, and Roots without change. Relies on 'RootDetector'
+#' Extracts Root Decay, New Root Production, and No-Change Roots. Relies on 'RootDetector'
 #'
 #' @param img image in the 'RootDetector' format - one layer for production, one layer for decay, one layer for stagnation
 #' @param product.layer layer indicating production
@@ -48,8 +51,10 @@ Turnover.TC = function(im.t1, im.t2,method="kimura",unit = "cm",dpi = 300){
 #' @return either pixel sums if im.return = F, or individual layers corresponding to tape, production, decay, and no change
 #' @export
 #'
-#' @examples  PDCs = Turnover.PDC(img = img, im.return = F)
-Turnover.PDC = function(img,product.layer = 2, decay.layer = 1, blur.capture = 0.95, im.return = FALSE, include.virtualroots = FALSE){
+#' @examples
+#' img = terra::rast(TurnoverDPC_data)
+#' DPCs = Turnover.DPC(img = img, im.return = FALSE)
+Turnover.DPC = function(img,product.layer = 2, decay.layer = 1, blur.capture = 0.95, im.return = FALSE, include.virtualroots = FALSE){
   l.indx = 1:3
   no.change.layer = which(!l.indx %in% c(product.layer,decay.layer))
   l.pr = img[[product.layer]]
@@ -57,21 +62,21 @@ Turnover.PDC = function(img,product.layer = 2, decay.layer = 1, blur.capture = 0
   l.dc = img[[decay.layer]]
 
   tape = l.no - l.dc
-  tape = tape <= min(raster::values(tape))*blur.capture
-  tape = tape * max(raster::values(l.pr),na.rm=T)
+  tape = tape <= terra::global(tape,"min")[[1]]*blur.capture
+  tape = tape * terra::global(l.pr,"max")[[1]]
 
   l.pr2 = l.pr - l.no - tape
-  l.pr2 = l.pr2 >= max(raster::values(l.pr2),na.rm=T)*blur.capture
+  l.pr2 = l.pr2 >= terra::global(l.pr2,"max")[[1]]*blur.capture
   l.pr2 = l.pr2 * 1
 
   l.dc2 = l.dc - l.no - tape
-  l.dc2 = l.dc2 >= max(raster::values(l.dc2),na.rm=T)*blur.capture
+  l.dc2 = l.dc2 >= terra::global(l.dc2)[[1]]*blur.capture
   l.dc2 = l.dc2 * 1
 
-  l.no2 = l.no >= max(raster::values(l.no),na.rm=T)*blur.capture
+  l.no2 = l.no >= terra::global(l.no,"max")[[1]]*blur.capture
   l.no2 = l.no2 * 1
 
-  tape = tape / max(raster::values(l.pr),na.rm=T)
+  tape = tape / terra::global(l.pr,"max")[[1]]
 
   if(im.return == TRUE){
     return(list("tape" = tape, "constant" = l.no2, "production" = l.pr2, "decay" = l.dc2))

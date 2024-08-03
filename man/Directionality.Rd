@@ -4,19 +4,27 @@
 \alias{Directionality}
 \title{Estimate the directional of a skeleton pixels}
 \usage{
-Directionality(im, rotate = TRUE)
+Directionality(im, rotate = TRUE, kernelsize = 3, leeway = 0)
 }
 \arguments{
 \item{im}{skeletonized image raster. Roots must be 1, background 0. Consider the input image rotation to interpret the output}
 
 \item{rotate}{should the image be rotated 90 degrees before entering?}
+
+\item{kernelsize}{number of connecting cells}
+
+\item{leeway}{amount of gaps allowed in connecting lines}
 }
 \value{
-percentage of pixels with given neighbour pixel position
+percentage of pixels with given neighbor pixel position
 }
 \description{
 Estimate the directional of a skeleton pixels
 }
 \examples{
-direction.frame = Directionality(im)
+library(terra);library(raster)
+
+data("skl_Oulanka2023_Session01_T067")
+img = terra::rast(skl_Oulanka2023_Session01_T067)
+direction.frame = Directionality(img,kernelsize = 3)
 }

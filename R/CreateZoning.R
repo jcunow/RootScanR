@@ -1,3 +1,42 @@
+## Halo function
+
+#' Halo creates a buffer around pixel bigger than 0
+#'
+#' @param im segmented raster
+#' @param width buffer around roots in px, the rhizosphere extent (exudate diffusion distance) is cited as 2mm (1-12mm) (Finzi et al. 2015, https://doi.org/10.1111/gcb.12816), but higher values have been suggested
+#' @param halo.only set TRUE if only the buffer around roots should be returned (the rhizosphere only)
+#' @return raster output
+#' @export
+#'
+#' @examples
+#' library(terra)
+#'
+#' data(seg_Oulanka2023_Session01_T067)
+#' img = terra::rast(seg_Oulanka2023_Session01_T067)
+#' buffIMG = Halo(im = img, width = 10, halo.only = TRUE)
+Halo = function(im,width=1, halo.only = TRUE){
+  im = im / terra::global(im,"max")[[1]]
+  im2 = im
+  ## circular kernel
+  k0 = matrix(c(1,1,1,1,0,1,1,1,1), nrow = 3, ncol = 3)
+
+  itr = 1
+  while(itr <= width){
+    im2 <- terra::focal(im2,w = k0, fun = "sum") #%>% suppressWarnings()
+    itr = itr + 1
+  }
+
+  out.im = sum(im2 >= 1) #%>% suppressWarnings()
+
+  if(halo.only  == TRUE){
+    out.im = out.im - im
+  }
+  return(out.im)
+}
+
+
+
+
 #' Takes a continues depth map and bins it to a specified range
 #'
 #' @param depthmap 1-layer raster, takes output from create.depthmap()
@@ -7,7 +46,12 @@
 #' @return raster with input depths in bins
 #' @export
 #'
-#' @examples image = binning(depthmap,nn = 5)
+#' @examples
+#' img = seg_Oulanka2023_Session01_T067[[2]]
+#' mask = seg_Oulanka2023_Session01_T067[[1]] - seg_Oulanka2023_Session01_T067[[2]]
+#' mask[mask == 255] <- NA
+#' depthmap = create.depthmap(img,mask,start.soil = 290 )
+#' binned.map = binning(depthmap,nn = 5)
 binning = function(depthmap,nn,round.option = "rounding"){
 
   if(round.option == "rounding"){
@@ -31,43 +75,49 @@ im
 #' @param indexD the condition
 #' @param nn bin width in binned.map. Should be the same as used in 'binning()'
 #' @param silent verbose
-#' @importFrom dplyr %>%
+#' @import dplyr
 #'
 #' @return a cutout of the root pic image
 #' @export
 #'
-#' @examples raster_image = zone.fun(rootpic, binned.map, nn=5, silent = F)
-zone.fun = function(rootpic,binned.map,indexD,nn = 5,silent =F){
-  max.NAs = round((1-(1/(max(raster::values(binned.map),na.rm=T)/nn)))+0.02,4)
+#' @examples
+#' img = seg_Oulanka2023_Session01_T067[[2]]
+#' mask = seg_Oulanka2023_Session01_T067[[1]] - seg_Oulanka2023_Session01_T067[[2]]
+#' mask[mask == 255] <- NA
+#' depthmap = create.depthmap(img,mask,start.soil = 290 )
+#' binned.map = binning(depthmap,nn = 5)
+#' image.zone = zone.fun(img, binned.map, indexD = 0, nn=5, silent = FALSE)
+zone.fun = function(rootpic,binned.map,indexD= 0,nn = 5,silent =FALSE){
+  max.NAs = round((1-(1/(terra::global(binned.map,"max",na.rm=TRUE)[[1]]/nn)))+0.02,4)
   # match dimensions
   ex.bm = c(0,dim(binned.map)[1],0,dim(binned.map)[2])
   ex.rp = c(0,dim(rootpic)[1],0,dim(rootpic)[2])
   if(any(ex.bm!=ex.rp)){
-    rootpic = raster::t(rootpic)
+    rootpic = terra::t(rootpic)
   }
 
 
   r = (rootpic)
-  if(raster::extent(rootpic)[2] != raster::extent(binned.map)[2] | raster::extent(rootpic)[4] != raster::extent(binned.map)[4]){
-    r = raster::crop(r,ex.bm)
+  if(terra::ext(rootpic)[2] != terra::ext(binned.map)[2] | terra::ext(rootpic)[4] != terra::ext(binned.map)[4]){
+    r = terra::crop(r,ex.bm)
   }
   # set uninterested zones NA
-  raster::values(r)[raster::values(binned.map) != indexD ] <- NA
-  raster::values(r)[ is.na(raster::values(binned.map))] <- NA
+  r[terra::values(binned.map) != indexD ] <- NA
+  r[ is.na(terra::values(binned.map))] <- NA
   r = terra::rast(r)
   # non NA values need to cover at least ... % of average depth slice pixel number
-  coverNA = round(sum(is.na(raster::values(r[[1]]))) / (raster::ncell(r)),2)
+  coverNA = round(sum(is.na(terra::values(r[[1]]))) / (terra::ncell(r)),2)
   if( coverNA  < max.NAs){
-    r = r %>% terra::trim()
+    r = terra::trim(r)
   }else{
     raster::values(r) = NA # set the remaining values NA ?
-    if(silent == F){
+    if(silent == FALSE){
       print( paste0("Depth: ",indexD,"cm. Not enough informative pixels.",
                     " In the whole Image, ", coverNA*100,"% are NAs after cutting this Depth Slice."," Expected NA% is: ~",(max.NAs-0.02)*100 ))
     }
 
   }
-  r = raster::raster(r)
+  r = terra::rast(r)
   return(r)
 }
 
@@ -81,16 +131,18 @@ zone.fun = function(rootpic,binned.map,indexD,nn = 5,silent =F){
 #' @param kk  number of total cuts along rotation axis
 #' @param k specify which cuts to keep. Must be <= nn
 #' @param mm limit the region along the tube = c(start,end). Adjust to your tube dimensions!
-#' @importFrom dplyr %>%
+#' @import dplyr
 #'
 #' @return raster, cut along rotation axis
 #' @export
 #'
-#' @examples rotationZone1 = zone.rotation.fun(rootpic, k = c(1,2), nn = 7, mm = c(1500,3000))
+#' @examples
+#' img = seg_Oulanka2023_Session01_T067
+#' rotationZone = zone.rotation.fun(img, k = c(1,2), kk = 7, mm = c(1500,3000))
 zone.rotation.fun = function(rootpic,k=c(3,4),kk = 5,mm = c(2000,5000)){
 
   if(!is.array(rootpic) ){
-    img0 = raster::as.array(rootpic)
+    img0 = terra::as.array(rootpic)
   }else{
     img0 = rootpic
   }
@@ -105,9 +157,9 @@ if(exists("mm")){
 
 
   # lower row for the kth bin
-  q = (k[1]*(nrow(img0)/kk)) %>% floor()
+  q = floor((k[1]*(nrow(img0)/kk)))
   q = q +1
-  p = (k[2]*(nrow(img0)/kk)) %>% floor()
+  p = floor((k[2]*(nrow(img0)/kk)))
 
   img00 = img0
 
@@ -128,8 +180,7 @@ if(exists("mm")){
 
 
   img00 = terra::rast(img00)
-  img00 = img00 %>% terra::trim()
-  img00 = raster::raster(img00)
+  img00 = terra::trim(img00)
 
   return(img00)
 }

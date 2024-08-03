@@ -1,10 +1,30 @@
+
+#' Threshoold an image to rebinarize a blurred image (e.g., jpeg compression)
+#'
+#' @param img raster
+#' @param threshold ratio of max value assigned as 1
+#'
+#' @return raster
+#' @export
+#'
+#' @examples
+#' blurred.img = terra::rast(seg_Oulanka2023_Session03_T067)
+#' img = blur.correction(blurred.img, 0.3)
+blur.correction = function(img,threshold = 0.4){
+  img2 = (img >= (terra::global(img, "max")[[1]] * threshold))
+  img2 = img2 *1
+  return(img2)
+}
+
+
 ## helper functions
 
 #' Skeletonize a segmented image
 #'
 #' @param img can be: path, array, raster, or magick object
 #' @param itr iterations of thinning. see magick::image_morphology
-#' @param kernel kernel used for image operation. Other operations than skeletonizing is possible.
+#' @param kernel kernel used for image operation. Other operations than skeletonizing is possible.max(se)
+#' @importFrom methods is
 #'
 #' @return image in as magick object
 #' @export
@@ -12,36 +32,25 @@
 #' Uses magick::image_morphology but eases the image input format
 #'
 #'
-#' @examples img.skeleton = skeletonize("/path/image.png",itr = 2)
+#' @examples
+#' img.skeleton = skeletonize(skl_Oulanka2023_Session01_T067,itr = 2)
 skeletonize = function(img,itr = 2, kernel = 'Skeleton:3'){
-# works but not with raster
-  # if(!is.character(img)){
-  #   img_array <- as.array(img)
-  #   if(!(max(img) > 1)){
-  #     img_array <- img_array * 255
-  #   }
-  #
-  #   # Convert to raw array (required by magick)
-  #   magick_img <- imager::cimg2magick(imager::as.cimg( img_array))
-  # }else{
-  #   magick_img = magick::image_read(img)
-  # }
-
-# works for raster, path, magick, array ?
   if(is.character(img)){
     magick_img = magick::image_read(img)
   }else{
-    if(is(img,"raster")){
-      magick_img = magick::image_read(raster::as.array(img))
+    if(methods::is(img,"Raster") | methods::is(img,"RasterBrick") | methods::is(img,"RasterLayer") | methods::is(img,"SpatRaster") ){
+      if(max(terra::as.array(img) > 1)){
+        img = terra::as.array(img)/255
+      }
+      magick_img = magick::image_read(terra::as.array(img))
     }else{
       img_array <- as.array(img)
-      if(!(max(img) > 1)){
+      if(!terra::global(img, "max")[[1]] > 1){
         img_array <- img_array * 255
       }
+      # Convert to raw array (required by magick)
+      magick_img <- imager::cimg2magick(imager::as.cimg( img_array))
   }
-
-    # Convert to raw array (required by magick)
-    magick_img <- imager::cimg2magick(imager::as.cimg( img_array))
   }
 
   grayscale_img = magick::image_channel(magick_img,"lightness")
@@ -49,24 +58,102 @@ skeletonize = function(img,itr = 2, kernel = 'Skeleton:3'){
   thinned_img <- magick::image_morphology(grayscale_img, 'Thinning', kernel= kernel,iterations = itr)
 
 
+  thinned_img = terra::rast( as.matrix(grDevices::as.raster(thinned_img)))-1
+
+
+
   return(thinned_img)
 }
 
-#' Root accumulation Curve
+
+
+
+
+#' Adaptive Kernel size
 #'
-#' @param data dataframe must include group,depth, and variable columns
-#' @param group specify the grouping variable e.g., Plot
-#' @param depth specifiy column name which includes depth values
-#' @param variable accumulating values
-#' @importFrom dplyr %>%
+#' @param n the amount of connecting pixels. kernelsize = 2n-1
 #'
-#' @return dataframe with one added column "cs" containing the cummulated values
+#' @return a list containing, vertical, horizontal, and two diagonal kernels
 #' @export
 #'
-#' @examples data1 = root.accumulation(data,group = Plot, depth = depth, variable = rootpx)
+#' @examples
+#' adaptive.Kernelsize.Directionality(n = 5)
+adaptive.Kernelsize.Directionality = function(n = 3){
+  k = n*2 -1
+
+  antidiagonal <- function(mat, new_values) {
+    n <- nrow(mat)
+    anti_diag_indices <- cbind(1:n, n:1)
+
+    if(length(new_values) != n) {
+      stop("Length of new_values must be equal to the number of anti-diagonal elements")
+    }
+
+    mat[anti_diag_indices] <- new_values
+    return(mat)
+  }
+
+  # verical
+  v.kernel <- matrix(0, nrow = k, ncol = k)
+  v.kernel[1:n, n] <- 1
+
+  # horizontal
+  h.kernel <- matrix(0, nrow = k, ncol = k)
+  h.kernel[ n, 1:n] <- 1
+  # diagonal from topleft
+  tl.kernel <- matrix(0, nrow = k, ncol = k)
+  diag(tl.kernel) <- c(rep(1,n),rep(0,n-1))
+  # diagonal from bottom left
+  bl.kernel <- matrix(0, nrow = k, ncol = k)
+  bl.kernel <- antidiagonal(bl.kernel, c(rep(0,n-1),rep(1,n)))
+
+  return( list(v.kernel,h.kernel,tl.kernel,bl.kernel) )
+}
+
+
+
+#' Root accumulation Curve
+#'
+#' @param data data.frame must include group,depth, and variable columns
+#' @param group specify the grouping variable e.g., Plot. Can be multiple groups in a vector.
+#' @param depth specify column name which includes depth values
+#' @param variable accumulating values
+#' @import dplyr
+#' @return data.frame with one added column "cs" containing the accumulated values
+#' @export
+#'
+#' @examples
+#'df = data.frame(depth = c(seq(0,80,20),seq(0,80,20)),
+#'                Plot = c(rep("a",5),rep("b",5)), rootpx = c(5,50,20,15,5,10,40,30,10,5) )
+#' accum_root = root.accumulation(df,group = "Plot", depth = "depth", variable = "rootpx")
 root.accumulation = function(data,group,depth,variable){
-  pdf = data %>% dplyr::group_by(group) %>% dplyr::arrange(depth) %>% dplyr::mutate(cs = cumsum(variable))
-  return(pdf)
+  # Split data by group
+  split_df <- split(data, data[,group])
+
+  # Initialize an empty list to store results
+  result_list <- list()
+
+  # Loop over each group
+  for (group in names(split_df)) {
+    # Sort the data within the group by depth
+    sorted_group <- split_df[[group]][order(split_df[[group]][[depth]]), ]
+
+    # Compute cumulative sum of variable
+    #sorted_group$cs <- cumsum(sorted_group[[variable]])
+    sorted_group$cs <- cumsum(dplyr::coalesce(sorted_group[[variable]], 0)) + sorted_group[[variable]]*0
+
+    # Append the result to the list
+    result_list[[group]] <- sorted_group
+  }
+
+  # Combine the list back into a single data frame
+  result_df <- do.call(rbind, result_list)
+
+  # Reorder the result to match the original row order
+  result_df <- result_df[order(rownames(result_df)), ]
+
+  return(result_df)
+
 }
 
 
@@ -81,7 +168,9 @@ root.accumulation = function(data,group,depth,variable){
 #' @return a single layer gray scale raster
 #' @export
 #'
-#' @examples gray.raster = rgb2gray(img)
+#' @examples
+#' img = seg_Oulanka2023_Session01_T067
+#' gray.raster = rgb2gray(img)
 rgb2gray = function(img, r=0.21,g=0.72,b=0.07){
   gray.im = img[[1]] * r + img[[2]] * g + img[[3]] * b
   return(gray.im)
@@ -90,171 +179,163 @@ rgb2gray = function(img, r=0.21,g=0.72,b=0.07){
 
 
 
-# #' Resize the Image
-# #'
-# #' useful if some scanning campaigns have used different dpi
-# #' @param import.path Input Path
-# #' @param output.path Output Path
-# #' @param height target height
-# #' @param width target width
-# #'
-# #' @return a image with new dimensions and resolution
-# #' @export
-# #'
-# #' @examples resize.image(import.path, output.path) = resized.image
-# resize.image = function(import.path,output.path,height = 2550,width= 2273){
-#   img.list = list.files(import.path, pattern = ".tiff")
-#
-#   # sequentially read images, lower resolution and restore them
-#   t1 = Sys.time()
-#   for (i in 1:length(img.list)) {
-#     # read
-#     temp.im = OpenImageR::readImage(paste0(import.path,img.list[i]))
-#     # resample bilinear
-#     temp.im = OpenImageR::resizeImage(temp.im,
-#                                       method = "bilinear",
-#                                       height = 2550, width = 2273)
-#     # transformation to 0-1 range
-#     temp.im = imagefx::range01(temp.im)
-#     # write as tiff
-#     OpenImageR::writeImage(temp.im,file_name = paste0(output.path,img.list[i]))
-#
-#   }
-#   t2 = Sys.time();floor(t2-t1)
-#
-# }
 
 
 
 
-#' read rename write wrapper
+
+
+#' Combine multi-dimensional arrays
 #'
-#' @param img image name
-#' @param pattern pattern
-#' @param replace replace
-#' @param dir where to find the image
-#' @param dir.out where to write the image
+#' @description
+#'Combine multi-dimensional arrays.  This is a
+#'generalization of cbind and rbind.  Takes a sequence of
+#'vectors, matrices, or arrays and produces a single array of
+#'the same or higher dimension.
 #'
-#' @export
+#' @param ...  Any number of vectors, matrices, arrays, or data frames.
+#'The dimensions of all the arrays must match, except on one dimension
+#'(specified by \code{along=}).  If these arguments are named, the name
+#'will be used for the name of the dimension along which the arrays are
+#'joined.  Vectors are treated as having a dim attribute of length one.
 #'
-#' @return image output
+#'Alternatively, there can be one (and only one) list argument supplied,
+#'whose components are the objects to be bound together.  Names of the
+#'list components are treated in the same way as argument names.
+#' @param along (optional) The dimension along which to bind the arrays.
+#'The default is the last dimension, i.e., the maximum length of the dim
+#'attribute of the supplied arrays.  \code{along=} can take any
+#'non-negative value up to the minimum length of the dim attribute of
+#'supplied arrays plus one.  When \code{along=} has a fractional value, a
+#'value less than 1, or a value greater than N (N is the maximum of the
+#'lengths of the dim attribute of the objects to be bound together), a new
+#'dimension is created in the result.  In these cases, the dimensions of
+#'all arguments must be identical.
+#' @param rev.along (optional)
+#'Alternate way to specify the dimension along which to bind the arrays:
+#'  \code{along = N + 1 - rev.along}.  This is provided mainly to allow easy
+#'specification of \code{along = N + 1} (by supplying
+#'                                       \code{rev.along=0}).  If both \code{along} and \code{rev.along} are
+#'supplied, the supplied value of \code{along} is ignored.
+#' @param new.names (optional)
+#'If new.names is a list, it is the first choice for the
+#'dimnames attribute of the result.  It should have the same
+#'structure as a dimnames attribute.  If the names for a
+#'particular dimension are \code{NULL}, names for this dimension are
+#'constructed in other ways.
 #'
-#' @examples rrwr(Oulanka2023_T001_L001.tiff,
-#' pattern = "_L001", replace = "", dir = getwd(),dir.out = paste0(getwd(),"/renamed/"))
-rrwr = function(img,pattern,replace,dir,dir.out){
-  im = tiff::readTIFF(paste0(dir,img))
-  name = stringr::str_replace(img, pattern = "Ecfg",replacement = "Oulanka_2020")
-  tiff::writeTIFF(im,paste0(dir.out,"/",name))
-}
-
-
-
-
-#' Split Images
+#'If \code{new.names} is a character vector, it is used for dimension
+#'names in the same way as argument names are used.  Zero
+#'length ("") names are ignored.
+#' @param force.array (optional) If \code{FALSE}, rbind or cbind are
+#'called when possible, i.e., when the arguments are all vectors, and
+#'along is not 1, or when the arguments are vectors or matrices or data
+#'frames and along is 1 or 2.  If rbind or cbind are used, they will
+#'preserve the data.frame classes (or any other class that r/cbind
+#'preserve).  Otherwise, abind will convert objects to class array.  Thus,
+#'to guarantee that an array object is returned, supply the argument
+#'\code{force.array=TRUE}.  Note that the use of rbind or cbind introduces
+#'some subtle changes in the way default dimension names are constructed:
+#'  see the examples below.
+#' @param make.names (optional)
+#'If \code{TRUE}, the last resort for dimnames for the along
+#'dimension will be the deparsed versions of anonymous
+#'arguments.  This can result in cumbersome names when
+#'arguments are expressions.
 #'
-#' Use if too many roots are present for the Root Detector AI image segmentation
-#' @param path Input path
-#' @param dir.out Output path
-#' @param pattern only include images with this pattern
-#' @param ratio split point 0-1
+#'<p>The default is \code{FALSE}.
+#' @param use.anon.names (optional)
+#'\code{use.anon.names}
+#'is a deprecated synonym for \code{make.names}.
+#' @param use.first.dimnames (optional)
+#'When dimension names are present on more than one
+#'argument, should dimension names for the result be take from
+#'the first available (the default is to take them from the
+#'                     last available, which is the same behavior as
+#'                     \code{rbind} and \code{cbind}.)
+#' @param hier.names (optional)
+#'If \code{TRUE}, dimension names on the concatenated dimension will be
+#'composed of the argument name and the dimension names of the objects
+#'being bound.  If a single list argument is supplied, then the names of
+#'the components serve as the argument names.  \code{hier.names} can
+#'also have values \code{"before"} or \code{"after"}; these determine
+#'the order in which the argument name and the dimension name are put
+#'together (\code{TRUE} has the same effect as \code{"before"}).
+#' @param use.dnns (default \code{FALSE}) Use names on dimensions, e.g.,
+#'so that \code{names(dimnames(x))} is non-empty.  When there are
+#'multiple possible sources for names of dimnames, the value of
+#'\code{use.first.dimnames} determines the result.
 #'
-#' @return two sets of images
-#' @export
+#' @details
+#' The dimensions of the supplied vectors or arrays do not need
+#'to be identical, e.g., arguments can be a mixture of vectors
+#'and matrices.  \code{abind} coerces arguments by the addition
+#'of one dimension in order to make them consistent with other
+#'arguments and \code{along=}.  The extra dimension is
+#'added in the place specified by \code{along=}.
 #'
-#' @examples split_im(path, dir.out, ".tiff") = c(top.im, bot.im)
-split_im = function(path,dir.out,pattern = ".tiff",ratio = 0.5){
-  file.ls = list.files(path = path, pattern = pattern)
-  ## split the image
-  for (i in file.ls) {
-    im = tiff::readTIFF(paste0(path,i))
-    im.top = im[,1:(dim(im)[2]*ratio),]
-    im.dwn = im[,(dim(im)[2]*ratio+1):dim(im)[2],]
-    tiff::writeTIFF(im.top,where = paste0(dir.out,"Split_top_",i))
-    tiff::writeTIFF(im.dwn,where = paste0(dir.out,"Split_dwn_",i))
-  }
-}
-
-
-
-#' Fuse two Images
+#'The default action of abind is to concatenate on the last
+#'dimension, rather than increase the number of dimensions.
+#'For example, the result of calling abind with vectors is a
+#'longer vector (see first example below).  This differs from
+#'the action of \code{rbind} and cbind which is to return a matrix when
+#'called with vectors.  abind can be made to behave like cbind
+#'on vectors by specifying \code{along=2}, and like rbind by
+#'specifying \code{along=0}.
 #'
-#' this function is intended to to be used after using the root detector
-#' @param path Input path
-#' @param dir.out Output path
-#' @param pattern only include images with this pattern
+#'The dimnames of the returned object are pieced together
+#'from the dimnames of the arguments, and the names of the
+#'arguments.  Names for each dimension are searched for in the
+#'following order: new.names, argument name, dimnames (or
+#'names) attribute of last argument, dimnames (or names)
+#'attribute of second last argument, etc.  (Supplying the
+#'                                          argument \code{use.first.dimnames=TRUE} changes this to
+#'                                          cause \code{abind} to use dimnames or names from the
+#'                                          first argument first.  The default behavior is the same as
+#'                                          for \code{rbind} and \code{cbind}: use dimnames
+#'                                          from later arguments.)  If some names are supplied for the
+#'along dimension (either as argument names or dimnames in
+#'                 arguments), names are constructed for anonymous arguments
+#'unless \code{use.anon.names=FALSE}.
 #'
-#' @return one complete image
-#' @export
-#'
-#' @examples join_im(path,out.path) = img
-join_im = function(path,dir.out,pattern = "skeleton"){
-  ### segmented
-  dir.ls = paste0(list.dirs(path = path)[-1],"/")
-  file.ls = list.files(path = dir.ls, pattern = pattern)
-  top.files =  file.ls[stringr::str_detect(file.ls,pattern = "Split_top")]
-  dwn.files =  file.ls[stringr::str_detect(file.ls,pattern = "Split_dwn")]
-
-  for (i in 1:length(top.files)) {
-    im.top = png::readPNG(paste0(dir.ls[i+36],top.files[i]))
-    im.dwn = png::readPNG(paste0(dir.ls[i],dwn.files[i]))
-    im.all = abind::abind(im.top,im.dwn, along = 2 )
-    file.name= top.files[i] %>% stringr::str_remove(pattern="Split_top_") %>% stringr::str_remove(pattern=".tiff.segmentation.png")
-    tiff::writeTIFF(im.all,where = paste0(dir.out,"FullSegmented_",file.name,".tiff"))
-
-  }
-}
-
-
-# #' Skeletonize a segmented image
-# #'
-# #' @param img binary iamge
-# #' @param method which approach should be used
-# #'
-# #' @return binary image with area turned into linear features
-# #' @export
-# #'
-# #' @examples skeletonize(img,"gonzales") = skeleton_image
-# skeletonize_function = function(img,method = "gonzales"){
-#   if(method == "gonzales"){
-#     skeleton = dipr::thinning(img)
-#   }
-#   if(method == "erode"){
-#     skeleton = dipr::skeletonize(img)
-#   }
-#   if(method == "lantuejoul"){
-#     skeleton = mmand::skeletonise(method = method )
-#   }
-#   if(method == "beucher"){
-#     skeleton = mmand::skeletonise(method = method )
-#   }
-#   if(method == "hitormiss"){
-#     skeleton = mmand::skeletonise(method = method )
-#   }
-#   if(method %in% any(c("gonzales","erode","lantuejoul","beucher","hitormiss"))  ){
-#     print("method not appropriate")
-#   }
-# }
-
-#
-
-
-#' abind
-#'
-#' @param ... d
-#' @param along dim
-#' @param rev.along d
-#' @param new.names d
-#' @param force.array d
-#' @param make.names d
-#' @param use.anon.names d
-#' @param use.first.dimnames d
-#' @param hier.names d
-#' @param use.dnns d
-#' @name name d
-#'
+#' @author Tony Plate \email{tplate@acm.org} and Richard Heiberger
+#' @import utils
 #' @return merged multidimensional arrays
 #'
-#' @examples marray = abind2()
+#' @examples
+#' # Five different ways of binding together two matrices
+#' x <- matrix(1:12,3,4)
+#' y <- x+100
+#'dim(abind2(x,y,along=0))     # binds on new dimension before first
+#'dim(abind2(x,y,along=1))     # binds on first dimension
+#'dim(abind2(x,y,along=1.5))
+#'dim(abind2(x,y,along=2))
+#'dim(abind2(x,y,along=3))
+#'dim(abind2(x,y,rev.along=1)) # binds on last dimension
+#'dim(abind2(x,y,rev.along=0)) # binds on new dimension after last
+
+#'# Unlike cbind or rbind in that the default is to bind
+#'# along the last dimension of the inputs, which for vectors
+#'# means the result is a vector (because a vector is
+#'# treated as an array with length(dim(x))==1).
+#'abind2(x=1:4,y=5:8)
+#'# Like cbind
+#'abind2(x=1:4,y=5:8,along=2)
+#'abind2(x=1:4,matrix(5:20,nrow=4),along=2)
+#'abind2(1:4,matrix(5:20,nrow=4),along=2)
+#'# Like rbind
+#'abind2(x=1:4,matrix(5:20,nrow=4),along=1)
+#'abind2(1:4,matrix(5:20,nrow=4),along=1)
+#'# Create a 3-d array out of two matrices
+#'abind2(x=matrix(1:16,nrow=4),y=matrix(17:32,nrow=4),along=3)
+#'# Use of hier.names
+#'abind2(x=cbind(a=1:3,b=4:6), y=cbind(a=7:9,b=10:12), hier.names=TRUE)
+#'# Use a list argument
+#'abind2(list(x=x, y=x), along=3)
+#'# Use lapply(..., get) to get the objects
+#'an <- c('x','y')
+#'names(an) <- an
+#'abind2(lapply(an, get), along=3)
 abind2 = function (..., along = N, rev.along = NULL, new.names = NULL,
                    force.array = TRUE, make.names = use.anon.names, use.anon.names = FALSE,
                    use.first.dimnames = FALSE, hier.names = FALSE, use.dnns = FALSE)
@@ -330,7 +411,7 @@ abind2 = function (..., along = N, rev.along = NULL, new.names = NULL,
       arg.alt.names <- arg.names
       for (i in seq(along = arg.names)) {
         if (arg.alt.names[i] == "") {
-          if (object.size(dot.args[[i]]) < 1000) {
+          if (utils::object.size(dot.args[[i]]) < 1000) {
             arg.alt.names[i] <- paste(deparse(dot.args[[i]],
                                               40), collapse = ";")
           }
@@ -490,39 +571,6 @@ abind2 = function (..., along = N, rev.along = NULL, new.names = NULL,
 }
 
 
-## coulumn align
-
-#' To cut top or bottom parts of a raster
-#'
-#' @param im image input
-#' @param fixed.depth how much should be retained
-#' @param top.cut discard the top part and retain the botom?
-#'
-#' @return a shorter raster
-#' @export
-#'
-#' @examples im2 = DepthLimiter(im = image, fixed.depth = 7200, top.cut = T)
-DepthLimiter = function(im,fixed.depth = 7200,top.cut = T){
-  depth = dim(im)[2]
-
-    im2 = raster::as.array(im)
-
-
-  if(top.cut == T){
-    im3 = im2[,(depth - fixed.depth-1) : depth,]
-  }else{
-    im3 = im2[,1 : (fixed.depth+1), ]
-  }
-  if(dim(im)[3]>1){
-    im3 = raster::brick(im3)
-    im3 = raster::raster(im3)
-  }else{
-    im3 = raster::raster(im3)
-  }
-
-
-  return(im3)
-}
 
 
 

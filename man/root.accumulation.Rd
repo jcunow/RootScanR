@@ -7,20 +7,22 @@
 root.accumulation(data, group, depth, variable)
 }
 \arguments{
-\item{data}{dataframe must include group,depth, and variable columns}
+\item{data}{data.frame must include group,depth, and variable columns}
 
-\item{group}{specify the grouping variable e.g., Plot}
+\item{group}{specify the grouping variable e.g., Plot. Can be multiple groups in a vector.}
 
-\item{depth}{specifiy column name which includes depth values}
+\item{depth}{specify column name which includes depth values}
 
 \item{variable}{accumulating values}
 }
 \value{
-dataframe with one added column "cs" containing the cummulated values
+data.frame with one added column "cs" containing the accumulated values
 }
 \description{
 Root accumulation Curve
 }
 \examples{
-data1 = root.accumulation(data,group = Plot, depth = depth, variable = rootpx)
+df = data.frame(depth = c(seq(0,80,20),seq(0,80,20)),
+               Plot = c(rep("a",5),rep("b",5)), rootpx = c(5,50,20,15,5,10,40,30,10,5) )
+accum_root = root.accumulation(df,group = "Plot", depth = "depth", variable = "rootpx")
 }

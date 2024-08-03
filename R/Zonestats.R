@@ -1,3 +1,8 @@
+
+
+
+
+
 #' Estimate Kimura Root Length
 #'
 #' @param im a skeletonized root image raster
@@ -7,24 +12,27 @@
 #' @return root length
 #' @export
 #'
-#' @examples RL = RootLength(im = image,unit = "cm", dpi = 300)
+#' @examples
+#' img = skl_Oulanka2023_Session01_T067[[2]]
+#' RL = RootLength(im = img,unit = "cm", dpi = 300)
 RootLength = function(im,unit="cm",dpi=300){
-  im2 = im / max(raster::values(im),na.rm=T)
+  im2 = im / max(terra::values(im),na.rm=TRUE)
+  im2 = terra::rast(im2)
   ## kimura image
   k0 = matrix(c(0,1,0,0,1,0,0,0,0), nrow = 3, ncol = 3)
   k1 = matrix(c(0,0,0,1,1,0,0,0,0), nrow = 3, ncol = 3)
-  r0 <- terra::focal(im2,w = k0, fun = "sum")
-  r1 <- terra::focal(im2,w = k1, fun = "sum")
+  r0 <- terra::focal(im2,w = k0, fun = "sum",na.rm=TRUE)
+  r1 <- terra::focal(im2,w = k1, fun = "sum",na.rm=TRUE)
   orth.img = sum((r0 == 2) | (r1 == 2))
 
-  k0 = matrix(c(1,0,0,0,1,0,0,0,0), nrow = 3, ncol = 3)
-  k1 = matrix(c(0,0,1,0,1,0,0,0,0), nrow = 3, ncol = 3)
-  r0 <- terra::focal(im2 ,w = k0, fun = "sum")
-  r1 <- terra::focal(im2 ,w = k1, fun = "sum")
-  diag.img = sum((r0 == 2) | (r1 == 2))
+  g0 = matrix(c(1,0,0,0,1,0,0,0,0), nrow = 3, ncol = 3)
+  g1 = matrix(c(0,0,1,0,1,0,0,0,0), nrow = 3, ncol = 3)
+  u0 <- terra::focal(im2 ,w = g0, fun = "sum",na.rm=TRUE)
+  u1 <- terra::focal(im2 ,w = g1, fun = "sum",na.rm=TRUE)
+  diag.img = sum((u0 == 2) | (u1 == 2))
 
-  kimura.sum.diag <- raster::cellStats(diag.img,"sum")
-  kimura.sum.orth <- raster::cellStats(orth.img,"sum")
+  kimura.sum.diag <- terra::global(diag.img,"sum",na.rm=TRUE)
+  kimura.sum.orth <- terra::global(orth.img,"sum",na.rm=TRUE)
 
   if(unit == "px"){
     rootlength = round(( kimura.sum.diag**2 + (kimura.sum.diag + kimura.sum.orth/2)**2 )**0.5   + kimura.sum.orth/2)
@@ -45,40 +53,60 @@ RootLength = function(im,unit="cm",dpi=300){
 #'
 #' @param im skeletonized image raster. Roots must be 1, background 0. Consider the input image rotation to interpret the output
 #' @param rotate should the image be rotated 90 degrees before entering?
+#' @param kernelsize number of connecting cells
+#' @param leeway amount of gaps allowed in connecting lines
 #'
-#' @return percentage of pixels with given neighbour pixel position
+#' @return percentage of pixels with given neighbor pixel position
 #' @export
 #'
-#' @examples direction.frame = Directionality(im)
-Directionality = function(im,rotate = TRUE){
-  im2 = im / max(raster::values(im),na.rm=T)
-  # the rotation of the image matters !
-  if(rotate == T){
-    im2 = raster::t(im2)
+#' @examples
+#' library(terra);library(raster)
+#'
+#' data("skl_Oulanka2023_Session01_T067")
+#' img = terra::rast(skl_Oulanka2023_Session01_T067)
+#' direction.frame = Directionality(img,kernelsize = 3)
+Directionality = function(im,rotate = TRUE, kernelsize = 3, leeway =0){
+  if(terra::global(im[[2]],"max",na.rm = TRUE)[[1]] > 1){
+    im2 = im / 255
+  }else{
+    im2 = im
   }
+
+
+  # the rotation of the image matters !
+  if(rotate == TRUE){
+    im2 = terra::t(im2)
+  }
+
   # background white or objects white matters - we want to count white objects (1's not 0's)
 
   # Kernel
-  D_horizontal = matrix(c(0,1,0,0,1,0,0,0,0), nrow = 3, ncol = 3)
-  D_vertical = matrix(c(0,0,0,1,1,0,0,0,0), nrow = 3, ncol = 3)
-  D_dia_topleft = matrix(c(1,0,0,0,1,0,0,0,0), nrow = 3, ncol = 3)
-  D_dia_botleft = matrix(c(0,0,1,0,1,0,0,0,0), nrow = 3, ncol = 3)
+  kerns = adaptive.Kernelsize.Directionality(n = kernelsize)
+  D_horizontal = kerns[[2]]
+  D_vertical = kerns[[1]]
+  D_dia_topleft = kerns[[3]]
+  D_dia_botleft = kerns[[4]]
 
   # orthogonal
-  r_Dho <- terra::focal(im2,w = D_horizontal, fun = "sum")
-  r_Dve <- terra::focal(im2,w = D_vertical, fun = "sum")
-  rr_Dho = sum((r_Dho == 2))
-  rr_Dve = sum((r_Dve == 2))
-  sum.Dho <- raster::cellStats(rr_Dho,"sum")
-  sum.Dve <- raster::cellStats(rr_Dve,"sum")
+  r_Dho <- terra::focal(im2,w = D_horizontal, fun = "sum",na.rm = TRUE)
+  r_Dve <- terra::focal(im2,w = D_vertical, fun = "sum",na.rm = TRUE)
+  rr_Dho = sum(r_Dho >= (kernelsize-leeway))
+  rr_Dve = sum(r_Dve >= (kernelsize-leeway))
+  #sum.Dho <- raster::cellStats(rr_Dho,"sum")
+  #sum.Dve <- raster::cellStats(rr_Dve,"sum")
+  sum.Dho <- terra::global(rr_Dho,"sum",na.rm = TRUE)[[1]]
+  sum.Dve <- terra::global(rr_Dve,"sum",na.rm = TRUE)[[1]]
+
 
   # diagonal
-  r_Dtopleft <- terra::focal(im2,w = D_dia_topleft, fun = "sum")
-  r_Dbotleft <- terra::focal(im2,w = D_dia_botleft, fun = "sum")
-  rr_Dtopleft = sum((r_Dtopleft == 2))
-  rr_Dbotleft = sum((r_Dbotleft == 2))
-  sum.Dtl <- raster::cellStats(rr_Dtopleft,"sum")
-  sum.Dbl <- raster::cellStats(rr_Dbotleft,"sum")
+  r_Dtopleft <- terra::focal(im2,w = D_dia_topleft, fun = "sum",na.rm = TRUE)
+  r_Dbotleft <- terra::focal(im2,w = D_dia_botleft, fun = "sum",na.rm = TRUE)
+  rr_Dtopleft = sum(r_Dtopleft >= (kernelsize-leeway))
+  rr_Dbotleft = sum(r_Dbotleft >= (kernelsize-leeway))
+  # sum.Dtl <- raster::cellStats(rr_Dtopleft,"sum")
+  # sum.Dbl <- raster::cellStats(rr_Dbotleft,"sum")
+  sum.Dtl <- terra::global(rr_Dtopleft,"sum",na.rm = TRUE)[[1]]
+  sum.Dbl <- terra::global(rr_Dbotleft,"sum",na.rm = TRUE)[[1]]
 
 # pixel neigbourhood sums
   all.px = sum.Dho + sum.Dve + sum.Dtl + sum.Dbl
@@ -86,13 +114,13 @@ Directionality = function(im,rotate = TRUE){
   orth.px = sum.Dho + sum.Dve
 
 
-Directions = data.frame(vertical = sum.Dve / all.px,
-                        horizontal = sum.Dho / all.px,
-                        topleft.bottomright = sum.Dtl / all.px,
-                        topright.bottom.left = sum.Dbl / all.px,
+Directions = data.frame(vertical = round(sum.Dve / all.px, 4),
+                        horizontal = round(sum.Dho / all.px, 4),
+                        topleft.bottomright = round(sum.Dtl / all.px, 4),
+                        topright.bottom.left = round(sum.Dbl / all.px, 4),
                         diag.px = diag.px,
                         orth.px = orth.px)
-
+colnames(Directions) <- c("vertical","horizontal","topleft.bottomright","topright.bottomleft","diag.px","orth.px")
   return(Directions)
 
 }
@@ -101,28 +129,30 @@ Directions = data.frame(vertical = sum.Dve / all.px,
 
 ## RootScape Metrics
 
-# input image should be segmented, unskeletonized image
+# input image should be segmented raster
 
 #' RootScapeMetric relies on Landscapemetrics to extract 'Root Scape' Features akin to landscape analysis.
 #'
 #' @param im segmented raster  (values = 0,1). Consider whether skeletonized raster is appropriate.
 #' @param indexD please specify depth. Will only affect the output column = "depth". Useful when used in a loop.
-#' @param metrics which ,metrics should be calculated from the available ones in 'landscapemetrics::calculate_lsm()'. A selection is used as default
-#' Interpretation here: ...
-#'
+#' @param metrics which ,metrics should be calculated from the available ones in 'landscapemetrics::calculate_lsm()'.
+#' @import dplyr
 #' @return a bunch of metric values
 #' @export
 #'
-#' @examples RootScapeObject  = RootScapeMetrics(image,indexD = 10, metrics = c("lsm_c_ca","lsm_c_enn_mn"))
+#' @examples
+#' img = seg_Oulanka2023_Session01_T067
+#' RootScapeObject  = RootScapeMetrics(img,indexD = 80, metrics = c("lsm_c_ca"))
 RootScapeMetrics = function(im,indexD=NA, metrics = c( "lsm_c_ca","lsm_l_ent","lsm_c_pd","lsm_c_np","lsm_c_pland",
                                                     "lsm_c_area_mn","lsm_c_area_cv","lsm_c_enn_mn","lsm_c_enn_cv")){
 
   rsm = landscapemetrics::calculate_lsm(im, directions = 8, neighbourhood = 8,what = metrics)
-  rsm$object = ifelse(rsm$class == 0,"deletable","root")
-  rsm$object = ifelse(is.na(rsm$class),"root",rsm$object )
+  t.object = ifelse(rsm$class == 0,"deletable","root")
+  t.object = ifelse(is.na(rsm$class),"root",t.object )
+  rsm$object = t.object
   rsm$depth = indexD
   rsm = dplyr::distinct(rsm)
-  rsm = dplyr::filter(rsm, object != "deletable")
+  rsm = dplyr::filter(rsm, rsm$object != "deletable")
   rsm$id = NULL
   rsm$class = NULL
   rsm$level = NULL
@@ -143,46 +173,17 @@ RootScapeMetrics = function(im,indexD=NA, metrics = c( "lsm_c_ca","lsm_l_ent","l
 #' @return a numeric value
 #' @export
 #'
-#' @examples value  = px.sum(root.zone)
+#' @examples
+#' img = terra::rast(seg_Oulanka2023_Session01_T067[[2]])
+#' rootpixel  = px.sum(img)
 px.sum = function(root.zone){
-  rootpx = as.numeric(raster::values(root.zone)/ max(raster::values(root.zone),na.rm=T) ) ==1
+  rootpx = as.numeric(terra::values(root.zone)/ terra::global(root.zone,"max",na.rm = TRUE)[[1]] ) ==1
+  rootpx = rootpx * 1
   srpx = sum(rootpx,na.rm=T)
   return(srpx)
 }
 
 
-
-
-## Halo function
-
-#' Halo creates a buffer around pixel bigger than 0
-#'
-#' @param im segmented raster
-#' @param width buffer around roots in px, the rhizosphere extent (exudate diffusion distance) is cited as 2mm (1-12mm) (Finzi et al. 2015, https://doi.org/10.1111/gcb.12816), but higher values have been suggested
-#' @param halo.only set TRUE if only the buffer around roots should be returned (the rhizosphere only)
-#' @return raster output
-#' @export
-#'
-#' @examples buffIMG = Halo(im = im, width = 10, halo.only = T)
-Halo = function(im,width=1, halo.only = T){
-  im = im / max(raster::values(im),na.rm=T)
-  im2 = im
-  ## circular kernel
-  k0 = matrix(c(1,1,1,1,0,1,1,1,1), nrow = 3, ncol = 3)
-
-  itr = 1
-  while(itr <= width){
-    im2 <- terra::focal(im2,w = k0, fun = "sum") #%>% suppressWarnings()
-    itr = itr + 1
-  }
-
-  out.im = sum((im2 >= 1),silent = T)-1 #%>% suppressWarnings()
-
-  if(halo.only  == TRUE){
-    out.im = out.im - im
-  }
-  return(out.im)
-}
 
 
 #' Coloration of the image
@@ -191,28 +192,31 @@ Halo = function(im,width=1, halo.only = T){
 #' @param r weight for first channel - typically red
 #' @param g weight for second channel - typically green
 #' @param b weight for third channel - typically blue
-#' @importFrom dplyr %>%
+#' @importFrom "grDevices" "rgb2hsv"
+#' @import dplyr
 #'
 #' @return a vector with chromatic coordinates,luminosity, brightness, luminosity, color values, saturation
 #' @export
 #'
-#' @examples colorvector = Tube.coloration(img = imrgb)
+#' @examples
+#' img = rgb_Oulanka2023_Session03_T067
+#' colorvector = Tube.coloration(img = img)
 Tube.coloration = function(img,r=0.2126,g=0.7152,b=0.0722){
-  vr = raster::values(img[[1]])
-  vg = raster::values(img[[2]])
-  vb = raster::values(img[[3]])
+  vr = terra::values(img[[1]])
+  vg = terra::values(img[[2]])
+  vb = terra::values(img[[3]])
   mean.r = mean(vr,na.rm=T )
   mean.g = mean(vg,na.rm=T )
   mean.b = mean(vb,na.rm=T )
 
-  hsl =rgb2hsv(r = mean.r, g = mean.g, b = mean.b)
+  hsl = grDevices::rgb2hsv(r = mean.r, g = mean.g, b = mean.b)
   intensity = vr + vg + vb
   lum.gray =  vr * r + vg * g + vb *b
-  mean.intensity = mean(intensity,na.rm=T) %>% round(4)
-  mean.lum = mean(lum.gray,na.rm=T) %>% round(4)
-  rcc = mean(vr / intensity,na.rm = T) %>% round(4)
-  gcc = mean(vg / intensity,na.rm = T) %>% round(4)
-  bcc = mean(vb / intensity,na.rm = T) %>% round(4)
+  mean.intensity = round(mean(intensity,na.rm=T),4)
+  mean.lum = round(mean(lum.gray,na.rm=T) ,4)
+  rcc = round(mean(vr / intensity,na.rm = T) ,4)
+  gcc = round(mean(vg / intensity,na.rm = T) ,4)
+  bcc = round(mean(vb / intensity,na.rm = T),4)
   colordf = data.frame(rcc = rcc,gcc = gcc,bcc = bcc,
                        hue = hsl[1], saturation = hsl[2], luminosity = hsl[3],
                        red = mean.r,green = mean.g,blue = mean.b)
@@ -226,7 +230,7 @@ Tube.coloration = function(img,r=0.2126,g=0.7152,b=0.0722){
 # uses the glcm package
 #' Texture corresponds to glmc::glmc()
 #'
-#' @param img.color image with three color chanels. Will be converted in grayscale.
+#' @param img.color image with three color channels. Will be converted in gray scale.
 #' @param grays number of gray shades. Documentation is lacking, see: ?glmc::glmc()
 #' @param window convolution window size e.g., c(3,3)
 #' @param metrics texture metrics based on illumination differences. see:: ?glmc::glmc() for available methods
@@ -234,7 +238,9 @@ Tube.coloration = function(img,r=0.2126,g=0.7152,b=0.0722){
 #' @return raster with each layer correspond to on metric
 #' @export
 #'
-#' @examples texture(img.color, 7, c(9,9), metrics = "second_moment")
+#' @examples
+#' img = rgb_Oulanka2023_Session03_T067
+#' texture(img, 7, c(9,9), metrics = "second_moment")
 texture = function(img.color,grays = 7, window = c(9,9), metrics = c("variance","second_moment") ){
   img.gray = (img.color[[1]]*0.21 + img.color[[2]]*0.72 + img.color[[3]]*0.07)/255
   tx.im  =  glcm::glcm(img.gray,
@@ -255,9 +261,9 @@ texture = function(img.color,grays = 7, window = c(9,9), metrics = c("variance",
 #' @return a value in units cm
 #' @export
 #'
-#' @examples root.ticc = root.thickness(kimuralength = 300,rootpx = 9500,300)
-root.thickness = function(kimuralength,rootpx,dpi){
+#' @examples root.ticc = root.thickness(kimuralength = 300,rootpx = 9500, dpi = 300)
+root.thickness = function(kimuralength,rootpx,dpi=300){
   px.per.length = rootpx / kimuralength
-  thiccness = round((px.per.length/118) / (dpi/2.54),5)
+  thiccness = round((px.per.length) / (dpi/2.54),5)
   return(thiccness) # cm
 }
