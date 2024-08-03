@@ -2,18 +2,19 @@
 % Please edit documentation in R/Calibration.R
 \name{RotationE}
 \alias{RotationE}
-\title{Estimates Rotation from Tape Coverage. Assummes that more tape is present on the tube upside.}
+\title{Estimates Rotation from Tape Coverage. Assumes that more tape is present on the tube upside.}
 \usage{
 RotationE(
   img,
   tape.brightness = 0.66,
   extra.rows = 100,
   search.area = 0.45,
-  tape.quantile = 0.98
+  tape.quantile = 0.98,
+  nclasses = 3
 )
 }
 \arguments{
-\item{img}{takes raster, filename, or array input.}
+\item{img}{takes raster, file name, or array input.}
 
 \item{tape.brightness}{used for clustering. Silver Dukt tape appears bright e.g., > 0.66.}
 
@@ -22,13 +23,16 @@ RotationE(
 \item{search.area}{portion of image to perform the tape search on. Potential speed increase.}
 
 \item{tape.quantile}{aligns extra.rows brightness with tape to ensure the same cluster class. The default uses Silver Tape as reference.}
+
+\item{nclasses}{number of classes to group pixels with unsupervised Clustering from the RStoolbox package. Leave at default unless weird results are being displayed.}
 }
 \value{
 numeric value corresponding to the center of extruding tape
 }
 \description{
-Estimates Rotation from Tape Coverage. Assummes that more tape is present on the tube upside.
+Estimates Rotation from Tape Coverage. Assumes that more tape is present on the tube upside.
 }
 \examples{
-value = RotationE(img)
+img = seg_Oulanka2023_Session01_T067
+r0 = RotationE(img)
 }

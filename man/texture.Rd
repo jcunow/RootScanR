@@ -12,7 +12,7 @@ texture(
 )
 }
 \arguments{
-\item{img.color}{image with three color chanels. Will be converted in grayscale.}
+\item{img.color}{image with three color channels. Will be converted in gray scale.}
 
 \item{grays}{number of gray shades. Documentation is lacking, see: ?glmc::glmc()}
 
@@ -27,5 +27,6 @@ raster with each layer correspond to on metric
 Texture corresponds to glmc::glmc()
 }
 \examples{
-texture(img.color, 7, c(9,9), metrics = "second_moment")
+img = rgb_Oulanka2023_Session03_T067
+texture(img, 7, c(9,9), metrics = "second_moment")
 }

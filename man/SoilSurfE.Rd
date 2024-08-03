@@ -39,5 +39,6 @@ data.frame with tape end and soil surface estimation in rows
 Estimate the position of the soil surface by tape presence
 }
 \examples{
-data.frame(soil0, tape.end) = SoilSurfE(im)
+img = seg_Oulanka2023_Session01_T067
+Soil0Estimates = SoilSurfE(img)
 }

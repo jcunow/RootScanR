@@ -4,7 +4,7 @@
 \alias{root.thickness}
 \title{Approximate average Root Thickness}
 \usage{
-root.thickness(kimuralength, rootpx, dpi)
+root.thickness(kimuralength, rootpx, dpi = 300)
 }
 \arguments{
 \item{kimuralength}{length of roots in image section}
@@ -20,5 +20,5 @@ a value in units cm
 Approximate average Root Thickness
 }
 \examples{
-root.ticc = root.thickness(kimuralength = 300,rootpx = 9500,300)
+root.ticc = root.thickness(kimuralength = 300,rootpx = 9500, dpi = 300)
 }

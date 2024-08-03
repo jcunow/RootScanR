@@ -11,7 +11,7 @@ skeletonize(img, itr = 2, kernel = "Skeleton:3")
 
 \item{itr}{iterations of thinning. see magick::image_morphology}
 
-\item{kernel}{kernel used for image operation. Other operations than skeletonizing is possible.}
+\item{kernel}{kernel used for image operation. Other operations than skeletonizing is possible.max(se)}
 }
 \value{
 image in as magick object
@@ -23,5 +23,5 @@ Skeletonize a segmented image
 Uses magick::image_morphology but eases the image input format
 }
 \examples{
-img.skeleton = skeletonize("/path/image.png",itr = 2)
+img.skeleton = skeletonize(skl_Oulanka2023_Session01_T067,itr = 2)
 }

@@ -30,5 +30,6 @@ a raster
 Rotation Censor
 }
 \examples{
+img = seg_Oulanka2023_Session01_T067
 censored.raster = RotCensor(img,center.offset = 120, cut.buffer = 0.02)
 }

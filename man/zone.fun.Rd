@@ -4,7 +4,7 @@
 \alias{zone.fun}
 \title{Cuts out a zone of interest}
 \usage{
-zone.fun(rootpic, binned.map, indexD, nn = 5, silent = F)
+zone.fun(rootpic, binned.map, indexD = 0, nn = 5, silent = FALSE)
 }
 \arguments{
 \item{rootpic}{the image which should be cut}
@@ -24,5 +24,10 @@ a cutout of the root pic image
 Cuts out a zone of interest
 }
 \examples{
-raster_image = zone.fun(rootpic, binned.map, nn=5, silent = F)
+img = seg_Oulanka2023_Session01_T067[[2]]
+mask = seg_Oulanka2023_Session01_T067[[1]] - seg_Oulanka2023_Session01_T067[[2]]
+mask[mask == 255] <- NA
+depthmap = create.depthmap(img,mask,start.soil = 290 )
+binned.map = binning(depthmap,nn = 5)
+image.zone = zone.fun(img, binned.map, indexD = 0, nn=5, silent = FALSE)
 }

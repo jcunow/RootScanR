@@ -27,5 +27,7 @@ Global root production and root turnover from temporal comparison
 Chosing kimura as method will return root length with default settings from RootLength()
 }
 \examples{
-tunrover.values = TurnoverE(im.t1 = time1, im.t2 = time2, method= "kimura")
+time1 =  skl_Oulanka2023_Session01_T067
+time2 =  skl_Oulanka2023_Session03_T067
+turnover.values = Turnover.TC(im.t1 = time1, im.t2 = time2, method= "kimura")
 }

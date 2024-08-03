@@ -22,5 +22,6 @@ raster, cut along rotation axis
 RotationZones
 }
 \examples{
-rotationZone1 = zone.rotation.fun(rootpic, k = c(1,2), nn = 7, mm = c(1500,3000))
+img = seg_Oulanka2023_Session01_T067
+rotationZone = zone.rotation.fun(img, k = c(1,2), kk = 7, mm = c(1500,3000))
 }

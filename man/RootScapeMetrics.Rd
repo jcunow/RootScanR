@@ -16,8 +16,7 @@ RootScapeMetrics(
 
 \item{indexD}{please specify depth. Will only affect the output column = "depth". Useful when used in a loop.}
 
-\item{metrics}{which ,metrics should be calculated from the available ones in 'landscapemetrics::calculate_lsm()'. A selection is used as default
-Interpretation here: ...}
+\item{metrics}{which ,metrics should be calculated from the available ones in 'landscapemetrics::calculate_lsm()'.}
 }
 \value{
 a bunch of metric values
@@ -26,5 +25,6 @@ a bunch of metric values
 RootScapeMetric relies on Landscapemetrics to extract 'Root Scape' Features akin to landscape analysis.
 }
 \examples{
-RootScapeObject  = RootScapeMetrics(image,indexD = 10, metrics = c("lsm_c_ca","lsm_c_enn_mn"))
+img = seg_Oulanka2023_Session01_T067
+RootScapeObject  = RootScapeMetrics(img,indexD = 80, metrics = c("lsm_c_ca"))
 }

@@ -7,9 +7,9 @@
 RotShiftDet(img1, img2, cor.type = "phase")
 }
 \arguments{
-\item{img1}{Reference Image}
+\item{img1}{Reference Image with 3 rgb channel}
 
-\item{img2}{Subsequent Image}
+\item{img2}{Subsequent Image with 3 rgb channel}
 
 \item{cor.type}{Two correlation types available: "ccf" cross correlation, and "phase" phase correlation in frequency domain. See ??imagefx}
 }
@@ -20,5 +20,7 @@ numeric value corresponding to rotation in rows. Ensure correct image rotation i
 Rotation Correlation
 }
 \examples{
-y.lag = RotShiftDet(img,img2,"phase")
+img1 = seg_Oulanka2023_Session01_T067
+img2 = seg_Oulanka2023_Session03_T067
+y.lag = RotShiftDet(img1,img2,"phase")
 }

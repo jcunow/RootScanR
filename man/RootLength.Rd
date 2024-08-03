@@ -20,5 +20,6 @@ root length
 Estimate Kimura Root Length
 }
 \examples{
-RL = RootLength(im = image,unit = "cm", dpi = 300)
+img = skl_Oulanka2023_Session01_T067[[2]]
+RL = RootLength(im = img,unit = "cm", dpi = 300)
 }

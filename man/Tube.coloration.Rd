@@ -22,5 +22,6 @@ a vector with chromatic coordinates,luminosity, brightness, luminosity, color va
 Coloration of the image
 }
 \examples{
-colorvector = Tube.coloration(img = imrgb)
+img = rgb_Oulanka2023_Session03_T067
+colorvector = Tube.coloration(img = img)
 }

@@ -39,5 +39,8 @@ raster image
 Create A Phase-Shifted, Tilt-Amplitude Sine Depth Map
 }
 \examples{
-map = create.depthmap(im,mask,start.soil = 290 )
+img = seg_Oulanka2023_Session01_T067[[2]]
+mask = seg_Oulanka2023_Session01_T067[[1]] - seg_Oulanka2023_Session01_T067[[2]]
+mask[mask == 255] <- NA
+map = create.depthmap(img,mask,start.soil = 290 )
 }
