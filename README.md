@@ -16,8 +16,8 @@ ____________________________________
 #### _Pre-Processing outside of R_
 ____________________________________
 
-##### Step 1: Bringing seperate Images together (Not yet available in R) 
-Stitching images together removs overlap and enables continuous depth mapping. Two Suggestions:
+##### Step 1: Bringing separate Images together (Not yet available in R) 
+Stitching images together removes overlap and enables continuous depth mapping. Two Suggestions:
 1. Affine Keyfeature Stitching of all Scans corresponding to a particular Tube in Time; see Try AffineStitcher.py in StitchR repository. Works well for feature rich images with more overlap and less good for homogeneous images with little overlap. Limiting the key feature mapping to the overlap region should result in better results (not implemented yet!) 
 2. Use ImageJ's Addon Stitcher. Needs a text file listing the rough Image positions (ca. 100px overlap). This has a high sucessrate but is time intensive.
         
@@ -29,7 +29,7 @@ Distinguishing between root and background is essential. Two potential choices:
    than human experts in detecting plant roots in minirhizotron images: 
    The Convolution Neural Network RootDetector  *Scientific Reports* **13** 1,
 
-   Using root tracking will return root production, root decay, and no-change roots. Using this unlocks a additional Turnover estimation - Turnover.PDC()
+   Using root tracking will return root production, root decay, and no-change roots. Using this unlocks a additional Turnover estimation - Turnover.DPC()
    Gillert et al. 2023, Tracking Growth and Decay of Plant Roots in Minirhizotron Images. *IEEE/CVF Winter Conference on Applications of Computer Vision (WACV)*, https://doi.org/10.1109/WACV56688.2023.00369 
  
    Software at https://github.com/ExPlEcoGreifswald/RootDetector
@@ -112,7 +112,7 @@ soil.color = Tube.coloration(soil)
 5. Turnover - either two images from different timpoints, or the 'RootDetector' root tracking output 
 ````
 Turnover.TC(root.zone1,root.zone2, method = "kimura",dpi = 300, unit = "cm")
-TurnoverPDC(root.zone.pdc, product.layer = 2, decay.layer = 1, im.return = F)
+Turnover.DPC(root.zone.dpc, product.layer = 2, decay.layer = 1, im.return = F)
 ````
 
 ##### Step 7 Rotational Bias
