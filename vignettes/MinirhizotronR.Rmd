@@ -1,0 +1,442 @@
+---
+title: "MinirhizotronR: Depth Resolved Analysis of Segmented Minirhizotron Scans"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+
+```
+
+```{r setup}
+knitr::opts_chunk$set(include = FALSE)
+library(MinirhizotronR)
+library(cowplot)
+library(ggplot2)
+library(dplyr)
+```
+
+## Description: 
+This package is designed in support a analysis of root scans from Minirhizotron tubes, starting after image segmentation.
+The following is needed to use this package to it's full potential:
+    
+    
+*mandatory:* 
+
+- raw root scans
+- segmentation of root scans
+- tube insertion angle and tube thickness
+
+*optional:*
+
+- skeletonized version of root scans, 
+- *in-situ* calibration of soil surface to image start & rotation calibration is recommended!
+
+*suggestion:* 
+
+- use 'RootDetector' or an equivalent Image segmentation convolutional neural net to aid in automated analysis of root scans beforehand.
+- use AffineStitcher.py or equivalent to stitch all individual scans belonging to a particular tube in time to generate unified images
+
+
+
+
+## Install Package
+```{r Install Package}
+# devtools::install_github("jcunow/MinirhizotronR")
+# remotes::install_github("jcunow/MinirhizotronR")
+```
+
+
+## First Step - Prep
+Stitch your images together and segment them. You can find on e solution to this here: ....Link
+
+
+## Second Step - Prep
+Segment the stitched Image. You can use this: ....Link
+Tipp: use split_im() function (currently unavailable) to cut the root image in pieces in case 'RootDetetcor' has trouble with the amount of roots of roots. You can rejoin the segmented images afterwards with join_im(). But first, look change the settings of 'RootDetector' and crank up the maximum root limit.  
+
+```{r Input Example Showcase, fig.height=4.9, fig.width=9, message=FALSE, warning=FALSE, paged.print=FALSE,eval=FALSE,cache=FALSE}
+# p1 <- ggdraw() + draw_image(paste0(getwd(),"/demo_images/Oulanka2023_Session03_T067.jpg"), scale = 0.6)
+# p2 <- ggdraw() + draw_image(paste0(getwd(),"/demo_images/Oulanka2023_Session03_T067_segmented.jpg"), scale = 0.6)
+# p3 <- ggdraw() + draw_image(paste0(getwd(),"/demo_images/Oulanka2023_Session03_T067_skeleton.jpg"),scale = 0.6)
+
+#cowplot::plot_grid(p1,p2,p3,ncol = 1)
+```
+
+
+## Third step - The Package begins
+Now we are finally ready to start using the package.
+First, we need to load the images and then estimate the soil surface and the rotation.
+```{r Start the package, echo=FALSE,  warning=FALSE}
+library(MinirhizotronR)
+library(dplyr)
+library(terra)
+library(raster)
+# read color image, segmented, and skeletonized
+data(rgb_Oulanka2023_Session03_T067)
+data(seg_Oulanka2023_Session03_T067)
+data(skl_Oulanka2023_Session01_T067)
+data(skl_Oulanka2023_Session03_T067)
+data(TurnoverDPC_data)
+
+seg_Oulanka2023_Session03_T067 = terra::rast(seg_Oulanka2023_Session03_T067)
+rgb_Oulanka2023_Session03_T067 = terra::rast(rgb_Oulanka2023_Session03_T067)
+skl_Oulanka2023_Session01_T067 = terra::rast(skl_Oulanka2023_Session01_T067)
+skl_Oulanka2023_Session03_T067 = terra::rast(skl_Oulanka2023_Session03_T067)
+TurnoverDPC_data = terra::rast(TurnoverDPC_data)
+#skl_Oulanka2023_Session03_T067 = (skeletonize(seg_Oulanka2023_Session03_T067[[2]], itr= 3))
+
+```
+
+## Now, we need to define where the soil begins
+```{r Calibrating, echo=TRUE, message=FALSE, warning=FALSE, cache=FALSE, eval=TRUE}
+  
+### If you have measured the the distance from the soil to the edge of the tube - great, your job is done! 
+## Just do this:
+height = 12 # cm
+tilt = 45 # insertion angle
+dpi = 300 # imiage resolution
+
+# law of sines
+radiant = pi/180
+s0.true = (sin((90) * radiant)*height) / sin(tilt * radiant)
+s0 = s0.true * dpi / 2.54
+s0 = s0 %>% round()
+
+
+### If you don't have any data meta-deta available - too bad!
+## Try this instead:
+# Based on Tape Cover, soil start is estimated
+s0 = MinirhizotronR::SoilSurfE(rgb_Oulanka2023_Session03_T067)
+print(paste0("Soil Surface Beginning in columns: ",s0$soil0))
+# While we're at it, lets estimate the rotion center (Here, we assume that the tape extrusion on the upside of the Tube is perfectly centered - go and calibrate !!!)
+r0 = MinirhizotronR::RotationE(rgb_Oulanka2023_Session03_T067)
+print(paste0("Rotation Center in rows: ",r0))
+```
+
+
+
+```{r Create a depthmap, echo=FALSE, fig.height=4, fig.width=1.5, warning=FALSE, eval=TRUE}
+### We are ready now to create a depth map. The here goal is to supply every pixel of the root scans with a depth information. We choose to include the tube thickness and thereby create a phase shifted cosine depth map  -  or ignore it  (as traditionally done). Ignoring it will create a map in which the tube upside is located the same depth as tube downside (= vertical insertion angle). 
+
+## We want to exclude pixels with tape as part of the soil. Create a mask:
+# The format of 'RootDetector' uses the red channel to show mask and root px, while blue and green only show root px
+mask = (seg_Oulanka2023_Session03_T067[[1]] - seg_Oulanka2023_Session03_T067[[2]] ) / 255
+mask = terra::t(mask)
+## Create the Map (cosine.option missing!)
+center.offset = r0  / dim(seg_Oulanka2023_Session03_T067)[1]
+DepthMap = MinirhizotronR::create.depthmap(seg_Oulanka2023_Session03_T067, mask = mask,start.soil = s0$soil0, center.offset = center.offset )
+
+# Now lets bin the depth to be able to calculate some stats. Analysis on continuous depth will feature in a future release.
+# we use 5cm intervals here but any bandwidth can be used.
+bm = MinirhizotronR::binning(DepthMap, nn = 2, "rounding")
+terra::ext(bm) <- c(0,dim(bm)[2],0,dim(bm)[1])
+# Binned Depthmap Plot
+terra::plot(bm)+theme_void()
+
+```
+
+## With Depth Information ready, we can now analyze the data. Here, we are interested in 3 key features: Root Coverage, RootScapes Features, and Peat Characteristics. Lets get to the vegan meat of it:
+```{r Depth Stats, fig.height=3, fig.width=4.2, , warning=FALSE, eval=TRUE}
+# A good starting point is selecting the desired depth. Typically, you want to go through all depth to construct a depth distribution. For brevity, we show it for one depth here.
+
+## We only need one binarized layer
+# one layer gray would usually be a good option, however, there is distinct information stored in the various layers when using 'RootDetector'
+gray.roots = rgb2gray(seg_Oulanka2023_Session03_T067)
+# In this format, we can simply do this:
+gray.roots = seg_Oulanka2023_Session03_T067[[2]] 
+terra::ext(gray.roots) <- c(0,dim(gray.roots)[2],0,dim(gray.roots)[1])
+
+# extracts a depth band from the root image based on the depth map 
+rootzone = zone.fun(rootpic = gray.roots, binned.map = bm, indexD = -10, nn = 2 )
+# the output message tells us the there are not enough proper values in the root zone. Lets try again
+rootzone = zone.fun(rootpic = gray.roots, binned.map = bm, indexD = 8, nn = 2 )
+terra::plot(rootzone)
+# Also do it for the skeletonized version
+rootzone.skeleton = zone.fun(skl_Oulanka2023_Session03_T067, binned.map = bm, indexD = 20, nn = 2)
+terra::ext(rootzone.skeleton) <- c(0,dim(rootzone.skeleton)[2],0,dim(rootzone.skeleton)[1])
+
+
+# Get the landscape metrics of the root scape - keep the output units in mind (assuming... input and deliver hectar output)
+rsm = RootScapeMetrics(rootzone,indexD = 8, metrics = c( "lsm_c_ca","lsm_l_ent","lsm_c_pd",
+                                      "lsm_c_enn_mn")) 
+print(rsm) 
+
+
+
+```
+
+## Get Root Coverage
+```{r More Root Stats, eval=TRUE}
+
+# Get number of Root pixel and Root Length, and Root Thickness
+void = 255-(gray.roots)
+# check if extent matches
+
+# rotate if necessary
+if(all(dim(bm)[1:2] != dim(gray.roots)[1:2])){
+bm = terra::t(bm)  
+}
+
+# retrieve the root pixel sum and the pixel without roots for all depths
+void.sum = terra::zonal( void,bm, "sum" )
+root.sum = terra::zonal(gray.roots,bm,"sum")
+
+colnames(void.sum) <- c("zone","sum")
+colnames(root.sum) <- c("zone","sum")
+
+# if you want to include this function within a depth wise loop use this
+rootpixel = px.sum(root.zone = rootzone) # uses the segmented - so its total root pixel
+
+
+# for root length do something like this
+kimroot = RootLength(rootzone.skeleton)
+# lastly Root thickness
+root.thicc = root.thickness(kimuralength = kimroot, rootpx = rootpixel, dpi = 300)
+
+## report:
+print(paste0("total root pixel in this depth: ",rootpixel," px"))
+print(paste0("total root length in this depth: ",kimroot," cm"))
+print(paste0("average root thickness in this depth: ",root.thicc," cm"))
+```
+## OBS! not all depth have equal amount of tube surface to display roots! The end pieces of the tilted tube and partially tape covered tube have smaller tube surface
+```{r standardize to available space, eval=FALSE,cache=FALSE}
+# correct for available space
+av.space = root.sum + void.sum
+av.space[,1] =  av.space[,1]/2
+plot(av.space) + title("total available rooting space")
+
+rootpx_per_av.space =  root.sum
+rootpx_per_av.space[,2] = root.sum[,2] / av.space[,2]
+df.rootpx_per_av.space = as.data.frame(rootpx_per_av.space)
+ggplot(data=df.rootpx_per_av.space,aes(zone,sum)) + geom_point() + geom_smooth(span=0.25) + theme_classic() + ylab("% covered by roots") + xlab("Depth [cm]") +ggtitle("Roots per available rooting space")
+#ggsave("C:/Users/jocu0013/Documents/GitHub/MinirhizotronR/figures/rootsperavailablespace.png")  
+```
+
+## what if we want to consider a sphere of influence around the roots ?
+```{r rhizosphere tangent, eval=FALSE}
+## set hard limits
+root.seg = gray.roots 
+terra::values(root.seg)[terra::values(terra::t(mask))==1] <- NA
+
+# create a buffer around pixels (12 px == ca. 1mm), Rhizophere exudates 2mm (source)
+buff.im = Halo(root.seg, width = 2, halo.only = FALSE)
+terra::plot(buff.im, main= "The sphere of influence (roots + 0.3mm each side)") 
+
+
+## lets do some stats on the sphere of influence
+buffer.sum = terra::zonal( buff.im,bm, "sum",na.rm=TRUE )
+plot(scale(buffer.sum)); points(scale(root.sum),col="red") + title("The difference between distribution of influence (black) vs distribution of rotos (red)")
+
+# Hint: sphere of influence might not be the same across depth with varying physiology and hydraulic conductivity
+```
+
+
+
+
+
+## Can we characterize the Peat too ?
+```{r Characterize the soil, eval=FALSE}
+# only consider soil pixels - not tape nor roots
+peat.color = terra::crop(rgb_Oulanka2023_Session03_T067,gray.roots)
+terra::values(peat.color)[terra::values(buff.im) == 1] = NA 
+terra::values(peat.color)[terra::values(terra::t(mask)) == 1] = NA 
+# plot & color
+terra::plot(peat.color)
+tube.color.peat = Tube.coloration(peat.color);tube.color.peat
+
+
+# now only consider roots
+root.color = terra::crop(rgb_Oulanka2023_Session03_T067,gray.roots)
+terra::values(root.color)[terra::values(gray.roots) == 0] = NA 
+terra::values(root.color)[terra::values(terra::t(mask)) == 1] = NA 
+# plot & color
+terra::plotRGB(root.color, main = "available root pixel") 
+tube.color.root = Tube.coloration(root.color);tube.color.root
+
+##  Lets try to get texture information as well
+gray.peat = raster::raster(rgb2gray(peat.color))
+void.tx = glcm::glcm(gray.peat,n_grey = 7,window = c(9,9), 
+                     statistics = c("second_moment","homogeneity"),
+                     shift=list(c(0,1), c(1,1), c(1,0), c(1,-1)))
+terra::plot(void.tx[[1]], main = available texture pixels and their second moment characteristic) 
+## extent don't match
+bm2 = terra::raster(terra::as.array(bm)[,1:3000,])
+terra::ext(bm2) = terra::ext(void.tx) 
+tx.mean = terra::zonal(void.tx[[1]],bm2,"mean")
+plot(tx.mean) + title("second moment - peat texture characterization")
+```
+
+## as the tube insertion angle increases, the more we expect a differences between the upside of the tube and the downside. Let's estimate the rotational bias
+```{r Asess Rotational Bias, eval=FALSE,cache=FALSE}
+
+# remove artefacts
+root.seg.c = RotCensor(root.seg,fixed.width = 1000)
+# lets make the split in 0.5 cm intervals
+dpi = 150
+splits = round(dim(root.seg)[1]/dpi*2.54) * 2
+rot.df = data.frame(rotation = 1:splits,rotation.rootpx = NA)
+
+for (k in 1:splits) {
+rotation.z = zone.rotation.fun(rootpic = root.seg, mm= c(1500,4000), kk = splits, k = c(k-1,k))  
+rot.df[k,2] = px.sum(root.zone = rotation.z)
+}
+rot.df$sc.rotationpx = scale(rot.df$rotation.rootpx)
+ggplot(data= rot.df, aes(rotation,sc.rotationpx)) + 
+  geom_point() +  
+  theme_bw() + xlab("rotation cm") + ylab("root px") + 
+  geom_smooth(method="lm", formula = y ~ cos(x*pi/16),aes(color = "cosine fit")) + 
+  geom_smooth(se=F,aes(color="local smooth"),span = 0.5)
+
+## fit a sine curve to the rotation-sliced image
+fitSinCurve(tt=rot.df$rotation,yy=rot.df$sc.rotationpx)
+# test if the variation in the data is 0 or explained by sine function alone 
+ryth.test = LR_rhythmicity(tt=rot.df$rotation,yy=rot.df$sc.rotationpx,period = splits-1, method = "LR")
+splits - ryth.test$phase 
+
+## if tow tubes are ought to be compared (different insertion angles or tube diameter)
+tt1 = rot.df$rotation
+tt2 = rot.df$rotation
+yy1 = rot.df$sc.rotationpx
+# amplitude 4x times as high
+yy2 = rot.df$sc.rotationpx*2 + runif(length(rot.df$rotation),min = -0.1, max = 0.1 ) # + 20
+WaldTest_diff_amp(tt1=tt1, yy1=yy1, tt2=tt2, yy2=yy2)
+
+
+## we can also test if if the rotational root distribution corresponds to the true tube upside
+# rotation segments
+terra::plot(root.seg) + 
+  geom_hline(yintercept = seq(0,dim(root.seg)[1],length = splits+1),
+             color = "red",size=0.05,linetype = "solid") + 
+  theme_void() + 
+  geom_text(label = 1:20,aes(x=250,
+                                 y= (scale((seq(0,dim(root.seg)[1],
+                                                length = splits)))*
+                                    (sd((seq(0,dim(root.seg)[1]-(dim(root.seg)[1]/splits),
+                                             length =splits))))) + 
+                                   mean((seq(0,dim(root.seg)[1],
+                                             length = splits)))),
+            color="black",size=1.5) 
+#ggsave("C:/Users/jocu0013/Documents/GitHub/MinirhizotronR/figures/rotation_splicing.png")
+
+# based on rotation center determined previously
+df1 = seq(0*pi,-2*pi,-2*pi/(max(rot.df$rotation)-1))
+calibrated.phase = (cos(df1+(pi*(1-center.offset))))*(6.35/2)
+# test the rotational root distribution vs the calibrated
+difftest = LRTest_diff_phase(tt1 = rot.df$rotation, tt2 =  rot.df$rotation, yy1 = calibrated.phase, yy2 = rot.df$sc.rotationpx,
+                  period = round(pi*6.35));difftest
+# tape estimation did not reflect the center of root distribution
+
+## alternative polar plot
+rot.df<-rot.df%>%
+    mutate(
+        # Use (rotation-0.5), not just id, to center label on each item
+        angle=90-360*(rotation-0.5)/max(rotation)
+    ) %>%
+  mutate(exag.rootpx = rotation.rootpx**1.75)
+
+
+ggplot(data= rot.df, 
+       aes(rotation,exag.rootpx)) + 
+  geom_bar(fill="indianred",
+           stat = "identity") + 
+    geom_text(data=rot.df,
+            aes(y=max(exag.rootpx)-max(exag.rootpx)*0.925,label=rotation),hjust = 0.5, size = 3,color = "white")+
+  theme_minimal()+
+  ylab("")+xlab("")+
+  scale_y_continuous(breaks = c(-max(rot.df$exag.rootpx)*0.1),
+                                       labels = "",
+                                       limits = c(
+     -max(rot.df$exag.rootpx)/1.25,
+     max(rot.df$exag.rootpx)*1
+   ))+
+ scale_x_continuous(labels = "",breaks = max(rot.df$exag.rootpx))+
+coord_polar(start=(splits - ryth.test$phase )*1.3)
+
+```
+
+## Now its time for Turnover
+```{r, eval=FALSE,cache=FALSE}
+# the package offers two methods two estimate turnover. 
+#The function Turnover.TC() makes a comparison between two timepoints and determines production in relation to total biomass. 
+
+turn1 = Turnover.TC(skl_Oulanka2023_Session01_T067,skl_Oulanka2023_Session03_T067,method = "kimura");turn1
+# PDC stands for production, decay, and constant - extracting the variables from a 'RootDetector' format turnover output
+turn2 = Turnover.DPC(TurnoverDPC_data, product.layer = 2, decay.layer = 1);turn2
+# we can also return production, decay, and constant layers instead and go apply depth stats
+turn3 = Turnover.DPC(TurnoverDPC_data, im.return = T)
+# adapt depth map
+
+bm.turn = RotCensor(bm)
+#bm.turn2 = DepthLimiter(bm.turn,top.cut = F)
+#bm.turn2 =raster::raster(bm.turn2)
+# terra::ext(bm.turn) = terra::ext(turn3$production)
+# prd = raster::zonal(turn3$production,bm.turn,"sum")
+# dec = raster::zonal(turn3$decay,bm.turn,"sum")
+# con = raster::zonal(turn3$constant,bm.turn2"sum")
+# 
+# df = data.frame(prd = prd[,2],dec =  dec[,2],con =  con[,2], x = prd[,1], rootpx = root.sum[2:(length(prd[,1])+1),2])
+# ggplot(data=df,aes(x=x)) + 
+#   scale_y_continuous(limits = c(0,1))+
+#   scale_x_continuous(limits = c(0,40))+
+#   theme_bw()+
+#   geom_point(aes(y = prd/rootpx,color = "prd")) + geom_line(aes(y = prd/rootpx,color = "prd")) + 
+#   geom_point(aes(y = dec/rootpx,color = "dec")) + geom_line(aes(y = dec/rootpx,color = "dec")) + 
+#   geom_point(aes(y = con/rootpx,color = "con")) + geom_line(aes(y = con/rootpx,color = "con"))# + geom_point(aes(y = #rootpx,color = "rootpx")) + geom_line(aes(y = rootpx,color = "rootpx"))
+```
+
+
+
+```{r a quick and dirty fix to bring dimensions to the same level}
+# dir = "C:/Users/jocu0013/Desktop/Oulanka/Scan_comparsion/2023_01/"
+# #dir.out = dir
+# dir.out = "C:/Users/jocu0013/Desktop/Oulanka/Scan_comparsion/censor_2023_01/"
+#  file.names = list.files(dir)[-1]
+#  for (i in file.names) {
+#    im = tiff::readTIFF(paste0(dir,i))
+#    name = i
+#    
+#    #name = stringr::str_replace(i, pattern = "_Session03_",replacement = "_")
+#    #name = stringr::str_replace(name, pattern = ".tiff",replacement = "_L001_03.tiff")
+#    
+#    # name = stringr::str_replace(i, pattern = "Split_dwn_O",replacement = "O")
+#    # name = stringr::str_replace(name, pattern = "Split_top_O",replacement = "O")
+#    # name = stringr::str_replace(name, pattern = "2023",replacement = "_2023")
+#  
+#    
+#     
+#     
+#     
+#     if(dim(im)[2] > 7200){
+#     im = DepthLimiter(im,fixed.depth = 7200)  
+#     }else{
+#       if(dim(im)[2] > 6100){
+#     im = DepthLimiter(im,fixed.depth = 6100)  
+#       }else{
+#     if(dim(im)[2] > 4900){
+#     im = DepthLimiter(im,fixed.depth = 4900)    
+#     }
+#     }
+#     }
+#    im = RotCensor(im)
+#  
+#    im = im / max(raster::values(im))
+#    im = raster::as.array(im)
+#    tiff::writeTIFF(im,paste0(dir.out,"/",name)) 
+#    
+#    
+#    print(i)
+#  }
+
+```
+
+
+
+
