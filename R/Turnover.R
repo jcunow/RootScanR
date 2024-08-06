@@ -13,8 +13,11 @@
 #'
 #'
 #' @examples
-#' time1 =  skl_Oulanka2023_Session01_T067
-#' time2 =  skl_Oulanka2023_Session03_T067
+#'
+#' data(skl_Oulanka2023_Session01_T067)
+#' data(skl_Oulanka2023_Session03_T067)
+#' time1 = terra::rast(skl_Oulanka2023_Session01_T067)
+#' time2 = terra::rast(skl_Oulanka2023_Session03_T067)
 #' turnover.values = Turnover.TC(im.t1 = time1, im.t2 = time2, method= "kimura")
 Turnover.TC = function(im.t1, im.t2,method="kimura",unit = "cm",dpi = 300){
 
@@ -52,6 +55,7 @@ Turnover.TC = function(im.t1, im.t2,method="kimura",unit = "cm",dpi = 300){
 #' @export
 #'
 #' @examples
+#' data(TurnoverDPC_data)
 #' img = terra::rast(TurnoverDPC_data)
 #' DPCs = Turnover.DPC(img = img, im.return = FALSE)
 Turnover.DPC = function(img,product.layer = 2, decay.layer = 1, blur.capture = 0.95, im.return = FALSE, include.virtualroots = FALSE){

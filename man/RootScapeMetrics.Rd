@@ -25,6 +25,7 @@ a bunch of metric values
 RootScapeMetric relies on Landscapemetrics to extract 'Root Scape' Features akin to landscape analysis.
 }
 \examples{
-img = seg_Oulanka2023_Session01_T067
+data(seg_Oulanka2023_Session01_T067)
+img = terra::rast(seg_Oulanka2023_Session01_T067)[[2]]
 RootScapeObject  = RootScapeMetrics(img,indexD = 80, metrics = c("lsm_c_ca"))
 }

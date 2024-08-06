@@ -9,7 +9,7 @@ RotCensor(
   center.offset = 0,
   cut.buffer = 0.02,
   fixed.rotation = TRUE,
-  fixed.width = 2000
+  fixed.width = 1000
 )
 }
 \arguments{
@@ -30,6 +30,7 @@ a raster
 Rotation Censor
 }
 \examples{
-img = seg_Oulanka2023_Session01_T067
+data(seg_Oulanka2023_Session01_T067)
+img = terra::rast(seg_Oulanka2023_Session01_T067)
 censored.raster = RotCensor(img,center.offset = 120, cut.buffer = 0.02)
 }

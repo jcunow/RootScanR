@@ -33,6 +33,6 @@ numeric value corresponding to the center of extruding tape
 Estimates Rotation from Tape Coverage. Assumes that more tape is present on the tube upside.
 }
 \examples{
-img = seg_Oulanka2023_Session01_T067
+img = terra::rast(seg_Oulanka2023_Session01_T067)
 r0 = RotationE(img)
 }

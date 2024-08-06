@@ -33,6 +33,7 @@ either pixel sums if im.return = F, or individual layers corresponding to tape, 
 Extracts Root Decay, New Root Production, and No-Change Roots. Relies on 'RootDetector'
 }
 \examples{
+data(TurnoverDPC_data)
 img = terra::rast(TurnoverDPC_data)
 DPCs = Turnover.DPC(img = img, im.return = FALSE)
 }

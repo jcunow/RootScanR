@@ -1,8 +1,56 @@
 
+
+#' Calculate a circular mean to determine average Directionality
+#'
+#' @param angles input angles
+#' @param input_units can be either "radians" or "degrees"
+#' @param output_units can be either "radians" or "degrees"
+#'
+#' @return average angle
+#' @export
+#'
+#' @examples circular_mean(angles = c(360,90,0), input_units = "degrees", output_units = "degrees")
+circular_mean <- function(angles, input_units = "degrees", output_units = "degrees") {
+  # Convert angles to radians if they are in degrees
+  if (input_units == "degrees") {
+    angles <- angles * pi / 180
+  } else if (input_units != "radians") {
+    stop("Invalid input unit specified. Use 'radians' or 'degrees'.")
+  }
+
+  # Calculate the sine and cosine of the angles
+  sin_sum <- sum(sin(angles))
+  cos_sum <- sum(cos(angles))
+
+  # Calculate the circular mean
+  mean_angle <- atan2(sin_sum, cos_sum)
+
+  # Ensure the mean angle is in the range [0, 2*pi)
+  if (mean_angle < 0) {
+    mean_angle <- mean_angle + 2 * pi
+  }
+
+  # Convert the mean angle to the desired output unit
+  if (output_units == "degrees") {
+    mean_angle <- mean_angle * 180 / pi
+  } else if (output_units != "radians") {
+    stop("Invalid output unit specified. Use 'radians' or 'degrees'.")
+  }
+
+  return(mean_angle)
+}
+
+
+
+
+
+
 #' Threshoold an image to rebinarize a blurred image (e.g., jpeg compression)
 #'
 #' @param img raster
 #' @param threshold ratio of max value assigned as 1
+#' @param focus.layer which layer should be used to capture blurr
+#' @param mask.layer preserve mask sections (e.g., tape) in one layer
 #'
 #' @return raster
 #' @export
@@ -10,9 +58,26 @@
 #' @examples
 #' blurred.img = terra::rast(seg_Oulanka2023_Session03_T067)
 #' img = blur.correction(blurred.img, 0.3)
-blur.correction = function(img,threshold = 0.4){
-  img2 = (img >= (terra::global(img, "max")[[1]] * threshold))
-  img2 = img2 *1
+blur.correction = function(img,threshold = 0.4,focus.layer = 2,mask.layer = 1){
+  img2 = img
+
+  if(length(dim(img)) == 3){
+    mx = terra::global(img2[[focus.layer]], "max")[[1]]
+    # isolate mask part
+    img2[[mask.layer]] = img2[[mask.layer]]-img2[[focus.layer]]
+    img2[[mask.layer]] = (img2[[mask.layer]] >= (mx * threshold)) * mx
+    # unblurr focus layer
+    img2[[focus.layer]] = (img2[[focus.layer]] >= (mx * threshold)) * mx
+    # unblurr remaining layer
+    other.layer = which(!1:3 %in% focus.layer & !1:3 %in% mask.layer)
+    img2[[other.layer]] = (img2[[focus.layer]] >= (mx * threshold)) * mx
+
+  }else{
+    mx = terra::global(img2, "max")[[1]]
+    # unblurr focus layer
+    img2 = (img2 >= (mx * threshold)) * mx
+  }
+
   return(img2)
 }
 
@@ -33,6 +98,7 @@ blur.correction = function(img,threshold = 0.4){
 #'
 #'
 #' @examples
+#' data(skl_Oulanka2023_Session01_T067)
 #' img.skeleton = skeletonize(skl_Oulanka2023_Session01_T067,itr = 2)
 skeletonize = function(img,itr = 2, kernel = 'Skeleton:3'){
   if(is.character(img)){
@@ -169,6 +235,7 @@ root.accumulation = function(data,group,depth,variable){
 #' @export
 #'
 #' @examples
+#' data(seg_Oulanka2023_Session01_T067)
 #' img = seg_Oulanka2023_Session01_T067
 #' gray.raster = rgb2gray(img)
 rgb2gray = function(img, r=0.21,g=0.72,b=0.07){

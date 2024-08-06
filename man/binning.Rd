@@ -20,7 +20,8 @@ raster with input depths in bins
 Takes a continues depth map and bins it to a specified range
 }
 \examples{
-img = seg_Oulanka2023_Session01_T067[[2]]
+data(seg_Oulanka2023_Session01_T067)
+img = terra::rast(seg_Oulanka2023_Session01_T067[[2]])
 mask = seg_Oulanka2023_Session01_T067[[1]] - seg_Oulanka2023_Session01_T067[[2]]
 mask[mask == 255] <- NA
 depthmap = create.depthmap(img,mask,start.soil = 290 )

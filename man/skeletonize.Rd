@@ -23,5 +23,6 @@ Skeletonize a segmented image
 Uses magick::image_morphology but eases the image input format
 }
 \examples{
+data(skl_Oulanka2023_Session01_T067)
 img.skeleton = skeletonize(skl_Oulanka2023_Session01_T067,itr = 2)
 }

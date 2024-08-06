@@ -4,12 +4,16 @@
 \alias{blur.correction}
 \title{Threshoold an image to rebinarize a blurred image (e.g., jpeg compression)}
 \usage{
-blur.correction(img, threshold = 0.4)
+blur.correction(img, threshold = 0.4, focus.layer = 2, mask.layer = 1)
 }
 \arguments{
 \item{img}{raster}
 
 \item{threshold}{ratio of max value assigned as 1}
+
+\item{focus.layer}{which layer should be used to capture blurr}
+
+\item{mask.layer}{preserve mask sections (e.g., tape) in one layer}
 }
 \value{
 raster

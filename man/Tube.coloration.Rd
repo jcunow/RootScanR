@@ -22,6 +22,7 @@ a vector with chromatic coordinates,luminosity, brightness, luminosity, color va
 Coloration of the image
 }
 \examples{
-img = rgb_Oulanka2023_Session03_T067
+data(rgb_Oulanka2023_Session03_T067)
+img = terra::rast(rgb_Oulanka2023_Session03_T067)
 colorvector = Tube.coloration(img = img)
 }

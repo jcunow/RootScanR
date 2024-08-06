@@ -13,7 +13,7 @@
 #' @export
 #'
 #' @examples
-#' img = seg_Oulanka2023_Session01_T067
+#' img = terra::rast(seg_Oulanka2023_Session01_T067)
 #' r0 = RotationE(img)
 RotationE = function(img,tape.brightness = 0.66,extra.rows = 100,search.area = 0.45,tape.quantile = 0.98, nclasses = 3){
 
@@ -169,12 +169,13 @@ RotShiftDet = function(img1,img2,cor.type = "phase"){
 #' @export
 #'
 #' @examples
-#' img = seg_Oulanka2023_Session01_T067
+#' data(seg_Oulanka2023_Session01_T067)
+#' img = terra::rast(seg_Oulanka2023_Session01_T067)
 #' censored.raster = RotCensor(img,center.offset = 120, cut.buffer = 0.02)
-RotCensor = function(img, center.offset=0,  cut.buffer = 0.02, fixed.rotation = TRUE,fixed.width  =2000 ){
+RotCensor = function(img, center.offset=0,  cut.buffer = 0.02, fixed.rotation = TRUE,fixed.width  =1000 ){
 
   ###### uses the detected shift to whiten the region that doesnt appear in another image (y-dimension) or slide them up and down the tube (x-dimension)
-  img.c=terra::rast(img)
+  img.c=img
   offset.ratio = (abs(center.offset))/  dim(img)[1]
   cut.ratio = offset.ratio + cut.buffer
 
@@ -270,6 +271,7 @@ SoilSurfE = function(img,search.area = 0.45, tape.tresh = 0.33,dpi = 300,
   clust= which(clust.center ==max(clust.center[clust.center > tape.brightness*terra::global(r.img1,"max")[[1]]]))
   # identify the end of tape by rowsum threshold[]
   rr1 = r1$map == clust
+  rr1 = rr1*1
 
 
 
@@ -277,9 +279,9 @@ SoilSurfE = function(img,search.area = 0.45, tape.tresh = 0.33,dpi = 300,
   # checks also 0.1 cm (+12 rows) and 0.2 cm (+24rows) and 0.3 cm (+36) down if the tape reappears  (in case a row impurities or other reasons for missclassification)
   i=1
   while (
-    sum(rr1[,i])/length(rr1[,i]) > tape.tresh |
-    sum(rr1[,i+24])/length(rr1[,i]) > tape.tresh |
-    sum(rr1[,i+48])/length(rr1[,i]) > tape.tresh) {
+    sum(rr1[,i,])/ncol(rr1) > tape.tresh |
+    sum(rr1[,i+24,])/ncol(rr1) > tape.tresh |
+    sum(rr1[,i+48,])/ncol(rr1) > tape.tresh) {
     i=i+1
     # when loop exceeds image limits, we assume there is no tape = no offset
     if(i > dim(rr1)[2]){

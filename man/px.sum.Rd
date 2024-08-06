@@ -16,6 +16,7 @@ a numeric value
 counts all pixels in a segmented image
 }
 \examples{
+data(seg_Oulanka2023_Session01_T067)
 img = terra::rast(seg_Oulanka2023_Session01_T067[[2]])
 rootpixel  = px.sum(img)
 }

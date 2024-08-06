@@ -15,7 +15,7 @@
 #' img = terra::rast(seg_Oulanka2023_Session01_T067)
 #' buffIMG = Halo(im = img, width = 10, halo.only = TRUE)
 Halo = function(im,width=1, halo.only = TRUE){
-  im = im / terra::global(im,"max")[[1]]
+  im = im / terra::global(im,"max",na.rm = TRUE)[[1]]
   im2 = im
   ## circular kernel
   k0 = matrix(c(1,1,1,1,0,1,1,1,1), nrow = 3, ncol = 3)
@@ -47,7 +47,8 @@ Halo = function(im,width=1, halo.only = TRUE){
 #' @export
 #'
 #' @examples
-#' img = seg_Oulanka2023_Session01_T067[[2]]
+#' data(seg_Oulanka2023_Session01_T067)
+#' img = terra::rast(seg_Oulanka2023_Session01_T067[[2]])
 #' mask = seg_Oulanka2023_Session01_T067[[1]] - seg_Oulanka2023_Session01_T067[[2]]
 #' mask[mask == 255] <- NA
 #' depthmap = create.depthmap(img,mask,start.soil = 290 )
@@ -81,7 +82,8 @@ im
 #' @export
 #'
 #' @examples
-#' img = seg_Oulanka2023_Session01_T067[[2]]
+#' data(seg_Oulanka2023_Session01_T067)
+#' img = terra::rast(seg_Oulanka2023_Session01_T067[[2]])
 #' mask = seg_Oulanka2023_Session01_T067[[1]] - seg_Oulanka2023_Session01_T067[[2]]
 #' mask[mask == 255] <- NA
 #' depthmap = create.depthmap(img,mask,start.soil = 290 )
@@ -95,6 +97,10 @@ zone.fun = function(rootpic,binned.map,indexD= 0,nn = 5,silent =FALSE){
   if(any(ex.bm!=ex.rp)){
     rootpic = terra::t(rootpic)
   }
+  ex.bm = c(0,dim(binned.map)[1],0,dim(binned.map)[2])
+  ex.rp = c(0,dim(rootpic)[1],0,dim(rootpic)[2])
+  terra::ext(binned.map) = ex.bm
+  terra::ext(rootpic) = ex.rp
 
 
   r = (rootpic)
@@ -102,22 +108,20 @@ zone.fun = function(rootpic,binned.map,indexD= 0,nn = 5,silent =FALSE){
     r = terra::crop(r,ex.bm)
   }
   # set uninterested zones NA
-  r[terra::values(binned.map) != indexD ] <- NA
-  r[ is.na(terra::values(binned.map))] <- NA
-  r = terra::rast(r)
+  terra::values(r)[terra::values(binned.map != indexD) ] <- NA
+  terra::values(r)[ is.na(terra::values(binned.map))] <- NA
   # non NA values need to cover at least ... % of average depth slice pixel number
   coverNA = round(sum(is.na(terra::values(r[[1]]))) / (terra::ncell(r)),2)
   if( coverNA  < max.NAs){
     r = terra::trim(r)
   }else{
-    raster::values(r) = NA # set the remaining values NA ?
+    terra::values(r) = NA # set the remaining values NA ?
     if(silent == FALSE){
       print( paste0("Depth: ",indexD,"cm. Not enough informative pixels.",
                     " In the whole Image, ", coverNA*100,"% are NAs after cutting this Depth Slice."," Expected NA% is: ~",(max.NAs-0.02)*100 ))
     }
 
   }
-  r = terra::rast(r)
   return(r)
 }
 
@@ -137,7 +141,8 @@ zone.fun = function(rootpic,binned.map,indexD= 0,nn = 5,silent =FALSE){
 #' @export
 #'
 #' @examples
-#' img = seg_Oulanka2023_Session01_T067
+#' data(seg_Oulanka2023_Session01_T067)
+#' img = terra::rast(seg_Oulanka2023_Session01_T067)
 #' rotationZone = zone.rotation.fun(img, k = c(1,2), kk = 7, mm = c(1500,3000))
 zone.rotation.fun = function(rootpic,k=c(3,4),kk = 5,mm = c(2000,5000)){
 

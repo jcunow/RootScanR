@@ -13,11 +13,11 @@
 #' @export
 #'
 #' @examples
-#' img = skl_Oulanka2023_Session01_T067[[2]]
+#' data(skl_Oulanka2023_Session01_T067)
+#' img = terra::rast(skl_Oulanka2023_Session01_T067[[2]])
 #' RL = RootLength(im = img,unit = "cm", dpi = 300)
 RootLength = function(im,unit="cm",dpi=300){
-  im2 = im / max(terra::values(im),na.rm=TRUE)
-  im2 = terra::rast(im2)
+  im2 = im / terra::global(im,"max",na.rm=TRUE)[[1]]
   ## kimura image
   k0 = matrix(c(0,1,0,0,1,0,0,0,0), nrow = 3, ncol = 3)
   k1 = matrix(c(0,0,0,1,1,0,0,0,0), nrow = 3, ncol = 3)
@@ -110,17 +110,21 @@ Directionality = function(im,rotate = TRUE, kernelsize = 3, leeway =0){
 
 # pixel neigbourhood sums
   all.px = sum.Dho + sum.Dve + sum.Dtl + sum.Dbl
-  diag.px = sum.Dtl + sum.Dbl
-  orth.px = sum.Dho + sum.Dve
 
 
-Directions = data.frame(vertical = round(sum.Dve / all.px, 4),
+
+Directions = data.frame(
                         horizontal = round(sum.Dho / all.px, 4),
+                        vertical = round(sum.Dve / all.px, 4),
                         topleft.bottomright = round(sum.Dtl / all.px, 4),
                         topright.bottom.left = round(sum.Dbl / all.px, 4),
-                        diag.px = diag.px,
-                        orth.px = orth.px)
-colnames(Directions) <- c("vertical","horizontal","topleft.bottomright","topright.bottomleft","diag.px","orth.px")
+                        horizontalpx = sum.Dho,
+                        verticalpx = sum.Dve,
+                        topleftpx = sum.Dtl,
+                        botleftpx = sum.Dbl,
+                        avg.down.angle = circular_mean(angles = c(rep(225,sum.Dbl),rep(135,sum.Dtl),rep(180,sum.Dve)),
+                                                  input_units = "degrees",output_units = "degrees"))
+colnames(Directions) <- c("a90_270%","a180%","a135%","a225%","a90_270px","a180px","a135px","a225px","avg.down_angle")
   return(Directions)
 
 }
@@ -141,7 +145,8 @@ colnames(Directions) <- c("vertical","horizontal","topleft.bottomright","toprigh
 #' @export
 #'
 #' @examples
-#' img = seg_Oulanka2023_Session01_T067
+#' data(seg_Oulanka2023_Session01_T067)
+#' img = terra::rast(seg_Oulanka2023_Session01_T067)[[2]]
 #' RootScapeObject  = RootScapeMetrics(img,indexD = 80, metrics = c("lsm_c_ca"))
 RootScapeMetrics = function(im,indexD=NA, metrics = c( "lsm_c_ca","lsm_l_ent","lsm_c_pd","lsm_c_np","lsm_c_pland",
                                                     "lsm_c_area_mn","lsm_c_area_cv","lsm_c_enn_mn","lsm_c_enn_cv")){
@@ -174,6 +179,7 @@ RootScapeMetrics = function(im,indexD=NA, metrics = c( "lsm_c_ca","lsm_l_ent","l
 #' @export
 #'
 #' @examples
+#' data(seg_Oulanka2023_Session01_T067)
 #' img = terra::rast(seg_Oulanka2023_Session01_T067[[2]])
 #' rootpixel  = px.sum(img)
 px.sum = function(root.zone){
@@ -199,7 +205,8 @@ px.sum = function(root.zone){
 #' @export
 #'
 #' @examples
-#' img = rgb_Oulanka2023_Session03_T067
+#' data(rgb_Oulanka2023_Session03_T067)
+#' img = terra::rast(rgb_Oulanka2023_Session03_T067)
 #' colorvector = Tube.coloration(img = img)
 Tube.coloration = function(img,r=0.2126,g=0.7152,b=0.0722){
   vr = terra::values(img[[1]])
@@ -230,7 +237,7 @@ Tube.coloration = function(img,r=0.2126,g=0.7152,b=0.0722){
 # uses the glcm package
 #' Texture corresponds to glmc::glmc()
 #'
-#' @param img.color image with three color channels. Will be converted in gray scale.
+#' @param img.color image with three color channels. Will be converted in gray scale. raster format required.
 #' @param grays number of gray shades. Documentation is lacking, see: ?glmc::glmc()
 #' @param window convolution window size e.g., c(3,3)
 #' @param metrics texture metrics based on illumination differences. see:: ?glmc::glmc() for available methods
@@ -239,10 +246,18 @@ Tube.coloration = function(img,r=0.2126,g=0.7152,b=0.0722){
 #' @export
 #'
 #' @examples
+#' data(rgb_Oulanka2023_Session03_T067)
 #' img = rgb_Oulanka2023_Session03_T067
 #' texture(img, 7, c(9,9), metrics = "second_moment")
 texture = function(img.color,grays = 7, window = c(9,9), metrics = c("variance","second_moment") ){
-  img.gray = (img.color[[1]]*0.21 + img.color[[2]]*0.72 + img.color[[3]]*0.07)/255
+
+  mx = max(raster::values(img.color),na.rm=TRUE)
+  if(mx > 1){
+    mx = 255
+  }else{
+    mx = 1
+  }
+  img.gray = (img.color[[1]]*0.21 + img.color[[2]]*0.72 + img.color[[3]]*0.07) / 255
   tx.im  =  glcm::glcm(img.gray,
                        n_grey = grays,
                        statistics = metrics)

@@ -22,6 +22,7 @@ raster, cut along rotation axis
 RotationZones
 }
 \examples{
-img = seg_Oulanka2023_Session01_T067
+data(seg_Oulanka2023_Session01_T067)
+img = terra::rast(seg_Oulanka2023_Session01_T067)
 rotationZone = zone.rotation.fun(img, k = c(1,2), kk = 7, mm = c(1500,3000))
 }

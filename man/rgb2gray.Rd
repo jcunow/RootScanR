@@ -22,6 +22,7 @@ a single layer gray scale raster
 Converts RGB to Grayscale
 }
 \examples{
+data(seg_Oulanka2023_Session01_T067)
 img = seg_Oulanka2023_Session01_T067
 gray.raster = rgb2gray(img)
 }

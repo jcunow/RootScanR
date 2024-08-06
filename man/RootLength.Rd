@@ -20,6 +20,7 @@ root length
 Estimate Kimura Root Length
 }
 \examples{
-img = skl_Oulanka2023_Session01_T067[[2]]
+data(skl_Oulanka2023_Session01_T067)
+img = terra::rast(skl_Oulanka2023_Session01_T067[[2]])
 RL = RootLength(im = img,unit = "cm", dpi = 300)
 }

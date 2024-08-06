@@ -15,6 +15,8 @@
 #' @export
 #'
 #' @examples
+#' data(seg_Oulanka2023_Session01_T067)
+#' seg_Oulanka2023_Session01_T067 = terra::rast(seg_Oulanka2023_Session01_T067)
 #' img = seg_Oulanka2023_Session01_T067[[2]]
 #' mask = seg_Oulanka2023_Session01_T067[[1]] - seg_Oulanka2023_Session01_T067[[2]]
 #' mask[mask == 255] <- NA
