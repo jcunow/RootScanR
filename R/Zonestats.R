@@ -269,7 +269,7 @@ texture = function(img.color,grays = 7, window = c(9,9), metrics = c("variance",
 
 #' Approximate average Root Thickness
 #'
-#' @param kimuralength length of roots in image section
+#' @param kimuralength length of roots in image section, input unit is cm.
 #' @param rootpx amount of rootpx in the image section
 #' @param dpi image resolution
 #'
@@ -278,7 +278,9 @@ texture = function(img.color,grays = 7, window = c(9,9), metrics = c("variance",
 #'
 #' @examples root.ticc = root.thickness(kimuralength = 300,rootpx = 9500, dpi = 300)
 root.thickness = function(kimuralength,rootpx,dpi=300){
-  px.per.length = rootpx / kimuralength
-  thiccness = round((px.per.length) / (dpi/2.54),5)
-  return(thiccness) # cm
+  px.length =  kimuralength * (dpi/2.54) # from cm_RL -> px_RL
+  thiccness = rootpx / px.length
+  px.thicc = thiccness / (dpi/2.54) # from px_thiccnes/px_RL -> cm_thickness/px_RL
+
+  return(px.thicc) # output is root thickness in cm per smallest unit i.e., one pixel
 }
