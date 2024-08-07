@@ -36,7 +36,7 @@ RotationE = function(img,tape.brightness = 0.66,extra.rows = 100,search.area = 0
 
   ## add one row of red tape pixel
   red.line = array(dim = c(dim(im)[1],extra.rows,dim(im)[3]))
-  red.line[,,1:dim(im)[3]] <- stats::quantile(im[,,1],tape.quantile)
+  red.line[,,1:dim(im)[3]] <- stats::quantile(im[,,1],tape.quantile,na.rm=TRUE)
   img1 = abind2(red.line,im,along = 2) # adapted function from package:abind
 
   r.img1 = terra::rast(img1)
@@ -256,7 +256,7 @@ SoilSurfE = function(img,search.area = 0.45, tape.tresh = 0.33,dpi = 300,
 
   ## add one row of red tape pixel
   red.line = array(dim = c(dim(im)[1],extra.rows,dim(im)[3]))
-  red.line[,,1:dim(im)[3]] <- stats::quantile(im[,,1],tape.quantile)
+  red.line[,,1:dim(im)[3]] <- stats::quantile(im[,,1],tape.quantile,na.rm=TRUE)
   img1 = abind2(red.line,im,along = 2)
 
   r.img1 = terra::rast(img1)
