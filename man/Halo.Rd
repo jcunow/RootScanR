@@ -4,17 +4,21 @@
 \alias{Halo}
 \title{Halo creates a buffer around pixel bigger than 0}
 \usage{
-Halo(im, width = 1, halo.only = TRUE)
+Halo(im, width = 2, halo.only = TRUE, kernel = "circle")
 }
 \arguments{
 \item{im}{segmented raster}
 
-\item{width}{buffer around roots in px, the rhizosphere extent (exudate diffusion distance) is cited as 2mm (1-12mm) (Finzi et al. 2015, https://doi.org/10.1111/gcb.12816), but higher values have been suggested}
+\item{width}{buffer around roots in px, the rhizosphere extent.
+Exudation diffusion distance is typically 2mm (1-12mm) (Finzi et al. 2015, https://doi.org/10.1111/gcb.12816), but higher values have been suggested.
+At 300 dpi, 1mm = 11.8px}
 
 \item{halo.only}{set TRUE if only the buffer around roots should be returned (the rhizosphere only)}
+
+\item{kernel}{the thickening shape. Available options are: "circle" & "diamond"}
 }
 \value{
-raster output
+SpatRaster
 }
 \description{
 Halo creates a buffer around pixel bigger than 0
@@ -24,5 +28,5 @@ library(terra)
 
 data(seg_Oulanka2023_Session01_T067)
 img = terra::rast(seg_Oulanka2023_Session01_T067)
-buffIMG = Halo(im = img, width = 10, halo.only = TRUE)
+Halo(im = img, width = 2, halo.only = TRUE)
 }

@@ -25,7 +25,7 @@
 D8_FlowPath <- function(skl,depthmap, diag.weighted = TRUE, kernelsize = 2,normalized.center = -1, depth.positive = TRUE) {
 
 
-  if(terra::global(skl,"max",na.rm=TRUE) > 1){
+  if(terra::global(skl,"max",na.rm=TRUE)$max[1] > 1){
     skl = ceiling(skl / 255)
   }
 
