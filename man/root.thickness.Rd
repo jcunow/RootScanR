@@ -7,7 +7,7 @@
 root.thickness(kimuralength, rootpx, dpi = 300)
 }
 \arguments{
-\item{kimuralength}{length of roots in image section}
+\item{kimuralength}{length of roots in image section, input unit is cm.}
 
 \item{rootpx}{amount of rootpx in the image section}
 
