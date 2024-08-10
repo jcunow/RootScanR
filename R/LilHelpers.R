@@ -138,14 +138,24 @@ skeletonize = function(img,itr = 2, kernel = 'Skeleton:3'){
 #' Adaptive Kernel size
 #'
 #' @param n the amount of connecting pixels. kernelsize = 2n-1
+#' @param fill.value Other kernel fields. Default is NA
+#' @param normalized.center value of kernel center. Negative values result in a normalized difference
+#' @param diag.weighted diagonal pixels are weighted 1/sqrt(2) to reflect increased diagonal pixel distance.
 #'
-#' @return a list containing, vertical, horizontal, and two diagonal kernels
+#' @return a list containing D8 kernels with degrees: 0,45,90,135,180,225,270,315
 #' @export
 #'
 #' @examples
 #' adaptive.Kernelsize.Directionality(n = 5)
-adaptive.Kernelsize.Directionality = function(n = 3){
+adaptive.Kernelsize.Directionality = function(n = 3,fill.value = NA,normalized.center = -1, diag.weighted = TRUE){
   k = n*2 -1
+
+  # Should diagonals be distance weighted?
+  if(diag.weighted == TRUE){
+    diag.weight = sqrt(2)
+  }else{
+    diag.weight = 1
+  }
 
   antidiagonal <- function(mat, new_values) {
     n <- nrow(mat)
@@ -159,21 +169,29 @@ adaptive.Kernelsize.Directionality = function(n = 3){
     return(mat)
   }
 
-  # verical
-  v.kernel <- matrix(0, nrow = k, ncol = k)
-  v.kernel[1:n, n] <- 1
-
+  base.kernel <- matrix(fill.value, nrow = k, ncol = k)
+  # vertical
+  kernel_0  = base.kernel
+  kernel_180 = base.kernel
+  kernel_0[1:n, n] <- c(rep(1,n-1),normalized.center)
+  kernel_180[n:k, n] <- c(normalized.center,rep(1,n-1))
   # horizontal
-  h.kernel <- matrix(0, nrow = k, ncol = k)
-  h.kernel[ n, 1:n] <- 1
+  kernel_90 = base.kernel
+  kernel_270 <- base.kernel
+  kernel_90[ n, n:k] <- c(normalized.center,rep(1,n-1))
+  kernel_270[ n, 1:n] <- c(rep(1,n-1),normalized.center)
   # diagonal from topleft
-  tl.kernel <- matrix(0, nrow = k, ncol = k)
-  diag(tl.kernel) <- c(rep(1,n),rep(0,n-1))
+  kernel_135 <- base.kernel
+  kernel_315 <- base.kernel
+  diag(kernel_135) <- c(rep(fill.value,n-1),normalized.center,rep(1,n-1)/diag.weight)
+  diag(kernel_315) <- c(rep(1,n-1)/diag.weight,normalized.center,rep(fill.value,n-1))
   # diagonal from bottom left
-  bl.kernel <- matrix(0, nrow = k, ncol = k)
-  bl.kernel <- antidiagonal(bl.kernel, c(rep(0,n-1),rep(1,n)))
+  kernel_45 <- base.kernel
+  kernel_225 <- base.kernel
+  kernel_45 <- antidiagonal(kernel_45,c(rep(1,n-1)/diag.weight,normalized.center,rep(fill.value,n-1)))
+  kernel_225 <- antidiagonal(kernel_225, c(rep(fill.value,n-1),normalized.center,rep(1,n-1)/diag.weight))
 
-  return( list(v.kernel,h.kernel,tl.kernel,bl.kernel) )
+  return( list(kernel_0,kernel_45,kernel_90,kernel_135,kernel_180,kernel_225,kernel_270,kernel_315) )
 }
 
 
