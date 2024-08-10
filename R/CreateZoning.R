@@ -3,9 +3,11 @@
 #' Halo creates a buffer around pixel bigger than 0
 #'
 #' @param im segmented raster
-#' @param width buffer around roots in px, the rhizosphere extent (exudate diffusion distance) is cited as 2mm (1-12mm) (Finzi et al. 2015, https://doi.org/10.1111/gcb.12816), but higher values have been suggested
+#' @param width buffer around roots in px, the rhizosphere extent.
+#' exudate diffusion distance is reported as 2mm (1-12mm) (Finzi et al. 2015, https://doi.org/10.1111/gcb.12816), but higher values have been suggested.
+#' At 300 dpi, 1mm = 11.8px
 #' @param halo.only set TRUE if only the buffer around roots should be returned (the rhizosphere only)
-#' @return raster output
+#' @return SpatRaster
 #' @export
 #'
 #' @examples
@@ -13,8 +15,8 @@
 #'
 #' data(seg_Oulanka2023_Session01_T067)
 #' img = terra::rast(seg_Oulanka2023_Session01_T067)
-#' buffIMG = Halo(im = img, width = 10, halo.only = TRUE)
-Halo = function(im,width=1, halo.only = TRUE){
+#' buffIMG = Halo(im = img, width = 2, halo.only = TRUE)
+Halo = function(im,width=2, halo.only = TRUE){
   im = im / terra::global(im,"max",na.rm = TRUE)[[1]]
   im2 = im
   ## circular kernel
