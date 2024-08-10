@@ -59,7 +59,7 @@ Tipp: use split_im() function (currently unavailable) to cut the root image in p
 library(raster)
 library(terra)
 library(MinirhizotronR)
-library(cowplot)
+#library(cowplot)
 library(ggplot2)
 library(dplyr)
 
