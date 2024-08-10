@@ -4,9 +4,10 @@
 #'
 #' @param im segmented raster
 #' @param width buffer around roots in px, the rhizosphere extent.
-#' exudate diffusion distance is reported as 2mm (1-12mm) (Finzi et al. 2015, https://doi.org/10.1111/gcb.12816), but higher values have been suggested.
+#' Exudation diffusion distance is typically 2mm (1-12mm) (Finzi et al. 2015, https://doi.org/10.1111/gcb.12816), but higher values have been suggested.
 #' At 300 dpi, 1mm = 11.8px
 #' @param halo.only set TRUE if only the buffer around roots should be returned (the rhizosphere only)
+#' @param kernel the thickening shape. Available options are: "circle" & "diamond"
 #' @return SpatRaster
 #' @export
 #'
@@ -15,12 +16,23 @@
 #'
 #' data(seg_Oulanka2023_Session01_T067)
 #' img = terra::rast(seg_Oulanka2023_Session01_T067)
-#' buffIMG = Halo(im = img, width = 2, halo.only = TRUE)
-Halo = function(im,width=2, halo.only = TRUE){
-  im = im / terra::global(im,"max",na.rm = TRUE)[[1]]
+#' Halo(im = img, width = 2, halo.only = TRUE)
+Halo = function(im, width=2, halo.only = TRUE, kernel = "circle"){
+
+  if(terra::global(im,"max",na.rm=TRUE)$max[1] > 1){
+    im = ceiling(im / 255)
+  }
+
   im2 = im
   ## circular kernel
-  k0 = matrix(c(1,1,1,1,0,1,1,1,1), nrow = 3, ncol = 3)
+  if(kernel == "circle"){
+    k0 = matrix(c(1,1,1,1,0,1,1,1,1), nrow = 3, ncol = 3)
+  }else if(kernel == "diamond"){
+    k0 = matrix(c(0,1,0,1,0,1,0,1,0), nrow = 3, ncol = 3)
+  }else{
+    print("kernel name does not match choices")
+  }
+
 
   itr = 1
   while(itr <= width){
