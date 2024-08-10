@@ -4,13 +4,24 @@
 \alias{adaptive.Kernelsize.Directionality}
 \title{Adaptive Kernel size}
 \usage{
-adaptive.Kernelsize.Directionality(n = 3)
+adaptive.Kernelsize.Directionality(
+  n = 3,
+  fill.value = NA,
+  normalized.center = -1,
+  diag.weighted = TRUE
+)
 }
 \arguments{
 \item{n}{the amount of connecting pixels. kernelsize = 2n-1}
+
+\item{fill.value}{Other kernel fields. Default is NA}
+
+\item{normalized.center}{value of kernel center. Negative values result in a normalized difference}
+
+\item{diag.weighted}{diagonal pixels are weighted 1/sqrt(2) to reflect increased diagonal pixel distance.}
 }
 \value{
-a list containing, vertical, horizontal, and two diagonal kernels
+a list containing D8 kernels with degrees: 0,45,90,135,180,225,270,315
 }
 \description{
 Adaptive Kernel size
