@@ -8,7 +8,7 @@
 #' @param tilt Minirhiztron tube insertion angle (typically 30-45 degrees)
 #' @param dpi Image resolution
 #' @param start.soil indicates soil boundary 0cm. Can be retrieved from 'SoilSurfE()' but in-situ calibration is recommended
-#' @param center.offset rotational center. Set 0 if top facing tube side is perfectly in the middle
+#' @param center.offset rotational center. Set 0 if top facing tube side is perfectly in the middle. Set 1 if upfacing tube is located at the edges
 #' @param sinoid set sinoid = TRUE if true depth should be used. Otherwise, tube diameter is ignored.
 #'
 #' @return raster image
