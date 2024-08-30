@@ -226,6 +226,7 @@ if(fixed.rotation == TRUE){
 #' @param search.area ratio of image which is used to look for tape cover. Speeds up computation.
 #' @param tape.tresh ratio of how much of the tube rotation needs to covered in tape
 #' @param dpi image resolution
+#' @param nclasses number of clusters to discern tape, roots, background. 3 for rgb images. 2 can be appropriate for segmented 0-1 images.
 #' @param tape.overlap assumes a safety margin on the tape. The soil surface will be shifted by this amount in cm
 #' @param tape.brightness used for clustering. Tape appears bright e.g., 0.66
 #' @param tape.quantile aligns extra.rows brightness with the tape. The default uses Silver Tape as reference.
@@ -238,8 +239,8 @@ if(fixed.rotation == TRUE){
 #' @examples
 #' img = seg_Oulanka2023_Session01_T067
 #' Soil0Estimates = SoilSurfE(img)
-SoilSurfE = function(img,search.area = 0.45, tape.tresh = 0.33,dpi = 300,
-                     tape.overlap = 0.5,tape.brightness = 0.66,extra.rows = 100,tape.quantile = 0.98 ){
+SoilSurfE = function(img,search.area = 0.45, tape.tresh = 0.33,dpi = 300, nclasses = 3, inverse = FALSE,
+                     tape.overlap = 0.5,tape.brightness = 0.75,extra.rows = 100,tape.quantile = 0.98 ){
 
   if(is.character(img)){
     im = terra::rast(img)
@@ -253,6 +254,11 @@ SoilSurfE = function(img,search.area = 0.45, tape.tresh = 0.33,dpi = 300,
   }
 
 
+  if(inverse == TRUE){
+    tape.quantile = 1- tape.quantile
+    tape.brightness = 1 / tape.brightness
+  }
+
 
   ## add one row of red tape pixel
   red.line = array(dim = c(dim(im)[1],extra.rows,dim(im)[3]))
@@ -264,18 +270,24 @@ SoilSurfE = function(img,search.area = 0.45, tape.tresh = 0.33,dpi = 300,
   r.img1 = terra::crop(r.img1,c(0,search.area*terra::ext(r.img1)[2],0,terra::ext(r.img1)[4]))
 
   # identify distinct pixel groups
-  r1 = RStoolbox::unsuperClass(r.img1,nClasses = 3)
+  r1 = RStoolbox::unsuperClass(r.img1,nClasses = nclasses)
   # determine average group
   clust.center = apply(r1$model$centers,1,mean)
-  # silver tape should have highest luminance across clusters -> select max lum.cluster (but not close to == 1 [pure white?])
-  clust= which(clust.center ==max(clust.center[clust.center > tape.brightness*terra::global(r.img1,"max")[[1]]]))
+
+  if(inverse == TRUE){
+    clust= which(clust.center ==min(clust.center[clust.center < tape.brightness*terra::global(r.img1,"min")[[1]]]))
+  }else{
+    # silver tape should have highest luminance across clusters -> select max lum.cluster (but not close to == 1 [pure white?])
+    clust= which(clust.center ==max(clust.center[clust.center > tape.brightness*terra::global(r.img1,"max")[[1]]]))
+  }
+
   # identify the end of tape by rowsum threshold[]
   rr1 = r1$map == clust
   rr1 = rr1*1
 
 
 
-  # iterate over depth and check proportion covered by tape (>0.2 is considered >0 soil depth)
+  # iterate over depth and check proportion covered by tape
   # checks also 0.1 cm (+12 rows) and 0.2 cm (+24rows) and 0.3 cm (+36) down if the tape reappears  (in case a row impurities or other reasons for missclassification)
   i=1
   while (
