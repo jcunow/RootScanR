@@ -4,7 +4,7 @@
 \alias{root.accumulation}
 \title{Root accumulation Curve}
 \usage{
-root.accumulation(data, group, depth, variable)
+root.accumulation(data, group, depth, variable, stdrz = "counts")
 }
 \arguments{
 \item{data}{data.frame must include group,depth, and variable columns}
@@ -14,6 +14,8 @@ root.accumulation(data, group, depth, variable)
 \item{depth}{specify column name which includes depth values}
 
 \item{variable}{accumulating values}
+
+\item{strdz}{choose between "counts" return of accumulative amount, "additive" returns the added the accumulative share 0-1, with "relative", all accumulative values sum to 1}
 }
 \value{
 data.frame with one added column "cs" containing the accumulated values
