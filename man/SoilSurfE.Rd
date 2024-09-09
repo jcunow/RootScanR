@@ -9,8 +9,10 @@ SoilSurfE(
   search.area = 0.45,
   tape.tresh = 0.33,
   dpi = 300,
+  nclasses = 3,
+  inverse = FALSE,
   tape.overlap = 0.5,
-  tape.brightness = 0.66,
+  tape.brightness = 0.75,
   extra.rows = 100,
   tape.quantile = 0.98
 )
@@ -23,6 +25,8 @@ SoilSurfE(
 \item{tape.tresh}{ratio of how much of the tube rotation needs to covered in tape}
 
 \item{dpi}{image resolution}
+
+\item{nclasses}{number of clusters to discern tape, roots, background. 3 for rgb images. 2 can be appropriate for segmented 0-1 images.}
 
 \item{tape.overlap}{assumes a safety margin on the tape. The soil surface will be shifted by this amount in cm}
 
