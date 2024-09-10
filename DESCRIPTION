@@ -31,7 +31,8 @@ Imports:
     raster,
     RStoolbox,
     stats,
-    terra
+    terra,
+    transport
 Suggests:
     cowplot,
     ggplot2,
