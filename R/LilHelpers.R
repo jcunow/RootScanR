@@ -196,12 +196,15 @@ adaptive.Kernelsize.Directionality = function(n = 3,fill.value = NA,normalized.c
 
 
 
+
+
 #' Root accumulation Curve
 #'
 #' @param data data.frame must include group,depth, and variable columns
 #' @param group specify the grouping variable e.g., Plot. Can be multiple groups in a vector.
 #' @param depth specify column name which includes depth values
 #' @param variable accumulating values
+#' @param strdz choose between "counts" return of accumulative amount, "additive" returns the added the accumulative share 0-1, with "relative", all accumulative values sum to 1
 #' @import dplyr
 #' @return data.frame with one added column "cs" containing the accumulated values
 #' @export
@@ -210,9 +213,9 @@ adaptive.Kernelsize.Directionality = function(n = 3,fill.value = NA,normalized.c
 #'df = data.frame(depth = c(seq(0,80,20),seq(0,80,20)),
 #'                Plot = c(rep("a",5),rep("b",5)), rootpx = c(5,50,20,15,5,10,40,30,10,5) )
 #' accum_root = root.accumulation(df,group = "Plot", depth = "depth", variable = "rootpx")
-root.accumulation = function(data,group,depth,variable){
+root.accumulation = function(x,group,depth,variable,stdrz = "counts"){
   # Split data by group
-  split_df <- split(data, data[,group])
+  split_df <- split(x, x[,group])
 
   # Initialize an empty list to store results
   result_list <- list()
@@ -224,7 +227,20 @@ root.accumulation = function(data,group,depth,variable){
 
     # Compute cumulative sum of variable
     #sorted_group$cs <- cumsum(sorted_group[[variable]])
-    sorted_group$cs <- cumsum(dplyr::coalesce(sorted_group[[variable]], 0)) + sorted_group[[variable]]*0
+    cs <- cumsum(dplyr::coalesce(sorted_group[[variable]], 0)) + sorted_group[[variable]]*0
+    # root accumulation distribution
+    if(stdrz == "counts"){
+      cs <- cs
+    }
+    if(stdrz == "additive"){
+      mx.roots = max(cs,na.rm=TRUE)
+      cs <- cs / mx.roots
+    }
+    if(stdrz == "relative"){
+      sm.roots = sum(cs,na.rm=TRUE)
+      cs <- cs / sm.roots
+    }
+    sorted_group$cs <- cs
 
     # Append the result to the list
     result_list[[group]] <- sorted_group
@@ -236,7 +252,10 @@ root.accumulation = function(data,group,depth,variable){
   # Reorder the result to match the original row order
   result_df <- result_df[order(rownames(result_df)), ]
 
-  return(result_df)
+  # only the accumulation values
+  out = result_df$cs
+
+  return(out)
 
 }
 
