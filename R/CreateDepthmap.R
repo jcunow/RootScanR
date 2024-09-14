@@ -24,7 +24,7 @@
 create.depthmap = function(im, mask = NULL, sinoid = TRUE,
                            tube.thicc = 7,tilt = 45,dpi = 300,
                            start.soil = 0,center.offset = 0){
-
+# if no mask is supplied nothing is masked
   if(length(mask) == 0){
     mask = im
     terra::values(mask) <- 0
