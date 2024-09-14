@@ -6,7 +6,7 @@
 \usage{
 create.depthmap(
   im,
-  mask,
+  mask = NULL,
   sinoid = TRUE,
   tube.thicc = 7,
   tilt = 45,

@@ -21,9 +21,14 @@
 #' mask = seg_Oulanka2023_Session01_T067[[1]] - seg_Oulanka2023_Session01_T067[[2]]
 #' mask[mask == 255] <- NA
 #' map = create.depthmap(img,mask,start.soil = 290 )
-create.depthmap = function(im, mask, sinoid = TRUE,
+create.depthmap = function(im, mask = NULL, sinoid = TRUE,
                            tube.thicc = 7,tilt = 45,dpi = 300,
                            start.soil = 0,center.offset = 0){
+
+  if(length(mask) == 0){
+    mask = im
+    terra::values(mask) <- 0
+  }
 
   # used for sin()
   radiant = pi/180
