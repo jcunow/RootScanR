@@ -14,7 +14,7 @@ Description: With MinirhizotronR, analyzing root scans from minirhizotron
     rotational biases. It relies on outside handling of Image
     Segmentation.
 License: GPL (>= 3)
-URL:  https://jcunow.github.io/MinirhizotronR/
+URL: https://github.com/jcunow/MinirhizotronR, https://jcunow.github.io/MinirhizotronR/
 BugReports: https://github.com/jcunow/MinirhizotronR/issues
 Depends: 
     R(>= 3.6)

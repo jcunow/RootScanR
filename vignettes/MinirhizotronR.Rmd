@@ -17,44 +17,49 @@ knitr::opts_chunk$set(
 ```
 
 
-## Description: 
-This package is designed in support a analysis of root scans from Minirhizotron tubes, starting after image segmentation.
-The following is needed to use this package to it's full potential:
-    
-    
-*mandatory:* 
+## Guide on how to use this package: 
+MinirhizotronR picks up the work left behind after root scans have been segemented and root pixel, background pixel, and others have been identified. You will find some suggestions on how to get to that point below. We strongly recommend calibrating your tubes *in-situ* and note the insertion angle, tube diameter, and soil start in relation to where the scan starts for every tube (and perhaps timepoints if movment is expected). A calibration guide will follow at some point.   
 
-- raw root scans
-- segmentation of root scans
-- tube insertion angle and tube thickness
-
-*optional:*
-
-- skeletonized version of root scans, 
-- *in-situ* calibration of soil surface to image start & rotation calibration is recommended!
-
-*suggestion:* 
-
-- use 'RootDetector' or an equivalent Image segmentation convolutional neural net to aid in automated analysis of root scans beforehand.
-- use AffineStitcher.py or equivalent to stitch all individual scans belonging to a particular tube in time to generate unified images
-
-
-
-
-## Install Package
+## Installaion
 ```{r Install Package, include=TRUE}
 # devtools::install_github("jcunow/MinirhizotronR")
 # remotes::install_github("jcunow/MinirhizotronR")
 ```
+    
 
 
-## First Step - Prep
-Stitch your images together and segment them. You can find on e solution to this here: ....Link
+## Image stitching
+If you have longer Minirhizotron tubes one scan doesn't do the trick and you need to scan at several depths. In that case you'll end up with a set of images for each tube at each time point. For our purposes, we might want to stitch them together to remove overlap. This will enable us to arrive at a quasi-continues depth distribution. Stitch before segmentation - you can find two solution to this here: 
+
+1. Affine Keyfeature Stitching of all Scans corresponding to a particular Tube in Time; see Try AffineStitcher.py in StitchR repository. Works well for feature rich images with more overlap and less good for homogeneous images with little overlap. Limiting the key feature mapping to the overlap region should result in better results (not implemented yet!) https://github.com/jcunow/ImageStitching
+2. Use ImageJ's Addon Stitcher. Needs a text file listing the rough Image positions (ca. 100px overlap). This has a high successrate but is time intensive.
 
 
-## Second Step - Prep
-Segment the stitched Image. You can use this: ....Link
-Tipp: use split_im() function (currently unavailable) to cut the root image in pieces in case 'RootDetetcor' has trouble with the amount of roots of roots. You can rejoin the segmented images afterwards with join_im(). But first, look change the settings of 'RootDetector' and crank up the maximum root limit.  
+
+## AI Image segmentation
+Image segmentation is critical for any further processing. There are several options available: 
+Distinguishing between root and background is essential. Two potential choices:
+
+1. “RootDetector” applied to stitched Images;
+   This software will return a segmented and skeletonized Image with information stored in different channels. RootDetector allows to distinguish tape, roots, and background using the root identification method.    
+   Peters et al. (2023) As good as but much more efficient and reproducible 
+   than human experts in detecting plant roots in minirhizotron images: 
+   The Convolution Neural Network RootDetector  *Scientific Reports* **13** 1,
+
+   Using root tracking will return root production, root decay, and no-change roots. Using this unlocks a additional Turnover estimation - Turnover.DPC()
+   Gillert et al. 2023, Tracking Growth and Decay of Plant Roots in Minirhizotron Images. *IEEE/CVF Winter Conference on Applications of Computer Vision (WACV)*, https://doi.org/10.1109/WACV56688.2023.00369 
+ 
+   Software at https://github.com/ExPlEcoGreifswald/RootDetector
+
+2. "RootPainter" applied to stitched Images;
+   This software returns a segmented Image.   
+   Smith et al. 2022, RootPainter: deep learning segmentation of biological images with corrective annotation, *New Phytologist* **236** 2, https://doi.org/10.1111/nph.18387
+   
+   Software at https://github.com/Abe404/root_painter 
+
+Tipp: split your stitched images if the root detection algorithm has trouble with the amount of roots of roots. You can rejoin the segmented images afterwards. But first, look if the settings can be changed to crank up the maximum root limit.  
+
+
 ```{r hidden import, echo =FALSE}
 library(raster)
 library(terra)
@@ -78,18 +83,25 @@ terra::ext(skl_Oulanka2023_Session03_T067) <- c(0,dim(skl_Oulanka2023_Session03_
 ```
 
 
+This is how a root stitched root scan may look like:
 ```{r Input Example Showcase, fig.height=4.9, fig.width=9, message=FALSE, warning=FALSE, paged.print=TRUE,eval=TRUE,collapse=FALSE,include=TRUE,echo=FALSE}
-
  terra::plotRGB(rgb_Oulanka2023_Session03_T067)
+```
+After segmentation, we get pixel group information in different layers looking somthing like this:
+```{r Input Example Showcase, fig.height=4.9, fig.width=9, message=FALSE, warning=FALSE, paged.print=TRUE,eval=TRUE,collapse=FALSE,include=TRUE,echo=FALSE}
  terra::plotRGB(seg_Oulanka2023_Session03_T067)
- terra::plotRGB(skl_Oulanka2023_Session03_T067)
+```
 
+For many purposes, we will need a skeleton version of the segmentation:
+```{r Input Example Showcase, fig.height=4.9, fig.width=9, message=FALSE, warning=FALSE, paged.print=TRUE,eval=TRUE,collapse=FALSE,include=TRUE,echo=FALSE}
+ terra::plotRGB(skl_Oulanka2023_Session03_T067)
 ```
 
 
-## Third step - The Package begins
-Now we are finally ready to start using the package.
-First, we need to load the images and then estimate the soil surface and the rotation.
+
+
+## Let's go some examples on how to use the MinirhozotronR package.
+First, we need to load the images. The example images were taken in a sedge fen in north eastern Finland at Oulanka National Park.
 ```{r Start the package, echo=TRUE,  warning=FALSE,include=TRUE}
 library(MinirhizotronR)
 library(dplyr)
@@ -111,7 +123,8 @@ TurnoverDPC_data = terra::rast(TurnoverDPC_data)
 
 ```
 
-## Now, we need to define where the soil begins
+
+It's important to know how our scans relate to soil depth and where the tube upside face is located in th eimage. We assume that we don't have *in-situ* calibration available. Instead, we are going to give our best guess on soil surface position and the rotation center position by using tape cover position as proxy.
 ```{r Calibrating, echo=TRUE, message=FALSE, warning=FALSE,  eval=TRUE, include=TRUE}
   
 ### If you have measured the the distance from the soil to the edge of the tube - great, your job is done! 
@@ -127,7 +140,7 @@ s0 = s0.true * dpi / 2.54
 s0 = s0 %>% round()
 
 
-### If you don't have any data meta-deta available - too bad!
+### If you don't have any calibration data available - too bad!
 ## Try this instead:
 # Based on Tape Cover, soil start is estimated
 s0 = MinirhizotronR::SoilSurfE(rgb_Oulanka2023_Session03_T067)
@@ -138,9 +151,8 @@ print(paste0("Rotation Center in rows: ",r0))
 ```
 
 
-
-```{r Create a depthmap, echo=FALSE, warning=FALSE, eval=TRUE, include = TRUE}
-### We are ready now to create a depth map. The here goal is to supply every pixel of the root scans with a depth information. We choose to include the tube thickness and thereby create a phase shifted cosine depth map  -  or ignore it  (as traditionally done). Ignoring it will create a map in which the tube upside is located the same depth as tube downside (= vertical insertion angle). 
+We are ready now to create a depth map. The here goal is to supply every pixel of the root scans with a depth information. We choose to include the tube thickness and thereby create a phase shifted cosine depth map  -  or ignore it  (as traditionally done). Ignoring it will create a map in which the tube upside is located the same depth as tube downside (= vertical insertion angle). 
+```{r Create a depthmap, echo=TRUE, message=FALSE, warning=FALSE,  eval=TRUE, include=TRUE}
 
 ## We want to exclude pixels with tape as part of the soil. Create a mask:
 # The format of 'RootDetector' uses the red channel to show mask and root px, while blue and green only show root px
@@ -163,7 +175,9 @@ terra::plot(tbm)
 
 ```
 
-## With Depth Information ready, we can now analyze the data. Here, we are interested in 3 key features: Root Coverage, RootScapes Features, and Peat Characteristics. Lets get to the vegan meat of it:
+
+With Depth Information ready, we can now analyze the data. 
+Here, we are interested in 3 key features: Root Coverage, RootScapes Features, and Peat Characteristics. Lets get to the vegan meat of it:
 ```{r Depth Stats, fig.height=3, fig.width=4.2, , warning=FALSE, eval=TRUE, include = TRUE}
 # A good starting point is selecting the desired depth. Typically, you want to go through all depth to construct a depth distribution. For brevity, we show it for one depth here.
 
