@@ -12,7 +12,7 @@ SoilSurfE(
   nclasses = 3,
   inverse = FALSE,
   tape.overlap = 0.5,
-  tape.brightness = 0.75,
+  tape.brightness = 0.6,
   extra.rows = 100,
   tape.quantile = 0.98
 )

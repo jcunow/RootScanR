@@ -240,7 +240,7 @@ if(fixed.rotation == TRUE){
 #' img = seg_Oulanka2023_Session01_T067
 #' Soil0Estimates = SoilSurfE(img)
 SoilSurfE = function(img,search.area = 0.45, tape.tresh = 0.33,dpi = 300, nclasses = 3, inverse = FALSE,
-                     tape.overlap = 0.5,tape.brightness = 0.75,extra.rows = 100,tape.quantile = 0.98 ){
+                     tape.overlap = 0.5,tape.brightness = 0.6,extra.rows = 100,tape.quantile = 0.98 ){
 
   if(is.character(img)){
     im = terra::rast(img)
@@ -249,9 +249,15 @@ SoilSurfE = function(img,search.area = 0.45, tape.tresh = 0.33,dpi = 300, nclass
     if(!is.array(img) ){
       im = terra::as.array(img)
     }else{
-      im = img
+      if(is.array(img) ){
+        im = img
+      }else{
+        print("not the right input format. Try RasterBrick or array type of format.")
+      }
+
     }
   }
+
 
 
   if(inverse == TRUE){
