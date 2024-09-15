@@ -46,7 +46,7 @@
 #' @author Johannes Cunow \email{johannes.cunow@gmail.com}
 #' @usage data(lines_diagonal_botleft)
 #' @docType data
-#' @format a RasterBrick with 194 columns x 100 rows x 4 layer
+#' @format a RasterBrick with 191 columns x 99 rows x 4 layer
 #' @source Images by J.Cunow
 "lines_diagonal_botleft"
 
@@ -56,7 +56,7 @@
 
 
 
-#' @title An original Minirhizotron Root Scan from Timpoint 2
+#' @title An original Minirhizotron Root Scan from Timepoint 2
 #'
 #' @description
 #' This is a blended image of multiple scans stitched together.
@@ -66,12 +66,12 @@
 #' @author Johannes Cunow \email{johannes.cunow@gmail.com}
 #' @usage data(rgb_Oulanka2023_Session03_T067)
 #' @docType data
-#' @format a RasterBrick with 4000 columns x 1600 rows x 3 layer
+#' @format a RasterBrick with 4900 columns x 1161 rows x 3 layer
 #' @source Images by J.Cunow
 "rgb_Oulanka2023_Session03_T067"
 
 
-#' @title A Minirhizotron Root Scan after Segmentation from Timpoint 1
+#' @title A Minirhizotron Root Scan after Segmentation from Timepoint 1
 #'
 #'@description
 #' The image is derived from a rgb root scan after using "RootDetector" to segment.
@@ -83,13 +83,13 @@
 #' @author Johannes Cunow \email{johannes.cunow@gmail.com}
 #' @usage data(seg_Oulanka2023_Session01_T067)
 #' @docType data
-#' @format a RasterBrick with 4000 columns x 1600 rows x 3 layer
+#' @format a RasterBrick with 4900 columns x 1144 rows x 3 layer
 #' @source Images by J.Cunow
 "seg_Oulanka2023_Session01_T067"
 
 
 
-#' @title A Minirhizotron Root Scan after Segmentation from Timpoint 2
+#' @title A Minirhizotron Root Scan after Segmentation from Timepoint 2
 #'
 #'@description
 #' The image is derived from a rgb root scan after using "RootDetector" to segment.
@@ -101,12 +101,12 @@
 #' @author Johannes Cunow \email{johannes.cunow@gmail.com}
 #' @usage data(seg_Oulanka2023_Session03_T067)
 #' @docType data
-#' @format a RasterBrick with 4000 columns x 1600 rows x 3 layer
+#' @format a RasterBrick with 4900 columns x 1161 rows x 3 layer
 #' @source Images by J.Cunow
 "seg_Oulanka2023_Session03_T067"
 
 
-#' @title A Minirhizotron Root Scan after Segmentation and Skeletonization from Timpoint 1
+#' @title A Minirhizotron Root Scan after Segmentation and Skeletonization from Timepoint 1
 #'
 #'@description
 #' The image is derived from a rgb root scan after using "RootDetector" to segment and skeletonize.
@@ -118,12 +118,12 @@
 #' @author Johannes Cunow \email{johannes.cunow@gmail.com}
 #' @usage data(skl_Oulanka2023_Session01_T067)
 #' @docType data
-#' @format a RasterBrick with 4000 columns x 1600 rows x 3 layer
+#' @format a RasterBrick with 4900 columns x 1144 rows x 3 layer
 #' @source Images by J.Cunow
 "skl_Oulanka2023_Session01_T067"
 
 
-#' @title A Minirhizotron Root Scan after Segmentation and Skeletonization from Timpoint 2
+#' @title A Minirhizotron Root Scan after Segmentation and Skeletonization from Timepoint 2
 #'
 #'@description
 #' The image is derived from a rgb root scan after using "RootDetector" to segment and skeletonize.
@@ -134,7 +134,7 @@
 #'
 #' @author Johannes Cunow \email{johannes.cunow@gmail.com}
 #' @usage data(skl_Oulanka2023_Session03_T067)
-#' @format a RasterBrick with 4000 columns x 1600 rows x 3 layer
+#' @format a RasterBrick with 4900 columns x 1161 rows x 3 layer
 #' @source Images by J.Cunow
 "skl_Oulanka2023_Session03_T067"
 
