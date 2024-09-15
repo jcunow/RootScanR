@@ -281,10 +281,10 @@ SoilSurfE = function(img,search.area = 0.45, tape.tresh = 0.33,dpi = 300, nclass
   clust.center = apply(r1$model$centers,1,mean)
 
   if(inverse == TRUE){
-    clust= which(clust.center ==min(clust.center[clust.center < tape.brightness*terra::global(r.img1,"min")[[1]]]))
+    clust= which(clust.center ==min(clust.center[clust.center < tape.brightness*terra::global(r.img1,"min")[[1]][1:3]]))
   }else{
     # silver tape should have highest luminance across clusters -> select max lum.cluster (but not close to == 1 [pure white?])
-    clust= which(clust.center ==max(clust.center[clust.center > tape.brightness*terra::global(r.img1,"max")[[1]]]))
+    clust= which(clust.center ==max(clust.center[clust.center > tape.brightness*terra::global(r.img1,"max")[[1]][1:3]]))
   }
 
   # identify the end of tape by rowsum threshold[]
