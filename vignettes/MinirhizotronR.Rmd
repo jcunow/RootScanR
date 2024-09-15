@@ -2,7 +2,7 @@
 title: "MinirhizotronR: Depth Resolved Analysis of Segmented Minirhizotron Scans"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Vignette}
+  %\VignetteIndexEntry{MinirhizotronR: Depth Resolved Analysis of Segmented Minirhizotron Scans}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
