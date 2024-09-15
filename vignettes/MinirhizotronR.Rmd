@@ -20,7 +20,7 @@ knitr::opts_chunk$set(
 ## Guide on how to use this package: 
 MinirhizotronR picks up the work left behind after root scans have been segemented and root pixel, background pixel, and others have been identified. You will find some suggestions on how to get to that point below. We strongly recommend calibrating your tubes *in-situ* and note the insertion angle, tube diameter, and soil start in relation to where the scan starts for every tube (and perhaps timepoints if movment is expected). A calibration guide will follow at some point.   
 
-## Installaion
+## Installation
 ```{r Install Package, include=TRUE}
 # devtools::install_github("jcunow/MinirhizotronR")
 # remotes::install_github("jcunow/MinirhizotronR")
@@ -84,23 +84,23 @@ terra::ext(skl_Oulanka2023_Session03_T067) <- c(0,dim(skl_Oulanka2023_Session03_
 
 
 This is how a root stitched root scan may look like:
-```{r Input Example Showcase, fig.height=4.9, fig.width=9, message=FALSE, warning=FALSE, paged.print=TRUE,eval=TRUE,collapse=FALSE,include=TRUE,echo=FALSE}
+```{r Input Example Showcase1, fig.height=4.9, fig.width=9, message=FALSE, warning=FALSE, paged.print=TRUE,eval=TRUE,collapse=FALSE,include=TRUE,echo=FALSE}
  terra::plotRGB(rgb_Oulanka2023_Session03_T067)
 ```
 After segmentation, we get pixel group information in different layers looking somthing like this:
-```{r Input Example Showcase, fig.height=4.9, fig.width=9, message=FALSE, warning=FALSE, paged.print=TRUE,eval=TRUE,collapse=FALSE,include=TRUE,echo=FALSE}
+```{r Input Example Showcase2, fig.height=4.9, fig.width=9, message=FALSE, warning=FALSE, paged.print=TRUE,eval=TRUE,collapse=FALSE,include=TRUE,echo=FALSE}
  terra::plotRGB(seg_Oulanka2023_Session03_T067)
 ```
 
 For many purposes, we will need a skeleton version of the segmentation:
-```{r Input Example Showcase, fig.height=4.9, fig.width=9, message=FALSE, warning=FALSE, paged.print=TRUE,eval=TRUE,collapse=FALSE,include=TRUE,echo=FALSE}
+```{r Input Example Showcase3, fig.height=4.9, fig.width=9, message=FALSE, warning=FALSE, paged.print=TRUE,eval=TRUE,collapse=FALSE,include=TRUE,echo=FALSE}
  terra::plotRGB(skl_Oulanka2023_Session03_T067)
 ```
 
 
 
 
-## Let's go some examples on how to use the MinirhozotronR package.
+## Let's look at example input 
 First, we need to load the images. The example images were taken in a sedge fen in north eastern Finland at Oulanka National Park.
 ```{r Start the package, echo=TRUE,  warning=FALSE,include=TRUE}
 library(MinirhizotronR)
@@ -123,8 +123,8 @@ TurnoverDPC_data = terra::rast(TurnoverDPC_data)
 
 ```
 
-
-It's important to know how our scans relate to soil depth and where the tube upside face is located in th eimage. We assume that we don't have *in-situ* calibration available. Instead, we are going to give our best guess on soil surface position and the rotation center position by using tape cover position as proxy.
+## Calibration
+It's important to know how our scans relate to soil depth and where the tube upside face is located in the image. We assume that we don't have *in-situ* calibration available. Instead, we are going to give our best guess on soil surface position and the rotation center position by using tape cover position as proxy.
 ```{r Calibrating, echo=TRUE, message=FALSE, warning=FALSE,  eval=TRUE, include=TRUE}
   
 ### If you have measured the the distance from the soil to the edge of the tube - great, your job is done! 
@@ -150,7 +150,7 @@ r0 = MinirhizotronR::RotationE(rgb_Oulanka2023_Session03_T067)
 print(paste0("Rotation Center in rows: ",r0))
 ```
 
-
+## Depth Map
 We are ready now to create a depth map. The here goal is to supply every pixel of the root scans with a depth information. We choose to include the tube thickness and thereby create a phase shifted cosine depth map  -  or ignore it  (as traditionally done). Ignoring it will create a map in which the tube upside is located the same depth as tube downside (= vertical insertion angle). 
 ```{r Create a depthmap, echo=TRUE, message=FALSE, warning=FALSE,  eval=TRUE, include=TRUE}
 
@@ -175,10 +175,10 @@ terra::plot(tbm)
 
 ```
 
-
+## Extract Root Scape Features
 With Depth Information ready, we can now analyze the data. 
-Here, we are interested in 3 key features: Root Coverage, RootScapes Features, and Peat Characteristics. Lets get to the vegan meat of it:
-```{r Depth Stats, fig.height=3, fig.width=4.2, , warning=FALSE, eval=TRUE, include = TRUE}
+Here, we are interested in 3 key features: Root Coverage, RootScapes Features, and Peat Characteristics. Let's get to it:
+```{r Depth Stats, fig.height=3, fig.width=4.2, echo=TRUE, message=FALSE, warning=FALSE,  eval=TRUE, include=TRUE}
 # A good starting point is selecting the desired depth. Typically, you want to go through all depth to construct a depth distribution. For brevity, we show it for one depth here.
 
 ## We only need one binarized layer
@@ -193,6 +193,7 @@ rootzone = zone.fun(rootpic = gray.roots, binned.map = bm, indexD = -10, nn = 2 
 # the output message tells us the there are not enough proper values in the root zone. Lets try again
 rootzone = zone.fun(rootpic = gray.roots, binned.map = bm, indexD = 8, nn = 2 )
 terra::plot(rootzone)
+
 # Also do it for the skeletonized version
 rootzone.skeleton = zone.fun(skl_Oulanka2023_Session03_T067, binned.map = bm, indexD = 20, nn = 2)
 terra::ext(rootzone.skeleton) <- c(0,dim(rootzone.skeleton)[2],0,dim(rootzone.skeleton)[1])
@@ -206,9 +207,9 @@ print(rsm)
 
 
 ```
-
-## Get Root Coverage
-```{r More Root Stats, eval=TRUE, include = TRUE}
+## Exctract Common Parameter
+Get real numbers coverage numbers now
+```{r More Root Stats, echo=TRUE, message=FALSE, warning=FALSE,  eval=TRUE, include=TRUE}
 
 # Get number of Root pixel and Root Length, and Root Thickness
 void = 255-(gray.roots)
@@ -241,8 +242,9 @@ print(paste0("total root length in this depth: ",kimroot," cm"))
 print(paste0("average root thickness in this depth: ",root.thicc," cm"))
 ```
 
-## OBS! not all depth have equal amount of tube surface to display roots! The end pieces of the tilted tube and partially tape covered tube have smaller tube surface
-```{r standardize to available space, eval=FALSE,cache=FALSE, include = TRUE,warning=FALSE}
+## Correct for Margins
+OBS! not all depth have equal amount of tube surface to display roots! The end pieces of the tilted tube and partially tape covered tube have smaller tube surface
+```{r standardize to available space, echo=TRUE, message=FALSE, warning=FALSE,  eval=TRUE, include=TRUE}
 # correct for available space
 av.space = root.sum + void.sum
 av.space[,1] =  av.space[,1]/2
@@ -254,9 +256,9 @@ df.rootpx_per_av.space = as.data.frame(rootpx_per_av.space)
 ggplot(data=df.rootpx_per_av.space,aes(zone,sum)) + geom_point() + geom_smooth(span=0.25) + theme_classic() + ylab("% covered by roots") + xlab("Depth [cm]") +ggtitle("Roots per available rooting space")
 #ggsave("C:/Users/jocu0013/Documents/GitHub/MinirhizotronR/figures/rootsperavailablespace.png")  
 ```
-
-## what if we want to consider a sphere of influence around the roots ?
-```{r rhizosphere tangent, eval=FALSE, include = TRUE}
+## Rootsphere Influence
+What if we want to consider a sphere of influence around the roots ?
+```{r rhizosphere tangent, echo=TRUE, message=FALSE, warning=FALSE,  eval=TRUE, include=TRUE}
 ## set hard limits
 root.seg = gray.roots 
 terra::values(root.seg)[terra::values(terra::t(mask))==1] <- NA
@@ -275,10 +277,9 @@ plot(scale(buffer.sum)); points(scale(root.sum),col="red") + title("The differen
 
 
 
-
-
-## Can we characterize the Peat too ?
-```{r Characterize the soil, eval=FALSE, include = TRUE, warning = FALSE}
+## Estimate Soil Parameter
+ Can we characterize the Peat too ?
+```{r Characterize the soil, echo=TRUE, message=FALSE, warning=FALSE,  eval=TRUE, include=TRUE}
 # only consider soil pixels - not tape nor roots
 peat.color = terra::crop(rgb_Oulanka2023_Session03_T067,gray.roots)
 terra::values(peat.color)[terra::values(buff.im) == 1] = NA 
@@ -310,8 +311,10 @@ tx.mean = terra::zonal(void.tx,bm2)
 plot(tx.mean) + title("second moment - peat texture characterization")
 ```
 
-## as the tube insertion angle increases, the more we expect a differences between the upside of the tube and the downside. Let's estimate the rotational bias
-```{r Asess Rotational Bias, eval=FALSE,cache=FALSE, include = TRUE}
+
+## Rotational Bias
+As the tube insertion angle increases, the more we expect a differences between the upside of the tube and the downside. Let's estimate the rotational bias
+```{r Asess Rotational Bias, echo=TRUE, message=FALSE, warning=FALSE,  eval=TRUE, include=TRUE}
 
 # remove artefacts
 root.seg.c = RotCensor(root.seg,fixed.width = 1000)
@@ -397,9 +400,9 @@ ggplot(data= rot.df,
 coord_polar(start=(splits - ryth.test$phase )*1.15)
 
 ```
-
-## Now its time for Turnover
-```{r, eval=FALSE,cache=FALSE, include = TRUE}
+## Turnover Estimates
+Now its time for Turnover
+```{r, echo=TRUE, message=FALSE, warning=FALSE,  eval=TRUE, include=TRUE}
 # the package offers two methods two estimate turnover. 
 #The function Turnover.TC() makes a comparison between two timepoints and determines production in relation to total biomass. 
 

@@ -12,6 +12,7 @@ With MinirhizotronR, analyzing root scans from minirhizotron tubes becomes a pie
 Useful links:
 \itemize{
   \item \url{https://github.com/jcunow/MinirhizotronR}
+  \item \url{https://jcunow.github.io/MinirhizotronR/}
   \item Report bugs at \url{https://github.com/jcunow/MinirhizotronR/issues}
 }
 
