@@ -3,9 +3,9 @@
 \docType{data}
 \name{seg_Oulanka2023_Session01_T067}
 \alias{seg_Oulanka2023_Session01_T067}
-\title{A Minirhizotron Root Scan after Segmentation from Timpoint 1}
+\title{A Minirhizotron Root Scan after Segmentation from Timepoint 1}
 \format{
-a RasterBrick with 4000 columns x 1600 rows x 3 layer
+a RasterBrick with 4900 columns x 1144 rows x 3 layer
 }
 \source{
 Images by J.Cunow
