@@ -5,7 +5,7 @@
 \alias{lines_diagonal_botleft}
 \title{Example Image with circa right to left diagonal lines}
 \format{
-a RasterBrick with 194 columns x 100 rows x 4 layer
+a RasterBrick with 191 columns x 99 rows x 4 layer
 }
 \source{
 Images by J.Cunow
