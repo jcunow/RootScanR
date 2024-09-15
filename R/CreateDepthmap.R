@@ -47,7 +47,7 @@ create.depthmap = function(im, mask = NULL, sinoid = TRUE,
   if(sinoid == TRUE){
     # simulate a sine wave function across one row
     # df1 = seq(0*pi,2*pi,2*pi/(target.col-1))
-    df1 = seq(0*pi,2*pi,2*pi/(tube.thicc*dpi-1))
+    df1 = seq(0*pi,2*pi,2*pi/(round(tube.thicc*pi*dpi/2.54,0)-1))
 
     ### CORE FUNCTION, apply the function with the amplitude corresponding to the tilt and a phase corresponding to the rotation center
     # creates a cosine shaped curved shifted by the amount of rotation offset
@@ -69,7 +69,7 @@ create.depthmap = function(im, mask = NULL, sinoid = TRUE,
     df[ii,] = df11+(ii*px.to.cm.h * tilt.factor) # adds progressive depth to each row
   }
   # add soil surface offset estimated from tape cover
-  df.depthmap = df + (start.soil* px.to.cm.h)
+  df.depthmap = df - (start.soil* px.to.cm.h)
 
   # masking tape
   masked.depthmap= terra::rast(df.depthmap)
