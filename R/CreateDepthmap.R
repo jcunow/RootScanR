@@ -33,7 +33,7 @@ create.depthmap = function(im, mask = NULL, sinoid = TRUE,
   # used for sin()
   radiant = pi/180
   # law of sines
-  tilt.factor = sin((180-90-tilt) * radiant) / sin(90 * radiant)
+  tilt.factor = sin((180-tilt) * radiant)
   # tilt correct
   tube.thicc.tilted = round(tube.thicc * tilt.factor,3 )
 
