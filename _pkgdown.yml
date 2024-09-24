@@ -3,7 +3,4 @@ template:
   bootstrap: 5
   bootswatch: sandstone
 
-navbar:
-  structure:
-    left:  [intro, reference, articles, tutorials, news]
-    right: [search, github, lightswitch]
+
