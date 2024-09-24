@@ -1,5 +1,7 @@
 # MinirhizotronR - R package
 
+<br />
+
 ## Overview
 MinirhizotronR is a package which has been designed to make the analysis of minirhizotron root scans just a little less stupid. 
 The package relies on prior Image segmentation. We recommend using *RootDetector* or *RootPainter*. This packages enables the user to map various root features to a continues depth distributions. 
@@ -17,9 +19,9 @@ devtools::install_github("jcunow/MinirhizotronR")
 ____________________________________
 
 
+<br />
 
-
-### Calibration 
+## Calibration 
 More accurate results require easy to gather *in-situ* calibration of each tube. Traditionally, the assumption is that all tube have been installed perfectly, i.e., exact same insertion angle, insertion depth, same scanner rotation position, and tape overshoot for each tube. MinirhizotronR offers the possibility  to approximate the soil start and rotation center based an assumption of well-taped tubes.
 
 1. Soil Surface Position Estimation 
@@ -37,8 +39,9 @@ RotCensor(img,center.offset = 0.3,fixed.rotation = FALSE)
 LR_rhythmicity(rotation.cuts, root.px, period= number.rotation.slices)$phase * (dim(roation.cuts)[1]/number.rotations.slices) %>% round()
 ````
 
+<br />
 
-### The core function: Create a depthmap
+## The core function: Create a depthmap
 requires: soil surface estimate, rotation center estimate, tube insertion angle, tube diameter, scan resolution
 
 1. Phase shifted, trimmed sine depth mapping including tube diameter and tube insertion angle 
@@ -46,7 +49,9 @@ requires: soil surface estimate, rotation center estimate, tube insertion angle,
 depthmap = create.depthmap(img,mask, tube.thicc = 7, tilt = 45, dpi = 300, start.soil = 0,center.offset = 0)
 ````
 
-### Zoning - Create analytical units
+<br />
+
+## Zoning - Create analytical units
 Creates discrete sub-units of the whole image. This determines the resolution of the depth distributions. Currently, the package only supports analysis within discrete depth bands.
 Future releases will tackle response functions on continuous depth.
 
@@ -56,8 +61,9 @@ binned.map = binning(depthmap, nn = 1,"rounding")
 root.zone = zone.fun(img, binned.map, indexD = 5, nn = 1)
 ````
 
-###  Feature Extractions
+<br />
 
+##  Feature Extractions
 1. Parameter from segmented image cut
 ````
 RootScapeMetrics(root.zone, metrics = c("lsm_c_ca","lsm_c_pland","lsm_c_enn_mn"))
@@ -89,7 +95,10 @@ Turnover.TC(root.zone1,root.zone2, method = "kimura",dpi = 300, unit = "cm")
 Turnover.DPC(root.zone.dpc, product.layer = 2, decay.layer = 1, im.return = F)
 ````
 
-### Rotational Bias
+<br />
+
+
+## Rotational Bias
 1. Rotational zoning,  Feature Extraction, 
 ````
 rotation.rootpx = data.frame(kk = 1:12,px = NA)
@@ -101,6 +110,7 @@ rotation.rootpx$px[i,] = px.sum(rotation.zone)
 
 
 ````
+
 2. Test Amplitude Difference
 Can be used to text e.g., differences in top-bottom-tube bias between varying insertion angle or tube diameter
 To test differences between sinus fits, we make use of the diffCircadian package https://github.com/diffCircadian/diffCircadian
