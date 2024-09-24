@@ -18,8 +18,9 @@ knitr::opts_chunk$set(
 
 
 ## Guide on how to use this package: 
-MinirhizotronR picks up the work left behind after root scans have been segemented and root pixel, background pixel, and others have been identified. You will find some suggestions on how to get to that point below. We strongly recommend calibrating your tubes *in-situ* and note the insertion angle, tube diameter, and soil start in relation to where the scan starts for every tube (and perhaps timepoints if movment is expected). A calibration guide will follow at some point.   
+MinirhizotronR picks up the work left behind after root scans have been segemented and root pixel, background pixel, and others have been identified. You will find some suggestions on how to get to that point below. I strongly recommend calibrating your tubes *in-situ* and note the insertion angle, tube diameter, and soil start in relation to where the scan starts for every tube (and perhaps timepoints if movment is expected). A calibration guide will follow at some point.   
 
+<br />
 
 ## Installation
 ```{r Install Package, include=TRUE}
@@ -184,7 +185,7 @@ terra::plot(tbm)
 ## Extract Root Scape Features
 With Depth Information ready, we can now analyze the data. 
 Here, we are interested in 3 key features: Root Coverage, RootScapes Features, and Peat Characteristics. Let's get to it:
-```{r Depth Stats,  echo=TRUE, message=FALSE, warning=FALSE,  eval=TRUE, include=TRUE}
+```{r Depth Stats,  echo=TRUE, message=FALSE, warning=FALSE,  eval=TRUE, include=TRUE, height = 8,width = 6}
 # A good starting point is selecting the desired depth. Typically, you want to go through all depth to construct a depth distribution. For brevity, we show it for one depth here.
 
 ## We only need one binarized layer
