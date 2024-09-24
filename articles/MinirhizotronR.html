@@ -8,7 +8,10 @@
 <title>MinirhizotronR: Depth Resolved Analysis of Segmented Minirhizotron Scans • MinirhizotronR</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.4.2/css/all.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/Roboto-0.4.9/font.css" rel="stylesheet">
+<link href="../deps/JetBrains_Mono-0.4.9/font.css" rel="stylesheet">
+<link href="../deps/Aleo-0.4.9/font.css" rel="stylesheet">
+<link href="../deps/font-awesome-6.4.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="MinirhizotronR: Depth Resolved Analysis of Segmented Minirhizotron Scans">
 </head>
@@ -77,6 +80,7 @@ is expected). A calibration guide will follow at some point.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># devtools::install_github("jcunow/MinirhizotronR")</span></span>
 <span><span class="co"># remotes::install_github("jcunow/MinirhizotronR")</span></span></code></pre></div>
+<p><br></p>
 </div>
 <div class="section level2">
 <h2 id="image-stitching">Image stitching<a class="anchor" aria-label="anchor" href="#image-stitching"></a>
@@ -99,6 +103,7 @@ feature mapping to the overlap region should result in better results
 Image positions (ca. 100px overlap). This has a high successrate but is
 time intensive.</li>
 </ol>
+<p><br></p>
 </div>
 <div class="section level2">
 <h2 id="ai-image-segmentation">AI Image segmentation<a class="anchor" aria-label="anchor" href="#ai-image-segmentation"></a>
@@ -143,7 +148,7 @@ looking somthing like this:
 <img src="MinirhizotronR_files/figure-html/Input%20Example%20Showcase2-1.png" width="864"></p>
 <p>For many purposes, we will need a skeleton version of the
 segmentation:
-<img src="MinirhizotronR_files/figure-html/Input%20Example%20Showcase3-1.png" width="864"></p>
+<img src="MinirhizotronR_files/figure-html/Input%20Example%20Showcase3-1.png" width="864"><br></p>
 </div>
 <div class="section level2">
 <h2 id="lets-look-at-example-input">Let’s look at example input<a class="anchor" aria-label="anchor" href="#lets-look-at-example-input"></a>
@@ -168,6 +173,7 @@ sedge fen in north eastern Finland at Oulanka National Park.</p>
 <span><span class="va">skl_Oulanka2023_Session03_T067</span> <span class="op">=</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/rast.html" class="external-link">rast</a></span><span class="op">(</span><span class="va">skl_Oulanka2023_Session03_T067</span><span class="op">)</span></span>
 <span><span class="va">TurnoverDPC_data</span> <span class="op">=</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/rast.html" class="external-link">rast</a></span><span class="op">(</span><span class="va">TurnoverDPC_data</span><span class="op">)</span></span>
 <span><span class="co">#skl_Oulanka2023_Session03_T067 = (skeletonize(seg_Oulanka2023_Session03_T067[[2]], itr= 3))</span></span></code></pre></div>
+<p><br></p>
 </div>
 <div class="section level2">
 <h2 id="calibration">Calibration<a class="anchor" aria-label="anchor" href="#calibration"></a>
@@ -202,6 +208,7 @@ position by using tape cover position as proxy.</p>
 <span><span class="va">r0</span> <span class="op">=</span> <span class="fu">MinirhizotronR</span><span class="fu">::</span><span class="fu"><a href="../reference/RotationE.html">RotationE</a></span><span class="op">(</span><span class="va">rgb_Oulanka2023_Session03_T067</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"Rotation Center in rows: "</span>,<span class="va">r0</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "Rotation Center in rows: 436.5"</span></span></code></pre></div>
+<p><br></p>
 </div>
 <div class="section level2">
 <h2 id="depth-map">Depth Map<a class="anchor" aria-label="anchor" href="#depth-map"></a>
@@ -232,7 +239,7 @@ downside (= vertical insertion angle).</p>
 <span><span class="co"># Binned Depthmap Plot</span></span>
 <span><span class="va">tbm</span> <span class="op">=</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/transpose.html" class="external-link">t</a></span><span class="op">(</span><span class="va">bm</span><span class="op">)</span></span>
 <span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">tbm</span><span class="op">)</span></span></code></pre></div>
-<p><img src="MinirhizotronR_files/figure-html/Create%20a%20depthmap-1.png" width="700"></p>
+<p><img src="MinirhizotronR_files/figure-html/Create%20a%20depthmap-1.png" width="700"><br></p>
 </div>
 <div class="section level2">
 <h2 id="extract-root-scape-features">Extract Root Scape Features<a class="anchor" aria-label="anchor" href="#extract-root-scape-features"></a>
@@ -256,7 +263,7 @@ and Peat Characteristics. Let’s get to it:</p>
 <span><span class="co"># the output message tells us the there are not enough proper values in the root zone. Lets try again</span></span>
 <span><span class="va">rootzone</span> <span class="op">=</span> <span class="fu"><a href="../reference/zone.fun.html">zone.fun</a></span><span class="op">(</span>rootpic <span class="op">=</span> <span class="va">gray.roots</span>, binned.map <span class="op">=</span> <span class="va">bm</span>, indexD <span class="op">=</span> <span class="fl">8</span>, nn <span class="op">=</span> <span class="fl">2</span> <span class="op">)</span></span>
 <span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">rootzone</span><span class="op">)</span></span></code></pre></div>
-<p><img src="MinirhizotronR_files/figure-html/Depth%20Stats-1.png" width="403.2"></p>
+<p><img src="MinirhizotronR_files/figure-html/Depth%20Stats-1.png" width="700"></p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co"># Also do it for the skeletonized version</span></span>
@@ -275,6 +282,7 @@ and Peat Characteristics. Let’s get to it:</p>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> enn_mn    2.05  root       8</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> pd     <span style="text-decoration: underline;">4</span>739.    root       8</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> ent       0.468 root       8</span></span></code></pre></div>
+<p><br></p>
 </div>
 <div class="section level2">
 <h2 id="exctract-common-parameter">Exctract Common Parameter<a class="anchor" aria-label="anchor" href="#exctract-common-parameter"></a>
@@ -314,6 +322,7 @@ and Peat Characteristics. Let’s get to it:</p>
 <span><span class="co">#&gt; [1] "total root length in this depth: NaN cm"</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"average root thickness in this depth: "</span>,<span class="va">root.thicc</span>,<span class="st">" cm"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "average root thickness in this depth: NaN cm"</span></span></code></pre></div>
+<p><br></p>
 </div>
 <div class="section level2">
 <h2 id="correct-for-margins">Correct for Margins<a class="anchor" aria-label="anchor" href="#correct-for-margins"></a>
@@ -336,6 +345,7 @@ have smaller tube surface</p>
 <p><img src="MinirhizotronR_files/figure-html/standardize%20to%20available%20space-2.png" width="700"></p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">#ggsave("C:/Users/jocu0013/Documents/GitHub/MinirhizotronR/figures/rootsperavailablespace.png")  </span></span></code></pre></div>
+<p><br></p>
 </div>
 <div class="section level2">
 <h2 id="rootsphere-influence">Rootsphere Influence<a class="anchor" aria-label="anchor" href="#rootsphere-influence"></a>
@@ -361,6 +371,7 @@ have smaller tube surface</p>
 <pre><code><span><span class="co">#&gt; integer(0)</span></span>
 <span></span>
 <span><span class="co"># Hint: sphere of influence might not be the same across depth with varying physiology and hydraulic conductivity</span></span></code></pre>
+<p><br></p>
 </div>
 <div class="section level2">
 <h2 id="estimate-soil-parameter">Estimate Soil Parameter<a class="anchor" aria-label="anchor" href="#estimate-soil-parameter"></a>
@@ -412,6 +423,7 @@ have smaller tube surface</p>
 <span><span class="fu"><a href="https://rspatial.github.io/terra/reference/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">tx.mean</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/graphics/title.html" class="external-link">title</a></span><span class="op">(</span><span class="st">"second moment - peat texture characterization"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="MinirhizotronR_files/figure-html/Characterize%20the%20soil-4.png" width="700"></p>
 <pre><code><span><span class="co">#&gt; integer(0)</span></span></code></pre>
+<p><br></p>
 </div>
 <div class="section level2">
 <h2 id="rotational-bias">Rotational Bias<a class="anchor" aria-label="anchor" href="#rotational-bias"></a>
@@ -568,8 +580,12 @@ estimate the rotational bias</p>
 <span>   <span class="op">)</span><span class="op">)</span><span class="op">+</span></span>
 <span> <span class="fu">scale_x_continuous</span><span class="op">(</span>labels <span class="op">=</span> <span class="st">""</span>,breaks <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">rot.df</span><span class="op">$</span><span class="va">exag.rootpx</span><span class="op">)</span><span class="op">)</span><span class="op">+</span></span>
 <span><span class="fu">coord_polar</span><span class="op">(</span>start<span class="op">=</span><span class="op">(</span><span class="va">splits</span> <span class="op">-</span> <span class="va">ryth.test</span><span class="op">$</span><span class="va">phase</span> <span class="op">)</span><span class="op">*</span><span class="fl">1.15</span><span class="op">)</span></span></code></pre>
-<p><img src="MinirhizotronR_files/figure-html/Asess%20Rotational%20Bias-3.png" width="700">
-## Turnover Estimates Now its time for Turnover</p>
+<p><img src="MinirhizotronR_files/figure-html/Asess%20Rotational%20Bias-3.png" width="700"><br></p>
+</div>
+<div class="section level2">
+<h2 id="turnover-estimates">Turnover Estimates<a class="anchor" aria-label="anchor" href="#turnover-estimates"></a>
+</h2>
+<p>Now its time for Turnover</p>
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># the package offers two methods two estimate turnover. </span></span>
 <span><span class="co">#The function Turnover.TC() makes a comparison between two timepoints and determines production in relation to total biomass. </span></span>
@@ -612,10 +628,8 @@ estimate the rotational bias</p>
 <span>   <span class="fu">geom_point</span><span class="op">(</span><span class="fu">aes</span><span class="op">(</span>y <span class="op">=</span> <span class="va">con</span>,color <span class="op">=</span> <span class="st">"con"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="fu">geom_line</span><span class="op">(</span><span class="fu">aes</span><span class="op">(</span>y <span class="op">=</span> <span class="va">con</span><span class="op">/</span><span class="va">rootpx</span>,color <span class="op">=</span> <span class="st">"con"</span><span class="op">)</span><span class="op">)</span><span class="op">+</span></span>
 <span>   <span class="fu">geom_line</span><span class="op">(</span><span class="fu">aes</span><span class="op">(</span>y <span class="op">=</span> <span class="va">prd</span>,color <span class="op">=</span> <span class="st">"prd"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="fu">geom_line</span><span class="op">(</span><span class="fu">aes</span><span class="op">(</span>y <span class="op">=</span> <span class="va">prd</span><span class="op">/</span><span class="va">rootpx</span>,color <span class="op">=</span> <span class="st">"prd"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> </span>
 <span>   <span class="fu">geom_line</span><span class="op">(</span><span class="fu">aes</span><span class="op">(</span>y <span class="op">=</span> <span class="va">dec</span>,color <span class="op">=</span> <span class="st">"dec"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="fu">geom_line</span><span class="op">(</span><span class="fu">aes</span><span class="op">(</span>y <span class="op">=</span> <span class="va">dec</span><span class="op">/</span><span class="va">rootpx</span>,color <span class="op">=</span> <span class="st">"dec"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> </span>
-<span>   <span class="fu">geom_line</span><span class="op">(</span><span class="fu">aes</span><span class="op">(</span>y <span class="op">=</span> <span class="va">con</span>,color <span class="op">=</span> <span class="st">"con"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="fu">geom_line</span><span class="op">(</span><span class="fu">aes</span><span class="op">(</span>y <span class="op">=</span> <span class="va">con</span><span class="op">/</span><span class="va">rootpx</span>,color <span class="op">=</span> <span class="st">"con"</span><span class="op">)</span><span class="op">)</span><span class="co"># + </span></span></code></pre></div>
+<span>   <span class="fu">geom_line</span><span class="op">(</span><span class="fu">aes</span><span class="op">(</span>y <span class="op">=</span> <span class="va">con</span>,color <span class="op">=</span> <span class="st">"con"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="fu">geom_line</span><span class="op">(</span><span class="fu">aes</span><span class="op">(</span>y <span class="op">=</span> <span class="va">con</span><span class="op">/</span><span class="va">rootpx</span>,color <span class="op">=</span> <span class="st">"con"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p><img src="MinirhizotronR_files/figure-html/unnamed-chunk-2-1.png" width="700"></p>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span>   <span class="co">#geom_point(aes(y = rootpx,color = "rootpx")) + geom_line(aes(y = rootpx,color = "rootpx"))</span></span></code></pre></div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
