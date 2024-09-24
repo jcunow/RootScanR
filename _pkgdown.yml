@@ -2,6 +2,7 @@ url: https://jcunow.github.io/MinirhizotronR/
 template:
   bootstrap: 5
   theme: breeze-light
+  light-switch: true
   bslib:
     base_font:
       google: Roboto
@@ -9,4 +10,27 @@ template:
       google: Aleo
     code_font:
       google: JetBrains Mono
+
+
+# navbar:
+#   structure:
+#     left:  [intro, reference, articles, tutorials, news]
+#     right: [search, github, lightswitch]
+
+
+navbar:
+  left:
+  - text: Tutorial
+    href: articles/MinirhizotronR.html
+  - text: DemoFile
+    href: articles/DemoFile.html
+  - text: News
+    href: news/index.html
+  - text: Reference
+    href: reference/index.html
+  structure:
+    right: [search, github, lightswitch]
+
+
+
 
