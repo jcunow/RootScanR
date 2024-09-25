@@ -1,21 +1,26 @@
 ---
 title: "Demo File"
 author: "Johannes Cunow"
-date: "2024-09-24"
-output: html_document
+output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Demo File}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r document setting, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  knitr::opts_chunk$set(include = FALSE)
+)
+
 ```
 
 
 ## Load libraries
-```{r}
+```{r install package }
 ## Install MinirhizotronR package
 if (!require("devtools")) {
   install.packages("devtools")
@@ -29,7 +34,7 @@ library(dplyr);library(ggplot2)
 
 
 ## Setup
-```{r setup}
+```{r setup }
 # track runtime
 t00 = Sys.time()
 
@@ -39,22 +44,21 @@ library(dplyr)
 library(ggplot2)
 
 # Directory
-seg.path = "C:/Users/Documents/RootScans/SegmentedImages/"
-rgb.path = "C:/Users/Documents/RootScans/RGBImages/"
-cal.path = "C:/Users/Documents/RootScans/Calibration/"
+seg.path = "C:/Users/jocu0013/Desktop/Oulanka/Scans_FullSegmented/Oulanka2023_03/"
+rgb.path = "C:/Users/jocu0013/Desktop/Oulanka/Scans_Blended/Full/Oulanka2023_03/"
+cal.path = "C:/Users/jocu0013/Desktop/Oulanka/Data/"
 im.ls = list.files(seg.path)
 rgb.im.ls = list.files(rgb.path)
-
 
 ```
 
 
 ## Tube Calibrations
-```{r  calibration}
+```{r  calibration }
 
 ### Action !!! (consider if the soil starts later Tape, unit is cm!)
 # If the Tubes have been calibrated; otherwise soil start has to be assumed
-s0 = read.csv(paste0(cal.path ,"TubeInsertionAngle.csv"))
+s0 = read.csv(paste0(cal.path ,"OulankaTubeInsertionAngle.csv"))
 s0$soil0 = s0$Soil.Excess 
 
 ## alternativly
@@ -70,7 +74,8 @@ dpi = 300
 ## The Loop
 ```{r main loop body}
 
-# loop counter
+image.analysis.loop = function(){
+  # loop counter
 k=0
 l=0
 # depth slice interval in cm
@@ -197,27 +202,38 @@ for (i in im.ls) {
   }
 
 }
-difftime(Sys.time(),t00)
+}
+
+### run funtion ###
+# uncomment to run:
+
+# image.analysis.loop()
+
+
 ```
 
+```{r include=FALSE}
+# data.path =  "C:/Users/jocu0013/Documents/DemoData/"
+# load(paste0(data.path,".rda"))
+```
 
 
 ## Reshape the data
 ```{r reshape}
-root.frame2 = array2DF( array(root.list))
-root.frame2$Var1 = NULL
-colnames(root.frame2) <- c("depth","root_px","void_px","rootlength","Tube")
-root.frame2$Plot = stringr::str_sub(root.frame2$Tube,start = 3) %>% as.numeric()
-# clean
-root.frame2$depth = ifelse(is.nan(root.frame2$depth), NA, root.frame2$depth)
-root.frame2$root_px = ifelse(is.nan(root.frame2$root_px), NA, root.frame2$root_px)
-root.frame2$void_px = ifelse(is.nan(root.frame2$void_px), NA, root.frame2$void_px)
-root.frame2$rootlength = ifelse(is.nan(root.frame2$rootlength), NA, root.frame2$rootlength)
-root.frame2$Tube = ifelse(is.nan(root.frame2$Tube), NA, root.frame2$Tube)
-# calc
-root.frame2$rootcover.percent =  root.frame2$root_px / (root.frame2$void_px + root.frame2$root_px)
-root.frame2$rootlength.percent =  root.frame2$rootlength / (root.frame2$void_px + root.frame2$root_px) * (dpi/2.54)**2
-root.frame2$thicc = root.thickness(root.frame2$rootlength, root.frame2$root_px)
+# root.frame2 = array2DF( array(root.list))
+# root.frame2$Var1 = NULL
+# colnames(root.frame2) <- c("depth","root_px","void_px","rootlength","Tube")
+# root.frame2$Plot = stringr::str_sub(root.frame2$Tube,start = 3) %>% as.numeric()
+# # clean
+# root.frame2$depth = ifelse(is.nan(root.frame2$depth), NA, root.frame2$depth)
+# root.frame2$root_px = ifelse(is.nan(root.frame2$root_px), NA, root.frame2$root_px)
+# root.frame2$void_px = ifelse(is.nan(root.frame2$void_px), NA, root.frame2$void_px)
+# root.frame2$rootlength = ifelse(is.nan(root.frame2$rootlength), NA, root.frame2$rootlength)
+# root.frame2$Tube = ifelse(is.nan(root.frame2$Tube), NA, root.frame2$Tube)
+# # calc
+# root.frame2$rootcover.percent =  root.frame2$root_px / (root.frame2$void_px + root.frame2$root_px)
+# root.frame2$rootlength.percent =  root.frame2$rootlength / (root.frame2$void_px + root.frame2$root_px) * (dpi/2.54)**2
+# root.frame2$thicc = root.thickness(root.frame2$rootlength, root.frame2$root_px)
 
 
 ```
@@ -226,26 +242,25 @@ root.frame2$thicc = root.thickness(root.frame2$rootlength, root.frame2$root_px)
 
 ## Compare Rooting Distributions
 ```{r distribution comparison}
-P = root.frame2 %>% filter(Plot == 37)  %>%  mutate(rxprob = root_px / sum(root_px,na.rm = TRUE)) #%>% select(rxprob)
-Q = root.frame2 %>% filter(Plot == 39)  %>% mutate(rxprob = root_px / sum(root_px,na.rm = TRUE)) #%>% select(rxprob)
-
-modP = loess(data = P, formula = rxprob ~depth,span=0.5)
-modQ = loess(data = Q, formula = rxprob ~depth,span=0.5)
-
-P$sRX = predict(modP)
-Q$sRX = predict(modQ)
-
-P$sRX = P$sRX / sum(P$sRX)
-Q$sRX = Q$sRX / sum(Q$sRX)
-
-Pcut = P$sRX[1:min(c(length(P$rxprob),length(Q$rxprob)))]
-Qcut = Q$sRX[1:min(c(length(P$rxprob),length(Q$rxprob)))]
-
-
-
-MinirhizotronR::tail_weighted_wasserstein_distance(Pcut,Qcut, method = "constant", inverse = FALSE)
-tail_weighted_js_divergence(Pcut, Qcut, method = "constant", inverse = FALSE)
-plot(Q$rxprob,type = "l"); points(P$rxprob,col = "red",type = "line")
+# P = root.frame2 %>% filter(Plot == 37)  %>%  mutate(rxprob = root_px / sum(root_px,na.rm = TRUE)) #%>% select(rxprob)
+# Q = root.frame2 %>% filter(Plot == 39)  %>% mutate(rxprob = root_px / sum(root_px,na.rm = TRUE)) #%>% select(rxprob)
+# 
+# modP = loess(data = P, formula = rxprob ~depth,span=0.5)
+# modQ = loess(data = Q, formula = rxprob ~depth,span=0.5)
+# 
+# P$sRX = predict(modP)
+# Q$sRX = predict(modQ)
+# 
+# P$sRX = P$sRX / sum(P$sRX)
+# Q$sRX = Q$sRX / sum(Q$sRX)
+# 
+# Pcut = P$sRX[1:min(c(length(P$rxprob),length(Q$rxprob)))]
+# Qcut = Q$sRX[1:min(c(length(P$rxprob),length(Q$rxprob)))]
+# 
+# 
+# MinirhizotronR::tail_weighted_wasserstein_distance(Pcut,Qcut, method = "constant", inverse = FALSE)
+# tail_weighted_js_divergence(Pcut, Qcut, method = "constant", inverse = FALSE)
+# plot(Q$rxprob,type = "l"); points(P$rxprob,col = "red",type = "line")
 
 ```
 
@@ -255,13 +270,13 @@ plot(Q$rxprob,type = "l"); points(P$rxprob,col = "red",type = "line")
 ### Plot Output
 ```{r plotting}
 # plot root cover
-root.frame2 %>%
-  ggplot(aes(depth,rootcover.percent)) +
-  geom_point()+
-  geom_smooth(span=0.5,se=F,size = 1)+
-  theme_classic()+
-  theme(legend.position  = c(0.8,0.8))+
-  ggtitle("Root Cover Distribution")
+# root.frame2 %>%
+#   ggplot(aes(depth,rootcover.percent)) +
+#   geom_point()+
+#   geom_smooth(span=0.5,se=F,size = 1)+
+#   theme_classic()+
+#   theme(legend.position  = c(0.8,0.8))+
+#   ggtitle("Root Cover Distribution")
 
 ```
 
