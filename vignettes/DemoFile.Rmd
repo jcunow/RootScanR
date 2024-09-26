@@ -13,23 +13,23 @@ vignette: >
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
-  knitr::opts_chunk$set(include = FALSE)
+  knitr::opts_chunk$set(include = TRUE, message = FALSE)
 )
 
 ```
 
 
 ## Load libraries
-```{r install package }
-## Install MinirhizotronR package
-if (!require("devtools")) {
-  install.packages("devtools")
-}
-devtools::install_github("jcunow/MinirhizotronR")
-library(MinirhizotronR)
-
-## other libraries
-library(dplyr);library(ggplot2)
+```{r install package, message=FALSE, warning=FALSE }
+# ## Install MinirhizotronR package
+# if (!require("devtools")) {
+#   install.packages("devtools")
+# }
+# devtools::install_github("jcunow/MinirhizotronR")
+# library(MinirhizotronR)
+# 
+# ## other libraries
+# library(dplyr);library(ggplot2)
 ```
 
 
@@ -74,6 +74,7 @@ dpi = 300
 ## The Loop
 ```{r main loop body}
 
+# bundeled in a function - not strictly necessary
 image.analysis.loop = function(){
   # loop counter
 k=0
@@ -268,7 +269,7 @@ for (i in im.ls) {
 
 
 ### Plot Output
-```{r plotting}
+```{r plotting, fig.cap="Root pixel per area"}
 # plot root cover
 # root.frame2 %>%
 #   ggplot(aes(depth,rootcover.percent)) +
