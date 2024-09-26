@@ -200,11 +200,11 @@ adaptive.Kernelsize.Directionality = function(n = 3,fill.value = NA,normalized.c
 
 #' Root accumulation Curve
 #'
-#' @param data data.frame must include group,depth, and variable columns
+#' @param x data.frame must include group,depth, and variable columns
 #' @param group specify the grouping variable e.g., Plot. Can be multiple groups in a vector.
 #' @param depth specify column name which includes depth values
 #' @param variable accumulating values
-#' @param strdz choose between "counts" return of accumulative amount, "additive" returns the added the accumulative share 0-1, with "relative", all accumulative values sum to 1
+#' @param stdrz choose between "counts" return of accumulative amount, "additive" returns the added the accumulative share 0-1, with "relative", all accumulative values sum to 1
 #' @import dplyr
 #' @return data.frame with one added column "cs" containing the accumulated values
 #' @export

@@ -7,15 +7,15 @@
 root.accumulation(x, group, depth, variable, stdrz = "counts")
 }
 \arguments{
+\item{x}{data.frame must include group,depth, and variable columns}
+
 \item{group}{specify the grouping variable e.g., Plot. Can be multiple groups in a vector.}
 
 \item{depth}{specify column name which includes depth values}
 
 \item{variable}{accumulating values}
 
-\item{data}{data.frame must include group,depth, and variable columns}
-
-\item{strdz}{choose between "counts" return of accumulative amount, "additive" returns the added the accumulative share 0-1, with "relative", all accumulative values sum to 1}
+\item{stdrz}{choose between "counts" return of accumulative amount, "additive" returns the added the accumulative share 0-1, with "relative", all accumulative values sum to 1}
 }
 \value{
 data.frame with one added column "cs" containing the accumulated values

@@ -231,6 +231,8 @@ if(fixed.rotation == TRUE){
 #' @param tape.brightness used for clustering. Tape appears bright e.g., 0.66
 #' @param tape.quantile aligns extra.rows brightness with the tape. The default uses Silver Tape as reference.
 #' @param extra.rows In case no tape is present. Best leave unchanged - some extra.rows are recommended and will be subtracted from the output anyway.
+#' @param inverse inverts high tape quantiles to low quantiles. Useful if no tape detection is present and only void dark px instead.
+#'
 #' @importFrom "stats" "quantile"
 #'
 #' @return data.frame with tape end and soil surface estimation in rows

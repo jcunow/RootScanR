@@ -25,6 +25,12 @@ tail_weighted_wasserstein_distance(
 \item{parameter}{list with lambda -> shape parameter (0 = constant weighting) & x0 -> curve offset (= inflexion point )}
 
 \item{method}{weighting function along index. Available options are: c("constant", "linear, "exponential", "sigmoid", "gompertz")}
+
+\item{baseline.weight}{minimal weight between 0-1}
+
+\item{index}{a positive numeric vector containing probability spacing e.g., depth}
+
+\item{index.spacing}{whether index intervals are equally distant i.e., c(1,2,3,4....n), if "equal" than index is c(1,n)}
 }
 \value{
 wasserstein metric
@@ -40,5 +46,6 @@ Q <- c(0.025,0.05,0.1,0.15, 0.2, 0.3,0.4, 0.5,0.3,0.1)**6  # Distribution Q
 P <- P / sum(P)
 Q <- Q / sum(Q)
 
-tail_weighted_wasserstein_distance(P,Q,inverse=F,method="constant",parameter = list(lambda = 0.2,x0=3))
+tail_weighted_wasserstein_distance(P,Q,
+  inverse=F,method="constant",parameter = list(lambda = 0.2,x0=3))
 }

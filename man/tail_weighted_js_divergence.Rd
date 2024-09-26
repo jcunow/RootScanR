@@ -26,6 +26,8 @@ tail_weighted_js_divergence(
 
 \item{inverse}{changes from right tail to left tail if TRUE}
 
+\item{alignPQ}{if TRUE, index end values will be cut off in case of unequal length of P & Q so that length of P & Q is equal}
+
 \item{index}{a positive numeric vector containing probability spacing e.g., depth}
 
 \item{index.spacing}{whether index intervals are equally distant i.e., c(1,2,3,4....n), if "equal" than index is c(1,n)}

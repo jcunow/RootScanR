@@ -28,6 +28,8 @@ SoilSurfE(
 
 \item{nclasses}{number of clusters to discern tape, roots, background. 3 for rgb images. 2 can be appropriate for segmented 0-1 images.}
 
+\item{inverse}{inverts high tape quantiles to low quantiles. Useful if no tape detection is present and only void dark px instead.}
+
 \item{tape.overlap}{assumes a safety margin on the tape. The soil surface will be shifted by this amount in cm}
 
 \item{tape.brightness}{used for clustering. Tape appears bright e.g., 0.66}

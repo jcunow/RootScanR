@@ -26,6 +26,7 @@
 #' @param parameter list with lambda -> shape parameter (0 = constant weighting) & x0 -> curve offset (= inflexion point? )
 #' @param method weighting function along index. Available options are: c("constant", "asymptotic", "linear, "exponential", "sigmoid", "gompertz","step")
 #' @param baseline.weight  minimal weight between 0-1
+#'
 #' @keywords internal
 #' @export
 #' @return weights between 0-1 along the index
@@ -158,6 +159,7 @@ tail_weighted_kl_divergence <- function(P, Q, index= 1:min(c(length(Q),length(P)
 #' @param index.spacing whether index intervals are equally distant i.e., c(1,2,3,4....n), if "equal" than index is c(1,n)
 #' @param parameter list with lambda -> shape parameter (0 = constant weighting) & x0 -> curve offset (= inflexion point )
 #' @param method weighting function along index. Available options are: c("constant", "asymptotic", "linear, "exponential", "sigmoid", "gompertz","step")
+#' @param alignPQ if TRUE, index end values will be cut off in case of unequal length of P & Q so that length of P & Q is equal
 #'
 #' @return Jensen-Shannon Divergence - symmetric version of KL
 #' @export
@@ -203,6 +205,9 @@ tail_weighted_js_divergence <- function(P, Q,  parameter = list(lambda = 0.2,x0=
 #' @param inverse changes from right tail to left tail if TRUE
 #' @param parameter list with lambda -> shape parameter (0 = constant weighting) & x0 -> curve offset (= inflexion point )
 #' @param method weighting function along index. Available options are: c("constant", "linear, "exponential", "sigmoid", "gompertz")
+#' @param index a positive numeric vector containing probability spacing e.g., depth
+#' @param index.spacing whether index intervals are equally distant i.e., c(1,2,3,4....n), if "equal" than index is c(1,n)
+#' @param baseline.weight  minimal weight between 0-1
 #'
 #' @return wasserstein metric
 #' @export
@@ -215,8 +220,11 @@ tail_weighted_js_divergence <- function(P, Q,  parameter = list(lambda = 0.2,x0=
 #' P <- P / sum(P)
 #' Q <- Q / sum(Q)
 #'
-#' tail_weighted_wasserstein_distance(P,Q,inverse=F,method="constant",parameter = list(lambda = 0.2,x0=3))
-tail_weighted_wasserstein_distance = function(Q,P,inverse=F,parameter = list(lambda = 0.2,x0=10),method= "step",baseline.weight = 0,index = 1:min(c(length(Q),length(P))), index.spacing = "equal"){
+#' tail_weighted_wasserstein_distance(P,Q,
+#'   inverse=F,method="constant",parameter = list(lambda = 0.2,x0=3))
+tail_weighted_wasserstein_distance = function(Q,P,inverse=F,parameter = list(lambda = 0.2,x0=10),
+                                              method= "step",baseline.weight = 0,
+                                              index = 1:min(c(length(Q),length(P))), index.spacing = "equal"){
   # tail weighting
   weights= tail_weight_function(index = index, parameter, index.spacing = index.spacing, method = method,baseline.weight, inverse =FALSE)
 
