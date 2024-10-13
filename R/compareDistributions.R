@@ -236,3 +236,41 @@ tail_weighted_wasserstein_distance = function(Q,P,inverse=F,parameter = list(lam
 }
 
 
+
+#### root index
+#' Root Weight Depth Index
+#'
+#' @param w weight, typically a vector containing depths
+#' @param roots root cover
+#'
+#' @return a value between 0-1
+#' @export
+#'
+#' @examples
+#' w = seq(5,25,5)
+#' roots = c(0,10,7,3,1)
+#' RWDI(w,roots)
+RWDI = function(w,roots){
+  rwdi = sum((w+0.000000000000001)*roots)/sum(roots)
+  return(rwdi)
+}
+
+
+#' Root Penetration Index
+#'
+#' @param roots root cover
+#' @param w weight, typically a vector containing depths
+#'
+#' @return a value between 0-1
+#' @export
+#'
+#' @examples
+#' w = seq(5,25,5)
+#' roots = c(0,10,7,3,1)
+#' RPI(w,roots)
+RPI = function(roots,w){
+
+  rpi = 1-2*(sum(roots/sum(roots) * ((w+0.0000000000000000001)/(sum(w)))))
+  return(rpi)
+}
+
