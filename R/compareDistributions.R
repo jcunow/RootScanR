@@ -110,20 +110,34 @@ tail_weight_function <- function(index = NULL, parameter = list(lambda = 0.2,x0=
 #' @param parameter list with lambda -> shape parameter (0 = constant weighting) & x0 -> curve offset (= inflexion point )
 #' @param method weighting function along index. Available options are: c("constant", "asymptotic", "linear, "exponential", "sigmoid", "gompertz","step")
 #' @param alignPQ if TRUE, index end values will be cut off in case of unequal length of P & Q so that length of P & Q is equal
+#' @param cut if FALSE, 0 will be added to the shorter vector. If TRUE, the longer vector will be shortened at the end.
+#'
+#' @details
+#' Kullback-Leibler Divergence
+#'
 #'
 #' @return KL divergence, not symmetrical - changing the input order will change the result
 #' @export
 #'
-tail_weighted_kl_divergence <- function(P, Q, index= 1:min(c(length(Q),length(P))),index.spacing = "equal",  parameter = list(lambda = 0.2,x0=30),inverse=FALSE,method = "step", alignPQ = TRUE) {
+tail_weighted_kl_divergence <- function(P, Q, index= 1:min(c(length(Q),length(P))),index.spacing = "equal",  parameter = list(lambda = 0.2,x0=30),cut = FALSE,inverse=FALSE,method = "constant", alignPQ = TRUE) {
   # Ensure that the distributions are the same length
   if (length(P) != length(Q) & alignPQ != TRUE) {
     stop("Distributions P and Q must be of the same length.")
   }
 
   n = min(c(length(Q),length(P)))
+  m = max(c(length(Q),length(P)))
   if(alignPQ == TRUE){
-    P = P[1:n]
-    Q = Q[1:n]
+    if(cut == TRUE){
+      P = P[1:n]
+      Q = Q[1:n]
+    }
+    if(cut == FALSE){
+      vl1 = abs(length(P) - m)
+      vl2 = abs(length(Q) - m)
+      P = c(P[1:m-vl1],rep(0,vl1))
+      Q = c(Q[1:m-vl2],rep(0,vl2))
+    }
   }
 
   weight <- tail_weight_function(index = index, index.spacing = index.spacing,  parameter =  parameter,method = method, inverse=inverse)
@@ -136,7 +150,7 @@ tail_weighted_kl_divergence <- function(P, Q, index= 1:min(c(length(Q),length(P)
     p_x <- P[i]
     q_x <- Q[i]
     # Avoid division by zero and log(0)
-    if (p_x == 0 || q_x == 0) {
+    if (p_x <= 0 || q_x <= 0) {
       return(0)
     }
 
