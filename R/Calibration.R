@@ -159,8 +159,8 @@ RotShiftDet = function(img1,img2,cor.type = "phase"){
 ### Cuts images along rotational center
 #' Rotation Censor
 #'
-#' @param img The image which should be censored
-#' @param center.offset Rotational shift in rows. Can be retrieved from 'RotShiftDet()', reference image is 0 offset
+#' @param img The image that should be edge censored
+#' @param center.offset Rotational shift in rows. Can be retrieved from 'RotShiftDet()' - reference image is 0 offset; or 'RotationE()' if tape is present
 #' @param cut.buffer ratio of image dimensions that will be cut if fixed.rotation=FALSE
 #' @param fixed.rotation specifies whether censoring is applied to fixed output dimensions (=TRUE) or proportional to input dimensions (=FALSE)
 #' @param fixed.width if fixed.rotation is TRUE, fixed.width specifies the final amount of rows centered at center.offset
