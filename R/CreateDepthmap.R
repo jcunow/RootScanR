@@ -7,8 +7,8 @@
 #' @param tube.thicc Diameter of minirhizotron tubes
 #' @param tilt Minirhiztron tube insertion angle (typically 30-45 degrees)
 #' @param dpi Image resolution
-#' @param start.soil indicates soil boundary 0cm. Can be retrieved from 'SoilSurfE()' but in-situ calibration is recommended
-#' @param center.offset rotational center. Set 0 if top facing tube side is perfectly in the middle. Set 1 if upfacing tube is located at the edges
+#' @param start.soil indicates soil boundary 0cm. Can be retrieved from 'SoilSurfE()' but in-situ calibration is recommended. Takes 'cm' as unit.
+#' @param center.offset rotational center. Set 0 if top facing tube side is perfectly in the middle. Set 1 if up facing tube is located at the edges
 #' @param sinoid set sinoid = TRUE if true depth should be used. Otherwise, tube diameter is ignored.
 #'
 #' @return raster image
@@ -69,7 +69,7 @@ create.depthmap = function(im, mask = NULL, sinoid = TRUE,
     df[ii,] = df11+(ii*px.to.cm.h * tilt.factor) # adds progressive depth to each row
   }
   # add soil surface offset estimated from tape cover
-  df.depthmap = df - (start.soil* px.to.cm.h)
+  df.depthmap = df - (start.soil)
 
   # masking tape
   masked.depthmap= terra::rast(df.depthmap)
