@@ -11,6 +11,7 @@ tail_weighted_js_divergence(
   method = "constant",
   inverse = FALSE,
   alignPQ = TRUE,
+  cut = FALSE,
   index = 1:min(c(length(Q), length(P))),
   index.spacing = "equal"
 )
@@ -27,6 +28,8 @@ tail_weighted_js_divergence(
 \item{inverse}{changes from right tail to left tail if TRUE}
 
 \item{alignPQ}{if TRUE, index end values will be cut off in case of unequal length of P & Q so that length of P & Q is equal}
+
+\item{cut}{if FALSE, 0 will be added to the shorter vector. If TRUE, the longer vector will be shortened at the end.}
 
 \item{index}{a positive numeric vector containing probability spacing e.g., depth}
 

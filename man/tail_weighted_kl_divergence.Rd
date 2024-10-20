@@ -10,8 +10,9 @@ tail_weighted_kl_divergence(
   index = 1:min(c(length(Q), length(P))),
   index.spacing = "equal",
   parameter = list(lambda = 0.2, x0 = 30),
+  cut = FALSE,
   inverse = FALSE,
-  method = "step",
+  method = "constant",
   alignPQ = TRUE
 )
 }
@@ -26,6 +27,8 @@ tail_weighted_kl_divergence(
 
 \item{parameter}{list with lambda -> shape parameter (0 = constant weighting) & x0 -> curve offset (= inflexion point )}
 
+\item{cut}{if FALSE, 0 will be added to the shorter vector. If TRUE, the longer vector will be shortened at the end.}
+
 \item{inverse}{changes from right tail to left tail if TRUE}
 
 \item{method}{weighting function along index. Available options are: c("constant", "asymptotic", "linear, "exponential", "sigmoid", "gompertz","step")}
@@ -37,4 +40,7 @@ KL divergence, not symmetrical - changing the input order will change the result
 }
 \description{
 Calculate tail-weighted KL divergence for discrete distributions
+}
+\details{
+Kullback-Leibler Divergence
 }

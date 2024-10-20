@@ -13,9 +13,9 @@ RotCensor(
 )
 }
 \arguments{
-\item{img}{The image which should be censored}
+\item{img}{The image that should be edge censored}
 
-\item{center.offset}{Rotational shift in rows. Can be retrieved from 'RotShiftDet()', reference image is 0 offset}
+\item{center.offset}{Rotational shift in rows. Can be retrieved from 'RotShiftDet()' - reference image is 0 offset; or 'RotationE()' if tape is present}
 
 \item{cut.buffer}{ratio of image dimensions that will be cut if fixed.rotation=FALSE}
 
