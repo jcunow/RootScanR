@@ -125,6 +125,7 @@ tail_weighted_kl_divergence <- function(P, Q, index= 1:min(c(length(Q),length(P)
     stop("Distributions P and Q must be of the same length.")
   }
 
+  ### ensure same vector length
   n = min(c(length(Q),length(P)))
   m = max(c(length(Q),length(P)))
   if(alignPQ == TRUE){
@@ -135,8 +136,8 @@ tail_weighted_kl_divergence <- function(P, Q, index= 1:min(c(length(Q),length(P)
     if(cut == FALSE){
       vl1 = abs(length(P) - m)
       vl2 = abs(length(Q) - m)
-      P = c(P[1:m-vl1],rep(0,vl1))
-      Q = c(Q[1:m-vl2],rep(0,vl2))
+      P = c(P[1:(m-vl1)],rep(0,vl1))
+      Q = c(Q[1:(m-vl2)],rep(0,vl2))
     }
   }
 
@@ -174,6 +175,7 @@ tail_weighted_kl_divergence <- function(P, Q, index= 1:min(c(length(Q),length(P)
 #' @param parameter list with lambda -> shape parameter (0 = constant weighting) & x0 -> curve offset (= inflexion point )
 #' @param method weighting function along index. Available options are: c("constant", "asymptotic", "linear, "exponential", "sigmoid", "gompertz","step")
 #' @param alignPQ if TRUE, index end values will be cut off in case of unequal length of P & Q so that length of P & Q is equal
+#' @param cut if FALSE, 0 will be added to the shorter vector. If TRUE, the longer vector will be shortened at the end.
 #'
 #' @return Jensen-Shannon Divergence - symmetric version of KL
 #' @export
@@ -187,12 +189,29 @@ tail_weighted_kl_divergence <- function(P, Q, index= 1:min(c(length(Q),length(P)
 #' Q <- Q / sum(Q)
 #'
 #' tail_weighted_js_divergence(P,Q,parameter = list(lambda = 0.2,x0=30))
-tail_weighted_js_divergence <- function(P, Q,  parameter = list(lambda = 0.2,x0=30),method="constant",inverse=FALSE, alignPQ = TRUE,index= 1:min(c(length(Q),length(P))),index.spacing = "equal") {
+tail_weighted_js_divergence <- function(P, Q,  parameter = list(lambda = 0.2,x0=30),method="constant",inverse=FALSE, alignPQ = TRUE,cut = FALSE,index= 1:min(c(length(Q),length(P))),index.spacing = "equal") {
 
   # Ensure that the distributions are the same length
-  if (length(P) != length(Q)) {
+  if (length(P) != length(Q) & alignPQ != TRUE) {
     stop("Distributions P and Q must be of the same length.")
   }
+
+  ### ensure same vector length
+  n = min(c(length(Q),length(P)))
+  m = max(c(length(Q),length(P)))
+  if(alignPQ == TRUE){
+    if(cut == TRUE){
+      P = P[1:n]
+      Q = Q[1:n]
+    }
+    if(cut == FALSE){
+      vl1 = abs(length(P) - m)
+      vl2 = abs(length(Q) - m)
+      P = c(P[1:(m-vl1)],rep(0,vl1))
+      Q = c(Q[1:(m-vl2)],rep(0,vl2))
+    }
+  }
+
   # Compute the average distribution
   M <- (P + Q) / 2
 
