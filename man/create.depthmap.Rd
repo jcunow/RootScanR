@@ -28,9 +28,9 @@ create.depthmap(
 
 \item{dpi}{Image resolution}
 
-\item{start.soil}{indicates soil boundary 0cm. Can be retrieved from 'SoilSurfE()' but in-situ calibration is recommended}
+\item{start.soil}{indicates soil boundary 0cm. Can be retrieved from 'SoilSurfE()' but in-situ calibration is recommended. Takes 'cm' as unit.}
 
-\item{center.offset}{rotational center. Set 0 if top facing tube side is perfectly in the middle. Set 1 if upfacing tube is located at the edges}
+\item{center.offset}{rotational center. Set 0 if top facing tube side is perfectly in the middle. Set 1 if up facing tube is located at the edges}
 }
 \value{
 raster image
