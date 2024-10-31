@@ -36,8 +36,7 @@ deep.drive = function(DepthMap=NULL,AngleMap=NULL,RootMap = NULL){
     dem = terra::t(terra::flip(dem))
     AngleMap = terra::terrain(dem,v = "flowdir")
     AngleMap = terra::subst(AngleMap, from = c(0, 1, 2, 4, 8, 16, 32, 64, 128), to = c( NA, 90,135,180,225,270,315,0,45))
-    #AngleMap = terra::flip(terra::t(AngleMap))
-    #AngleMap = terra::t(terra::flip(terra::t(terra::flip(terra::t(terra::flip(AngleMap))))))
+
   }
 
   # align orientation with AngleMap
@@ -53,33 +52,33 @@ deep.drive = function(DepthMap=NULL,AngleMap=NULL,RootMap = NULL){
 
   a3 = AngleMap == 225 *1
   g<-gg
-  ext(g) <- ext(a3)
+  terra::ext(g) <- terra::ext(a3)
   g[is.na(a3)]<-NA
-  s3 = zonal(a3,g,"sum")
+  s3 = terra::zonal(a3,g,"sum")
 
   a1 = AngleMap == 270 *1
   g<-gg
-  ext(g) <- ext(a1)
+  terra::ext(g) <- terra::ext(a1)
   g[is.na(a1)]<-NA
-  s1 = zonal(a1,g,"sum")
+  s1 = terra::zonal(a1,g,"sum")
 
   a2 = AngleMap == 90 *1
   g<-gg
-  ext(g) <- ext(a2)
+  terra::ext(g) <- terra::ext(a2)
   g[is.na(a2)]<-NA
-  s2 = zonal(a2,g,"sum")
+  s2 = terra::zonal(a2,g,"sum")
 
   a4 = (AngleMap == 180)  *1
   g<-gg
-  ext(g) <- ext(a4)
+  terra::ext(g) <- terra::ext(a4)
   g[is.na(a4)]<-NA
-  s4 = zonal(a4,g,"sum")
+  s4 = terra::zonal(a4,g,"sum")
 
   a5 = (AngleMap == 135)  *1
   g<-gg
-  ext(g) <- ext(a5)
+  terra::ext(g) <- terra::ext(a5)
   g[is.na(a5)]<-NA
-  s5 = zonal(a5,g,"sum")
+  s5 = terra::zonal(a5,g,"sum")
 
 
   t.all = s1 + s2 + s3 + s4 +s5
