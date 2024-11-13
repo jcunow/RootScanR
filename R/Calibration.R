@@ -81,6 +81,8 @@ RotationE = function(img,tape.brightness = 0.66,extra.rows = 100,search.area = 0
 #' @param img1 Reference Image with 3 rgb channel
 #' @param img2 Subsequent Image with 3 rgb channel
 #' @param cor.type Two correlation types available: "ccf" cross correlation, and "phase" phase correlation in frequency domain. See ??imagefx
+#' @param fixed.width if alignment is necessary, see 'RotCensor()'
+#' @param fixed.rotation.pixel if alignment is necessary
 #'
 #' @return numeric value corresponding to rotation in rows. Ensure correct image rotation i.e., rows == rotation
 #' @export
@@ -89,7 +91,7 @@ RotationE = function(img,tape.brightness = 0.66,extra.rows = 100,search.area = 0
 #' img1 = seg_Oulanka2023_Session01_T067
 #' img2 = seg_Oulanka2023_Session03_T067
 #' y.lag = RotShiftDet(img1,img2,"phase")
-RotShiftDet = function(img1,img2,cor.type = "phase"){
+RotShiftDet = function(img1,img2,cor.type = "phase",fixed.depth.pixel  = c(1000,4000),fixed.width  =1500){
   ## import image
   # check image type for image 1
   if(is.character(img1)){
@@ -127,20 +129,31 @@ RotShiftDet = function(img1,img2,cor.type = "phase"){
   dif.dim1 = nrow(img11) - nrow(img22)
   dif.dim2 = ncol(img11) - ncol(img22)
   if(dif.dim1 != 0 | dif.dim2 != 0 ){
-    print(paste0("Subsequent images differ in size. If the difference is large, reconsider if this operation is valid! Difference is ",dif.dim1," px & ",dif.dim1," px."))
+    print(paste0("Subsequent images differ in size. If the difference is large, reconsider if this operation is valid! Difference is ",dif.dim1," px & ",dif.dim2," px."))
     #img22=resize(img22,output.dim = dim(img11)[1:2],w=dim(img11)[1],h= dim(img11)[2]) # Used to be EBImage function
-    img22=OpenImageR::resizeImage(img22,width=dim(img11)[1],height= dim(img11)[2], method = "bilinear")
+
+    ## fix rotation dimension
+    rot.dim = round((nrow(img11)/2)-(fixed.width/2)) : round((nrow(img11)/2)+(fixed.width/2)-1)
+    img11 = img11[rot.dim,  ]    #RotCensor(img11, fixed.width  = fixed.width)
+    img22 = img22[rot.dim,  ]
+    ## fix length dimension
+    img11 = img11[,fixed.depth.pixel]
+    img22 = img22[,fixed.depth.pixel]
+
+    #img22=OpenImageR::resizeImage(img22,width=dim(img11)[1],height= dim(img11)[2], method = "bilinear")
   }
 
+  img11 = terra::as.array(terra::rast(img11))
+  img22 = terra::as.array(terra::rast(img22))
 
   ########### shift detection part on grayscale images  ###
   if(cor.type == "phase"){
     ## phase correlation which should be faster than cross correlation
-    a=imagefx::pcorr3d(img11,img22)
+    a=imagefx::pcorr3d(img11[,,1],img22[,,1])
   }else{
     if(cor.type == "ccf"){
       ## phase correlation which should be faster than cross correlation
-      a=imagefx::xcorr3d(img11,img22)
+      a=imagefx::xcorr3d(img11[,,1],img22[,,1])
     }
   }
   y.lag = c(a$max.shifts[1])# ["row"]
@@ -151,7 +164,7 @@ RotShiftDet = function(img1,img2,cor.type = "phase"){
     print(paste0("Careful, also depth shift present!\n About ",x.lag," pixel." ))
   }
 
-  return(y.lag)
+  return(c(x.lag,y.lag))
 }
 
 

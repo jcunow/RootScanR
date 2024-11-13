@@ -4,7 +4,13 @@
 \alias{RotShiftDet}
 \title{Rotation Correlation}
 \usage{
-RotShiftDet(img1, img2, cor.type = "phase")
+RotShiftDet(
+  img1,
+  img2,
+  cor.type = "phase",
+  fixed.depth.pixel = 4000,
+  fixed.width = 1500
+)
 }
 \arguments{
 \item{img1}{Reference Image with 3 rgb channel}
@@ -12,6 +18,10 @@ RotShiftDet(img1, img2, cor.type = "phase")
 \item{img2}{Subsequent Image with 3 rgb channel}
 
 \item{cor.type}{Two correlation types available: "ccf" cross correlation, and "phase" phase correlation in frequency domain. See ??imagefx}
+
+\item{fixed.width}{if alignment is necessary, see 'RotCensor()'}
+
+\item{fixed.rotation.pixel}{if alignment is necessary}
 }
 \value{
 numeric value corresponding to rotation in rows. Ensure correct image rotation i.e., rows == rotation
