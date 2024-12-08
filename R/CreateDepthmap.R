@@ -53,6 +53,7 @@ create.depthmap = function(im, mask = NULL, sinoid = TRUE,
     # creates a cosine shaped curved shifted by the amount of rotation offset
     #df11 = (cos(df1+(pi*(1-center.offset))))*(tube.thicc.tilted/2)+ (tube.thicc.tilted/2) # center.offset 1 = no offset
     df00 = (cos(df1+(pi*(center.offset))))*(tube.thicc.tilted/2)+ (tube.thicc.tilted/2) # center.offset = 0 no offset
+    # trim to actual rotation of the scanner (often less than 360 degree)
     df11 = df00[1:target.col]
   }else{
 #### flat df11
