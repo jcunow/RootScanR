@@ -72,7 +72,7 @@ Root.px = px.sum(root.zone)
 
 2. Parameter from skeletonized image cut
 ````
-root.zone.skl = skeletonize(root.zone)
+root.zone.skl = skeletonize_image(root.zone)
 RL = RootLength(root.zone.skeleton)
 ````
 
