@@ -2,7 +2,7 @@
 % Please edit documentation in R/Zonestats.R
 \name{texture}
 \alias{texture}
-\title{Texture corresponds to glmc::glmc()}
+\title{Enhanced texture calculation}
 \usage{
 texture(
   img.color,
@@ -12,19 +12,19 @@ texture(
 )
 }
 \arguments{
-\item{img.color}{image with three color channels. Will be converted in gray scale. raster format required.}
+\item{img.color}{Three-band raster or path to image}
 
-\item{grays}{number of gray shades. Documentation is lacking, see: ?glmc::glmc()}
+\item{grays}{Number of gray levels}
 
-\item{window}{convolution window size e.g., c(3,3)}
+\item{window}{Window size for GLCM}
 
-\item{metrics}{texture metrics based on illumination differences. see:: ?glmc::glmc() for available methods}
+\item{metrics}{Texture metrics to calculate}
 }
 \value{
-raster with each layer correspond to on metric
+Raster with texture metrics
 }
 \description{
-Texture corresponds to glmc::glmc()
+Enhanced texture calculation
 }
 \examples{
 data(rgb_Oulanka2023_Session03_T067)

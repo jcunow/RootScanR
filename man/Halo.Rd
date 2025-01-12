@@ -2,31 +2,27 @@
 % Please edit documentation in R/CreateZoning.R
 \name{Halo}
 \alias{Halo}
-\title{Halo creates a buffer around pixel bigger than 0}
+\title{Create a buffer (halo) around non-zero pixels}
 \usage{
 Halo(im, width = 2, halo.only = TRUE, kernel = "circle")
 }
 \arguments{
-\item{im}{segmented raster}
+\item{im}{SpatRaster/matrix/array - segmented image}
 
-\item{width}{buffer around roots in px, the rhizosphere extent.
-Exudation diffusion distance is typically 2mm (1-12mm) (Finzi et al. 2015, https://doi.org/10.1111/gcb.12816), but higher values have been suggested.
-At 300 dpi, 1mm = 11.8px}
+\item{width}{numeric - buffer width in pixels (default: 2)}
 
-\item{halo.only}{set TRUE if only the buffer around roots should be returned (the rhizosphere only)}
+\item{halo.only}{logical - if TRUE, returns only the buffer zone (default: TRUE)}
 
-\item{kernel}{the thickening shape. Available options are: "circle" & "diamond"}
+\item{kernel}{character - shape of the thickening kernel: "circle" or "diamond"}
 }
 \value{
-SpatRaster
+SpatRast - buffer zone around non-zero pixels
 }
 \description{
-Halo creates a buffer around pixel bigger than 0
+Create a buffer (halo) around non-zero pixels
 }
 \examples{
-library(terra)
-
-data(seg_Oulanka2023_Session01_T067)
-img = terra::rast(seg_Oulanka2023_Session01_T067)
-Halo(im = img, width = 2, halo.only = TRUE)
+data(skl_Oulanka2023_Session03_T067)
+im <- terra::rast(skl_Oulanka2023_Session03_T067)
+Halo(im = im)
 }

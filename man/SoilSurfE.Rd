@@ -2,7 +2,7 @@
 % Please edit documentation in R/Calibration.R
 \name{SoilSurfE}
 \alias{SoilSurfE}
-\title{Estimate the position of the soil surface by tape presence}
+\title{Estimate soil surface position using tape markers}
 \usage{
 SoilSurfE(
   img,
@@ -18,31 +18,31 @@ SoilSurfE(
 )
 }
 \arguments{
-\item{img}{raster,filename, or array input}
+\item{img}{Input image (raster, filename, or array)}
 
-\item{search.area}{ratio of image which is used to look for tape cover. Speeds up computation.}
+\item{search.area}{Proportion of image to analyze}
 
-\item{tape.tresh}{ratio of how much of the tube rotation needs to covered in tape}
+\item{tape.tresh}{Minimum tape coverage ratio}
 
-\item{dpi}{image resolution}
+\item{dpi}{Image resolution}
 
-\item{nclasses}{number of clusters to discern tape, roots, background. 3 for rgb images. 2 can be appropriate for segmented 0-1 images.}
+\item{nclasses}{Number of clustering classes}
 
-\item{inverse}{inverts high tape quantiles to low quantiles. Useful if no tape detection is present and only void dark px instead.}
+\item{inverse}{Invert detection for dark markers}
 
-\item{tape.overlap}{assumes a safety margin on the tape. The soil surface will be shifted by this amount in cm}
+\item{tape.overlap}{Safety margin for tape (cm)}
 
-\item{tape.brightness}{used for clustering. Tape appears bright e.g., 0.66}
+\item{tape.brightness}{Brightness threshold for tape}
 
-\item{extra.rows}{In case no tape is present. Best leave unchanged - some extra.rows are recommended and will be subtracted from the output anyway.}
+\item{extra.rows}{Additional analysis rows}
 
-\item{tape.quantile}{aligns extra.rows brightness with the tape. The default uses Silver Tape as reference.}
+\item{tape.quantile}{Brightness alignment quantile}
 }
 \value{
-data.frame with tape end and soil surface estimation in rows
+data.frame with soil surface and tape end positions
 }
 \description{
-Estimate the position of the soil surface by tape presence
+Detects the soil surface by analyzing tape coverage patterns in the image.
 }
 \examples{
 img = seg_Oulanka2023_Session01_T067

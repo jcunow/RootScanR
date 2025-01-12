@@ -16,27 +16,29 @@ create.depthmap(
 )
 }
 \arguments{
-\item{im}{input image}
+\item{im}{Input image (accepts terra SpatRaster, matrix, array, or file path). For multi-band
+images, specify band_index parameter}
 
-\item{mask}{indicating which pixels are foreign objects like tape. The mask will be: mask = im[[1]] - im[[2]] if 'RootDetector' format is used}
+\item{mask}{Raster mask indicating foreign objects (1 = mask, 0 or NA = keep)}
 
-\item{sinoid}{set sinoid = TRUE if true depth should be used. Otherwise, tube diameter is ignored.}
+\item{sinoid}{Logical; if TRUE, accounts for tube curvature in depth calculation}
 
-\item{tube.thicc}{Diameter of minirhizotron tubes}
+\item{tube.thicc}{Numeric; diameter of minirhizotron tube in cm}
 
-\item{tilt}{Minirhiztron tube insertion angle (typically 30-45 degrees)}
+\item{tilt}{Numeric; minirhizotron tube insertion angle in degrees (typically 30-45)}
 
-\item{dpi}{Image resolution}
+\item{dpi}{Numeric; image resolution in dots per inch}
 
-\item{start.soil}{indicates soil boundary 0cm. Can be retrieved from 'SoilSurfE()' but in-situ calibration is recommended. Takes 'cm' as unit.}
+\item{start.soil}{Numeric; soil surface boundary in cm (0 = surface)}
 
-\item{center.offset}{rotational center. Set 0 if top facing tube side is perfectly in the middle. Set 1 if up facing tube is located at the edges}
+\item{center.offset}{Numeric; rotational center offset (0 = centered, 1 = edge)}
 }
 \value{
-raster image
+terra raster object containing the depth map
 }
 \description{
-Create A Phase-Shifted, Tilt-Amplitude Sine Depth Map
+This function generates a depth map for minirhizotron images, accounting for tube geometry
+and insertion angle. Supports parallel processing and efficient memory management for large images.
 }
 \examples{
 data(seg_Oulanka2023_Session01_T067)

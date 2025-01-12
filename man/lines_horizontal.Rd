@@ -3,9 +3,14 @@
 \docType{data}
 \name{lines_horizontal}
 \alias{lines_horizontal}
-\title{Example Image with circa horizontal lines}
+\title{Example Image with Horizontal Lines}
 \format{
-a RasterBrick with 184 columns x 90 rows x 4 layer
+A RasterBrick object with dimensions:
+  \itemize{
+    \item 184 columns (width)
+    \item 90 rows (height)
+    \item 4 layers (channels)
+  }
 }
 \source{
 Images by J.Cunow
@@ -14,7 +19,18 @@ Images by J.Cunow
 data(lines_horizontal)
 }
 \description{
-Use this dataset to test directionality
+Test dataset containing an image with approximately horizontal lines for
+directionality analysis.
+}
+\details{
+The image consists of multiple horizontal lines suitable for testing
+directionality detection algorithms.
+}
+\examples{
+\donttest{
+  data(lines_horizontal)
+  plot(lines_horizontal)
+}
 }
 \author{
 Johannes Cunow \email{johannes.cunow@gmail.com}

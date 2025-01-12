@@ -3,9 +3,14 @@
 \docType{data}
 \name{lines_diagonal_topleft}
 \alias{lines_diagonal_topleft}
-\title{Example Image with circa left to right diagonal lines}
+\title{Example Image with Diagonal Lines (Top-Left to Bottom-Right)}
 \format{
-a RasterBrick with 194 columns x 100 rows  x 4 layer
+A RasterBrick object with dimensions:
+  \itemize{
+    \item 194 columns (width)
+    \item 100 rows (height)
+    \item 4 layers (channels)
+  }
 }
 \source{
 Images by J.Cunow
@@ -14,7 +19,18 @@ Images by J.Cunow
 data(lines_diagonal_topleft)
 }
 \description{
-Use this dataset to test directionality
+Test dataset containing an image with diagonal lines running from
+top-left to bottom-right for directionality analysis.
+}
+\details{
+The image consists of multiple diagonal lines suitable for testing
+directionality detection algorithms.
+}
+\examples{
+\donttest{
+  data(lines_diagonal_topleft)
+  plot(lines_diagonal_topleft)
+}
 }
 \author{
 Johannes Cunow \email{johannes.cunow@gmail.com}

@@ -2,35 +2,40 @@
 % Please edit documentation in R/Turnover.R
 \name{Turnover.TC}
 \alias{Turnover.TC}
-\title{Global root production and root turnover from temporal comparison}
+\title{Calculate global root production and root turnover from temporal comparison}
 \usage{
 Turnover.TC(im.t1, im.t2, method = "kimura", unit = "cm", dpi = 300)
 }
 \arguments{
-\item{im.t1}{brick raster timepoint 1}
+\item{im.t1}{SpatRaster object for timepoint 1}
 
-\item{im.t2}{brick raster timepoint 2}
+\item{im.t2}{SpatRaster object for timepoint 2}
 
-\item{method}{choose between "kimura" & "rootpx". Adjust the input image accordingly}
+\item{method}{Analysis method: "kimura" or "rootpx"}
 
-\item{unit}{unit of root length. only applies if method = "kimura"}
+\item{unit}{Unit of root length measurement (only for method = "kimura"). Default: "cm"}
 
-\item{dpi}{image resolution. only applies if method = "kimura"}
+\item{dpi}{Image resolution (only for method = "kimura"). Default: 300}
 }
 \value{
-standing roots at the start, standing roots at the end, root production, % of new roots compared to starting conditions, % of new roots at the second timepoint
+data.frame containing:
+  - standingroot_t1: Standing roots at first timepoint
+  - standingroot_t2: Standing roots at second timepoint
+  - production: Root production between timepoints
+  - newroot%per_t1: Percentage of new roots compared to starting conditions
+  - newroot%per_t2: Percentage of new roots at second timepoint
 }
 \description{
-Global root production and root turnover from temporal comparison
-}
-\details{
-Chosing kimura as method will return root length with default settings from RootLength()
+Calculate global root production and root turnover from temporal comparison
 }
 \examples{
-
-data(skl_Oulanka2023_Session01_T067)
-data(skl_Oulanka2023_Session03_T067)
-time1 = terra::rast(skl_Oulanka2023_Session01_T067)
-time2 = terra::rast(skl_Oulanka2023_Session03_T067)
-turnover.values = Turnover.TC(im.t1 = time1, im.t2 = time2, method= "kimura")
+  data(skl_Oulanka2023_Session01_T067)
+  data(skl_Oulanka2023_Session03_T067)
+  time1 <- terra::rast(skl_Oulanka2023_Session01_T067)
+  time2 <- terra::rast(skl_Oulanka2023_Session03_T067)
+  turnover.values <- Turnover.TC(
+    im.t1 = time1,
+    im.t2 = time2,
+    method = "kimura",
+    verbose = TRUE)
 }

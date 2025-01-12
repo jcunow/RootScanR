@@ -3,9 +3,14 @@
 \docType{data}
 \name{rgb_Oulanka2023_Session03_T067}
 \alias{rgb_Oulanka2023_Session03_T067}
-\title{An original Minirhizotron Root Scan from Timepoint 2}
+\title{Original Minirhizotron Root Scan - Session 3, Tube 67}
 \format{
-a RasterBrick with 4900 columns x 1161 rows x 3 layer
+A RasterBrick object with dimensions:
+  \itemize{
+    \item 4900 columns (width)
+    \item 1161 rows (height)
+    \item 3 layers (RGB channels)
+  }
 }
 \source{
 Images by J.Cunow
@@ -14,9 +19,22 @@ Images by J.Cunow
 data(rgb_Oulanka2023_Session03_T067)
 }
 \description{
-This is a blended image of multiple scans stitched together.
-The scan originates from a sedge fen in northern Finland in late October.
-Columns correspond to tube length and rows to tube rotation
+Original RGB root scan image from a sedge fen in northern Finland (October 2023).
+This image represents a composite of multiple stitched scans.
+}
+\details{
+The image represents a complete tube scan where:
+\itemize{
+  \item Columns correspond to tube length
+  \item Rows correspond to tube rotation
+  \item RGB channels represent true color information
+}
+}
+\examples{
+\donttest{
+  data(rgb_Oulanka2023_Session03_T067)
+  plotRGB(rgb_Oulanka2023_Session03_T067)
+}
 }
 \author{
 Johannes Cunow \email{johannes.cunow@gmail.com}

@@ -3,9 +3,14 @@
 \docType{data}
 \name{TurnoverDPC_data}
 \alias{TurnoverDPC_data}
-\title{Turnover Estimation of Individual Roots from "RootDetector"}
+\title{Root Turnover Analysis Data}
 \format{
-a RasterBrick with 2550 columns x 2273 rows x 3 layer
+A RasterBrick object with dimensions:
+  \itemize{
+    \item 2550 columns (width)
+    \item 2273 rows (height)
+    \item 3 layers (decay, growth, persistent)
+  }
 }
 \source{
 Images by J.Cunow
@@ -14,14 +19,42 @@ Images by J.Cunow
 data(TurnoverDPC_data)
 }
 \description{
-The image is derived from a rgb root scan after using "RootDetector" to segment and compare against a second time point using the root tracking feature.
-
-Roots are represented as max value, Background = 0.
-First layer shows root decay (disappeared between time points), foreign objects such as tape, and no-change roots
-Second Layer shows new root growth and no-change roots
-Third Layer shows no-change-roots
-The scan originates from a sedge fen in northern Finland.
-Columns correspond to tube length and rows to tube rotation
+Root turnover analysis from a sedge fen in northern Finland, comparing
+root presence between two time points (June 2023 and October 2023) using
+RootDetector root tracking feature.
+}
+\details{
+Multi-layer representation of root dynamics where:
+\itemize{
+  \item Layer 1: Root decay (value = 1)
+    \itemize{
+      \item Roots that disappeared between time points
+      \item Foreign objects (e.g., tape)
+      \item Persistent roots
+    }
+  \item Layer 2: Root growth (value = 1)
+    \itemize{
+      \item New roots that appeared
+      \item Persistent roots
+    }
+  \item Layer 3: Persistent roots (value = 1)
+    \itemize{
+      \item Roots present in both time points
+    }
+}
+Background is represented as 0 in all layers.
+}
+\examples{
+\donttest{
+  data(TurnoverDPC_data)
+  img = terra::rast(TurnoverDPC_data)
+  # Plot individual layers
+  terra::plot(img)
+  # Calculate turnover statistics
+  decay <- sum(terra::values(img[[1]]) == 1)
+  growth <- sum(terra::values(img[[2]]) == 1)
+  persistent <- sum(terra::values(img[[3]]) == 1)
+}
 }
 \author{
 Johannes Cunow \email{johannes.cunow@gmail.com}

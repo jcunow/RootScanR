@@ -3,9 +3,14 @@
 \docType{data}
 \name{lines_vertical}
 \alias{lines_vertical}
-\title{Example Image with circa vertical lines}
+\title{Example Image with Vertical Lines}
 \format{
-a RasterBrick with 144 columns x 99 rows x 4 layer
+A RasterBrick object with dimensions:
+  \itemize{
+    \item 144 columns (width)
+    \item 99 rows (height)
+    \item 4 layers (channels)
+  }
 }
 \source{
 Images by J.Cunow
@@ -14,7 +19,18 @@ Images by J.Cunow
 data(lines_vertical)
 }
 \description{
-Use this dataset to test directionality
+Test dataset containing an image with approximately vertical lines for
+directionality analysis.
+}
+\details{
+The image consists of multiple vertical lines suitable for testing
+directionality detection algorithms.
+}
+\examples{
+\donttest{
+  data(lines_vertical)
+  plot(lines_vertical)
+}
 }
 \author{
 Johannes Cunow \email{johannes.cunow@gmail.com}

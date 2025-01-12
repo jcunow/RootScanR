@@ -2,23 +2,23 @@
 % Please edit documentation in R/compareDistributions.R
 \name{RWDI}
 \alias{RWDI}
-\title{Root Weight Depth Index}
+\title{Calculate Root Weight Depth Index}
 \usage{
 RWDI(w, roots)
 }
 \arguments{
-\item{w}{weight, typically a vector containing depths}
+\item{w}{Numeric vector of weights (typically depths)}
 
-\item{roots}{root cover}
+\item{roots}{Numeric vector of root coverage values}
 }
 \value{
-a value between 0-1
+Numeric RWDI value
 }
 \description{
-Root Weight Depth Index
+Calculate Root Weight Depth Index
 }
 \examples{
-w = seq(5,25,5)
-roots = c(0,10,7,3,1)
-RWDI(w,roots)
+w <- seq(5, 25, 5)
+roots <- c(0, 10, 7, 3, 1)
+rwdi <- RWDI(w, roots)
 }

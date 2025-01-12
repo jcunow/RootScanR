@@ -1,24 +1,31 @@
-#' Global root production and root turnover from temporal comparison
+#' Calculate global root production and root turnover from temporal comparison
 #'
-#' @param im.t1 brick raster timepoint 1
-#' @param im.t2 brick raster timepoint 2
-#' @param method choose between "kimura" & "rootpx". Adjust the input image accordingly
-#' @param unit unit of root length. only applies if method = "kimura"
-#' @param dpi image resolution. only applies if method = "kimura"
+#' @param im.t1 SpatRaster object for timepoint 1
+#' @param im.t2 SpatRaster object for timepoint 2
+#' @param method Analysis method: "kimura" or "rootpx"
+#' @param unit Unit of root length measurement (only for method = "kimura"). Default: "cm"
+#' @param dpi Image resolution (only for method = "kimura"). Default: 300
 #'
-#' @return standing roots at the start, standing roots at the end, root production, % of new roots compared to starting conditions, % of new roots at the second timepoint
+#' @return data.frame containing:
+#'   - standingroot_t1: Standing roots at first timepoint
+#'   - standingroot_t2: Standing roots at second timepoint
+#'   - production: Root production between timepoints
+#'   - newroot%per_t1: Percentage of new roots compared to starting conditions
+#'   - newroot%per_t2: Percentage of new roots at second timepoint
 #' @export
-#' @details
-#' Chosing kimura as method will return root length with default settings from RootLength()
 #'
+#' @import raster
 #'
 #' @examples
-#'
-#' data(skl_Oulanka2023_Session01_T067)
-#' data(skl_Oulanka2023_Session03_T067)
-#' time1 = terra::rast(skl_Oulanka2023_Session01_T067)
-#' time2 = terra::rast(skl_Oulanka2023_Session03_T067)
-#' turnover.values = Turnover.TC(im.t1 = time1, im.t2 = time2, method= "kimura")
+#'   data(skl_Oulanka2023_Session01_T067)
+#'   data(skl_Oulanka2023_Session03_T067)
+#'   time1 <- terra::rast(skl_Oulanka2023_Session01_T067)
+#'   time2 <- terra::rast(skl_Oulanka2023_Session03_T067)
+#'   turnover.values <- Turnover.TC(
+#'     im.t1 = time1,
+#'     im.t2 = time2,
+#'     method = "kimura",
+#'     verbose = TRUE)
 Turnover.TC = function(im.t1, im.t2,method="kimura",unit = "cm",dpi = 300){
 
   if(method == "rootpx"){
@@ -42,16 +49,17 @@ Turnover.TC = function(im.t1, im.t2,method="kimura",unit = "cm",dpi = 300){
 
 
 
-#' Extracts Root Decay, New Root Production, and No-Change Roots. Relies on 'RootDetector'
+#' Extract Root Decay, New Root Production, and No-Change Roots (only 'RootDetector' images)
 #'
-#' @param img image in the 'RootDetector' format - one layer for production, one layer for decay, one layer for stagnation
-#' @param product.layer layer indicating production
-#' @param decay.layer layer indicating decay & tape
-#' @param blur.capture pixel are included if:  value >= max value * blur.capture. Ensures that attenuated pixels (as a result of blurring or resizing) are also included
-#' @param im.return return images instead of values?
-#' @param include.virtualroots should all roots which were present at some point in one of the two time steps be considered? Consider decay in production ratio, and production in decay ratio?
+#' @param img SpatRaster with three layers for production, decay, and stagnation
+#' @param product.layer Integer indicating the production layer index (1-3)
+#' @param decay.layer Integer indicating the decay & tape layer index (1-3)
+#' @param blur.capture Threshold for pixel inclusion (0-1). Default: 0.95
+#' @param im.return Logical: return images instead of values? Default: FALSE
+#' @param include.virtualroots Logical: consider all roots present at any timepoint? Default: FALSE
 #'
-#' @return either pixel sums if im.return = F, or individual layers corresponding to tape, production, decay, and no change
+#' @return If im.return = FALSE: tibble with pixel sums and ratios
+#'         If im.return = TRUE: list of SpatRaster layers for tape, constant, production, and decay
 #' @export
 #'
 #' @examples

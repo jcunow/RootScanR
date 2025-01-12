@@ -2,22 +2,22 @@
 % Please edit documentation in R/Zonestats.R
 \name{RootLength}
 \alias{RootLength}
-\title{Estimate Kimura Root Length}
+\title{Calculate Root Length using Kimura's Method with optimizations}
 \usage{
 RootLength(im, unit = "cm", dpi = 300)
 }
 \arguments{
-\item{im}{a skeletonized root image raster}
+\item{im}{A skeletonized root image raster}
 
-\item{unit}{output unit}
+\item{unit}{Output unit ("px" or "cm")}
 
-\item{dpi}{image resolution}
+\item{dpi}{Image resolution (required when unit = "cm")}
 }
 \value{
-root length
+Numeric value representing root length in specified unit
 }
 \description{
-Estimate Kimura Root Length
+Calculate Root Length using Kimura's Method with optimizations
 }
 \examples{
 data(skl_Oulanka2023_Session01_T067)

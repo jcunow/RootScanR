@@ -1,15 +1,15 @@
-#' Estimates Rotation from Tape Coverage. Assumes that more tape is present on the tube upside.
+#' Estimates rotation from tape coverage
 #'
-#' @param img takes raster, file name, or array input.
-#' @param tape.brightness used for clustering. Silver Dukt tape appears bright e.g., > 0.66.
-#' @param tape.quantile aligns extra.rows brightness with tape to ensure the same cluster class. The default uses Silver Tape as reference.
-#' @param extra.rows In case no tape is present. Best leave unchanged - some extra.rows are recommended and will be subtracted from the output anyway.
-#' @param search.area portion of image to perform the tape search on. Potential speed increase.
-#' @param nclasses number of classes to group pixels with unsupervised Clustering from the RStoolbox package. Leave at default unless weird results are being displayed.
-#' @importFrom "stats" "quantile"
-#' @importFrom "stats" "median"
+#' This function analyzes image data to determine rotation based on tape coverage,
+#' assuming more tape is present on the upper side of the tube.
 #'
-#' @return numeric value corresponding to the center of extruding tape
+#' @param img Input image as raster, file name, or array
+#' @param tape.brightness Brightness threshold for tape detection (0-1)
+#' @param tape.quantile Quantile used to align brightness with tape (0-1)
+#' @param extra.rows Additional rows to add for analysis
+#' @param search.area Proportion of image to analyze (0-1)
+#' @param nclasses Number of classes for pixel clustering
+#' @return numeric Position of the center of extruding tape
 #' @export
 #'
 #' @examples
@@ -76,15 +76,17 @@ RotationE = function(img,tape.brightness = 0.66,extra.rows = 100,search.area = 0
 
 ## input rotation matters for th conclusion!
 
-#' Rotation Correlation
+#' Detect rotation shift between two images
 #'
-#' @param img1 Reference Image with 3 rgb channel
-#' @param img2 Subsequent Image with 3 rgb channel
-#' @param cor.type Two correlation types available: "ccf" cross correlation, and "phase" phase correlation in frequency domain. See ??imagefx
-#' @param fixed.width if alignment is necessary, see 'RotCensor()'
-#' @param fixed.rotation.pixel if alignment is necessary
+#' Calculates the rotation shift between two sequential images using either
+#' cross-correlation or phase correlation methods.
 #'
-#' @return numeric value corresponding to rotation in rows. Ensure correct image rotation i.e., rows == rotation
+#' @param img1 Reference image (3-channel RGB)
+#' @param img2 Subsequent image to compare (3-channel RGB)
+#' @param cor.type Correlation type: "ccf" (cross) or "phase" (frequency domain)
+#' @param fixed.depth.pixel Depth range to analyze c(start, end)
+#' @param fixed.width Width of analysis region in pixels
+#' @return Vector of shifts (x,y) in pixels
 #' @export
 #'
 #' @examples
@@ -170,15 +172,16 @@ RotShiftDet = function(img1,img2,cor.type = "phase",fixed.depth.pixel  = c(1000,
 
 
 ### Cuts images along rotational center
-#' Rotation Censor
+#' Censor image edges based on rotation
 #'
-#' @param img The image that should be edge censored
-#' @param center.offset Rotational shift in rows. Can be retrieved from 'RotShiftDet()' - reference image is 0 offset; or 'RotationE()' if tape is present
-#' @param cut.buffer ratio of image dimensions that will be cut if fixed.rotation=FALSE
-#' @param fixed.rotation specifies whether censoring is applied to fixed output dimensions (=TRUE) or proportional to input dimensions (=FALSE)
-#' @param fixed.width if fixed.rotation is TRUE, fixed.width specifies the final amount of rows centered at center.offset
+#' Crops image edges to handle non-overlapping regions between sequential scans.
 #'
-#' @return a raster
+#' @param img Input image to censor
+#' @param center.offset Rotation shift in rows (from RotShiftDet)
+#' @param cut.buffer Proportion of image to cut when fixed_rotation=FALSE
+#' @param fixed.rotation Use fixed output dimensions
+#' @param fixed.width Output width when fixed_rotation=TRUE
+#' @return Cropped raster image
 #' @export
 #'
 #' @examples
@@ -233,22 +236,21 @@ if(fixed.rotation == TRUE){
 
 
 
-#' Estimate the position of the soil surface by tape presence
+#' Estimate soil surface position using tape markers
 #'
-#' @param img raster,filename, or array input
-#' @param search.area ratio of image which is used to look for tape cover. Speeds up computation.
-#' @param tape.tresh ratio of how much of the tube rotation needs to covered in tape
-#' @param dpi image resolution
-#' @param nclasses number of clusters to discern tape, roots, background. 3 for rgb images. 2 can be appropriate for segmented 0-1 images.
-#' @param tape.overlap assumes a safety margin on the tape. The soil surface will be shifted by this amount in cm
-#' @param tape.brightness used for clustering. Tape appears bright e.g., 0.66
-#' @param tape.quantile aligns extra.rows brightness with the tape. The default uses Silver Tape as reference.
-#' @param extra.rows In case no tape is present. Best leave unchanged - some extra.rows are recommended and will be subtracted from the output anyway.
-#' @param inverse inverts high tape quantiles to low quantiles. Useful if no tape detection is present and only void dark px instead.
+#' Detects the soil surface by analyzing tape coverage patterns in the image.
 #'
-#' @importFrom "stats" "quantile"
-#'
-#' @return data.frame with tape end and soil surface estimation in rows
+#' @param img Input image (raster, filename, or array)
+#' @param search.area Proportion of image to analyze
+#' @param tape.tresh Minimum tape coverage ratio
+#' @param dpi Image resolution
+#' @param nclasses Number of clustering classes
+#' @param inverse Invert detection for dark markers
+#' @param tape.overlap Safety margin for tape (cm)
+#' @param tape.brightness Brightness threshold for tape
+#' @param extra.rows Additional analysis rows
+#' @param tape.quantile Brightness alignment quantile
+#' @return data.frame with soil surface and tape end positions
 #' @export
 #'
 #' @examples

@@ -2,7 +2,7 @@
 % Please edit documentation in R/Calibration.R
 \name{RotCensor}
 \alias{RotCensor}
-\title{Rotation Censor}
+\title{Censor image edges based on rotation}
 \usage{
 RotCensor(
   img,
@@ -13,21 +13,21 @@ RotCensor(
 )
 }
 \arguments{
-\item{img}{The image that should be edge censored}
+\item{img}{Input image to censor}
 
-\item{center.offset}{Rotational shift in rows. Can be retrieved from 'RotShiftDet()' - reference image is 0 offset; or 'RotationE()' if tape is present}
+\item{center.offset}{Rotation shift in rows (from RotShiftDet)}
 
-\item{cut.buffer}{ratio of image dimensions that will be cut if fixed.rotation=FALSE}
+\item{cut.buffer}{Proportion of image to cut when fixed_rotation=FALSE}
 
-\item{fixed.rotation}{specifies whether censoring is applied to fixed output dimensions (=TRUE) or proportional to input dimensions (=FALSE)}
+\item{fixed.rotation}{Use fixed output dimensions}
 
-\item{fixed.width}{if fixed.rotation is TRUE, fixed.width specifies the final amount of rows centered at center.offset}
+\item{fixed.width}{Output width when fixed_rotation=TRUE}
 }
 \value{
-a raster
+Cropped raster image
 }
 \description{
-Rotation Censor
+Crops image edges to handle non-overlapping regions between sequential scans.
 }
 \examples{
 data(seg_Oulanka2023_Session01_T067)

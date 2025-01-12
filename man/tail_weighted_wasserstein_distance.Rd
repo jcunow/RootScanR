@@ -24,16 +24,16 @@ tail_weighted_wasserstein_distance(
 
 \item{parameter}{list with lambda -> shape parameter (0 = constant weighting) & x0 -> curve offset (= inflexion point )}
 
-\item{method}{weighting function along index. Available options are: c("constant", "linear, "exponential", "sigmoid", "gompertz")}
+\item{method}{weighting function along index. Available options are: c("constant", "asymptotic", "linear, "exponential", "sigmoid", "gompertz","step")}
 
-\item{baseline.weight}{minimal weight between 0-1}
+\item{baseline.weight}{Numeric between 0-1}
 
 \item{index}{a positive numeric vector containing probability spacing e.g., depth}
 
 \item{index.spacing}{whether index intervals are equally distant i.e., c(1,2,3,4....n), if "equal" than index is c(1,n)}
 }
 \value{
-wasserstein metric
+Numeric Wasserstein distance
 }
 \description{
 A tailweighted Version of 1 dimensional Wasserstein distance betwwen two probability vectors

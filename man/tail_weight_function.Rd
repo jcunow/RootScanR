@@ -2,7 +2,7 @@
 % Please edit documentation in R/compareDistributions.R
 \name{tail_weight_function}
 \alias{tail_weight_function}
-\title{Tail weight function (e.g., exponential weight for tail emphasis)}
+\title{Calculate weights for probability distribution comparison}
 \usage{
 tail_weight_function(
   index = NULL,
@@ -14,22 +14,25 @@ tail_weight_function(
 )
 }
 \arguments{
-\item{index}{a positive numeric vector containing probability spacing e.g., depth}
+\item{index}{Numeric vector specifying the positions for weight calculation}
 
-\item{parameter}{list with lambda -> shape parameter (0 = constant weighting) & x0 -> curve offset (= inflexion point? )}
+\item{parameter}{List containing:
+- lambda: Shape parameter (0 = constant weighting)
+- x0: Curve offset/inflection point}
 
-\item{index.spacing}{whether index intervals are equally distant i.e., c(1,2,3,4....n), if "equal" than index is c(1,n)}
+\item{index.spacing}{Character, either "equal" or "custom" for index spacing type}
 
-\item{method}{weighting function along index. Available options are: c("constant", "asymptotic", "linear, "exponential", "sigmoid", "gompertz","step")}
+\item{method}{Character, weighting function type:
+"constant", "asymptotic", "linear", "exponential", "sigmoid", "gompertz", "step"}
 
-\item{baseline.weight}{minimal weight between 0-1}
+\item{baseline.weight}{Numeric between 0-1, minimum weight value}
 
-\item{inverse}{changes from right tail to left tail if TRUE}
+\item{inverse}{Logical, if TRUE reverses weight distribution (left vs right tail)}
 }
 \value{
-weights between 0-1 along the index
+Normalized weight vector
 }
 \description{
-Tail weight function (e.g., exponential weight for tail emphasis)
+Calculate weights for probability distribution comparison
 }
 \keyword{internal}

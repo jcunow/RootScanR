@@ -2,32 +2,33 @@
 % Please edit documentation in R/Calibration.R
 \name{RotShiftDet}
 \alias{RotShiftDet}
-\title{Rotation Correlation}
+\title{Detect rotation shift between two images}
 \usage{
 RotShiftDet(
   img1,
   img2,
   cor.type = "phase",
-  fixed.depth.pixel = 4000,
+  fixed.depth.pixel = c(1000, 4000),
   fixed.width = 1500
 )
 }
 \arguments{
-\item{img1}{Reference Image with 3 rgb channel}
+\item{img1}{Reference image (3-channel RGB)}
 
-\item{img2}{Subsequent Image with 3 rgb channel}
+\item{img2}{Subsequent image to compare (3-channel RGB)}
 
-\item{cor.type}{Two correlation types available: "ccf" cross correlation, and "phase" phase correlation in frequency domain. See ??imagefx}
+\item{cor.type}{Correlation type: "ccf" (cross) or "phase" (frequency domain)}
 
-\item{fixed.width}{if alignment is necessary, see 'RotCensor()'}
+\item{fixed.depth.pixel}{Depth range to analyze c(start, end)}
 
-\item{fixed.rotation.pixel}{if alignment is necessary}
+\item{fixed.width}{Width of analysis region in pixels}
 }
 \value{
-numeric value corresponding to rotation in rows. Ensure correct image rotation i.e., rows == rotation
+Vector of shifts (x,y) in pixels
 }
 \description{
-Rotation Correlation
+Calculates the rotation shift between two sequential images using either
+cross-correlation or phase correlation methods.
 }
 \examples{
 img1 = seg_Oulanka2023_Session01_T067

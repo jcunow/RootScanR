@@ -40,8 +40,7 @@ t00 = Sys.time()
 
 
 library(MinirhizotronR)
-library(dplyr)
-library(ggplot2)
+library(tidyverse)
 
 # Directory
 seg.path = "C:/Users/jocu0013/Desktop/Oulanka/Scans_FullSegmented/Oulanka2023_03/"
@@ -149,7 +148,8 @@ for (i in im.ls) {
 
 
   ## prep root skeleton
-  im.skeleton =  skeletonize(im,itr=3)
+  im.skeleton =  skeletonize_image(im,methods = "MAT",layer=2)
+
 
   ## deep-neighbour angle (interesting by itself but here just used for root length estimation)
   dem = -DepthMap *  1/interval.scalar

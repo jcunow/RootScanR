@@ -3,9 +3,14 @@
 \docType{data}
 \name{skl_Oulanka2023_Session01_T067}
 \alias{skl_Oulanka2023_Session01_T067}
-\title{A Minirhizotron Root Scan after Segmentation and Skeletonization from Timepoint 1}
+\title{Skeletonized Root Scan - Session 1, Tube 67}
 \format{
-a RasterBrick with 4900 columns x 1144 rows x 3 layer
+A RasterBrick object with dimensions:
+  \itemize{
+    \item 4900 columns (width)
+    \item 1144 rows (height)
+    \item 3 layers (channels)
+  }
 }
 \source{
 Images by J.Cunow
@@ -14,11 +19,24 @@ Images by J.Cunow
 data(skl_Oulanka2023_Session01_T067)
 }
 \description{
-The image is derived from a rgb root scan after using "RootDetector" to segment and skeletonize.
-Roots are represented as = 1, Background = 0.
-The first layer also shows foreign objects such as tape as = 1.
-The scan originates from a sedge fen in northern Finland in early June.
-Columns correspond to tube length and rows to tube rotation
+Skeletonized root scan image from a sedge fen in northern Finland (June 2023).
+The image was processed using RootDetector for segmentation and skeletonization.
+}
+\details{
+Binary mask representation where:
+\itemize{
+  \item Root skeletons = 1
+  \item Background = 0
+  \item Layer 1 includes foreign objects (e.g., tape) marked as 1
+}
+Skeletonization reduces root width to single-pixel lines while preserving
+the root system topology.
+}
+\examples{
+\donttest{
+  data(skl_Oulanka2023_Session01_T067)
+  plot(skl_Oulanka2023_Session01_T067)
+}
 }
 \author{
 Johannes Cunow \email{johannes.cunow@gmail.com}

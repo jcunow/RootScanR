@@ -2,24 +2,21 @@
 % Please edit documentation in R/LilHelpers.R
 \name{rgb2gray}
 \alias{rgb2gray}
-\title{Converts RGB to Grayscale}
+\title{Convert RGB image to grayscale with optimized memory management and parallel processing}
 \usage{
 rgb2gray(img, r = 0.21, g = 0.72, b = 0.07)
 }
 \arguments{
-\item{img}{rgb raster}
+\item{img}{SpatRaster RGB image}
 
-\item{r}{weight for red color}
+\item{r}{Weight for red channel}
 
-\item{g}{weight for green color}
+\item{g}{Weight for green channel}
 
-\item{b}{weight for blue color}
-}
-\value{
-a single layer gray scale raster
+\item{b}{Weight for blue channel}
 }
 \description{
-Converts RGB to Grayscale
+Convert RGB image to grayscale with optimized memory management and parallel processing
 }
 \examples{
 data(seg_Oulanka2023_Session01_T067)

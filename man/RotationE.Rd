@@ -2,7 +2,7 @@
 % Please edit documentation in R/Calibration.R
 \name{RotationE}
 \alias{RotationE}
-\title{Estimates Rotation from Tape Coverage. Assumes that more tape is present on the tube upside.}
+\title{Estimates rotation from tape coverage}
 \usage{
 RotationE(
   img,
@@ -14,23 +14,24 @@ RotationE(
 )
 }
 \arguments{
-\item{img}{takes raster, file name, or array input.}
+\item{img}{Input image as raster, file name, or array}
 
-\item{tape.brightness}{used for clustering. Silver Dukt tape appears bright e.g., > 0.66.}
+\item{tape.brightness}{Brightness threshold for tape detection (0-1)}
 
-\item{extra.rows}{In case no tape is present. Best leave unchanged - some extra.rows are recommended and will be subtracted from the output anyway.}
+\item{extra.rows}{Additional rows to add for analysis}
 
-\item{search.area}{portion of image to perform the tape search on. Potential speed increase.}
+\item{search.area}{Proportion of image to analyze (0-1)}
 
-\item{tape.quantile}{aligns extra.rows brightness with tape to ensure the same cluster class. The default uses Silver Tape as reference.}
+\item{tape.quantile}{Quantile used to align brightness with tape (0-1)}
 
-\item{nclasses}{number of classes to group pixels with unsupervised Clustering from the RStoolbox package. Leave at default unless weird results are being displayed.}
+\item{nclasses}{Number of classes for pixel clustering}
 }
 \value{
-numeric value corresponding to the center of extruding tape
+numeric Position of the center of extruding tape
 }
 \description{
-Estimates Rotation from Tape Coverage. Assumes that more tape is present on the tube upside.
+This function analyzes image data to determine rotation based on tape coverage,
+assuming more tape is present on the upper side of the tube.
 }
 \examples{
 img = terra::rast(seg_Oulanka2023_Session01_T067)

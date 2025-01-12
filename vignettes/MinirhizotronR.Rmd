@@ -108,7 +108,7 @@ library(MinirhizotronR)
 library(dplyr)
 library(terra)
 
-# read color image, segmented, and skeletonized
+# read color image, segmented, and skeletonize
 data(rgb_Oulanka2023_Session03_T067)
 data(seg_Oulanka2023_Session03_T067)
 data(skl_Oulanka2023_Session01_T067)
@@ -120,7 +120,7 @@ rgb_Oulanka2023_Session03_T067 = terra::rast(rgb_Oulanka2023_Session03_T067)
 skl_Oulanka2023_Session01_T067 = terra::rast(skl_Oulanka2023_Session01_T067)
 skl_Oulanka2023_Session03_T067 = terra::rast(skl_Oulanka2023_Session03_T067)
 TurnoverDPC_data = terra::rast(TurnoverDPC_data)
-#skl_Oulanka2023_Session03_T067 = (skeletonize(seg_Oulanka2023_Session03_T067[[2]], itr= 3))
+demo_skl_Oulanka2023_Session03_T067 = skeletonize_image(seg_Oulanka2023_Session03_T067,methods = "MAT",layer=2)
 
 ```
 <br />

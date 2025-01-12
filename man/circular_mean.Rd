@@ -7,14 +7,14 @@
 circular_mean(angles, input_units = "degrees", output_units = "degrees")
 }
 \arguments{
-\item{angles}{input angles}
+\item{angles}{Numeric vector of input angles}
 
-\item{input_units}{can be either "radians" or "degrees"}
+\item{input_units}{Character string specifying input units ("radians" or "degrees")}
 
-\item{output_units}{can be either "radians" or "degrees"}
+\item{output_units}{Character string specifying output units ("radians" or "degrees")}
 }
 \value{
-average angle
+Numeric value representing the average angle
 }
 \description{
 Calculate a circular mean to determine average Directionality

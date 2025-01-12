@@ -2,22 +2,27 @@
 % Please edit documentation in R/deepdrive.R
 \name{deep.drive}
 \alias{deep.drive}
-\title{Deep Drive Estimate}
+\title{Calculate Deep Drive Estimate for Root Systems}
 \usage{
-deep.drive(DepthMap = NULL, AngleMap = NULL, RootMap = NULL)
+deep.drive(DepthMap = NULL, AngleMap = NULL, RootMap = NULL, layer.index = 2)
 }
 \arguments{
-\item{DepthMap}{SpatRast with Depth information}
+\item{DepthMap}{SpatRast object containing depth information}
 
-\item{AngleMap}{SpatRast with D8 root angles. See e.g., terra::terrain( v= "flowdir")}
+\item{AngleMap}{Optional SpatRast with D8 root angles (from terra::terrain(v="flowdir"))}
 
-\item{RootMap}{If no Angle MAp is supplied, an AngleMap is calculated from SpatRast containing a segmented, presence-abscence root image.}
+\item{RootMap}{Optional SpatRast containing segmented, presence-absence root image}
+
+\item{layer.index}{Numeric indicating which layer to use for multi-layer RootMaps (default: 2)}
 }
 \value{
-ratio of root px with an angle == to the steepest depth slope to the sum of all root px
+If return_diagnostics=FALSE, returns numeric value representing the ratio of aligned root pixels
+        to total root pixels. If TRUE, returns a list containing the ratio and diagnostic information.
 }
 \description{
-Deep Drive Estimate
+This function analyzes root growth directions in relation to depth gradients.
+It calculates the ratio of root pixels growing in the direction of the steepest
+depth slope compared to all root pixels.
 }
 \examples{
 data(skl_Oulanka2023_Session01_T067)

@@ -2,26 +2,26 @@
 % Please edit documentation in R/CreateZoning.R
 \name{zone.fun}
 \alias{zone.fun}
-\title{Cuts out a zone of interest}
+\title{Extract a zone of interest based on depth values}
 \usage{
 zone.fun(rootpic, binned.map, indexD = 0, nn = 5, silent = FALSE)
 }
 \arguments{
-\item{rootpic}{the image which should be cut}
+\item{rootpic}{SpatRaster/matrix/array - source image}
 
-\item{binned.map}{image which supplies the cut condition}
+\item{binned.map}{SpatRaster/matrix/array - binned depth map}
 
-\item{indexD}{the condition}
+\item{indexD}{numeric - depth index to extract}
 
-\item{nn}{bin width in binned.map. Should be the same as used in 'binning()'}
+\item{nn}{numeric - bin width used in binning}
 
-\item{silent}{verbose}
+\item{silent}{logical - suppress messages}
 }
 \value{
-a cutout of the root pic image
+SpatRaster - extracted zone
 }
 \description{
-Cuts out a zone of interest
+Extract a zone of interest based on depth values
 }
 \examples{
 data(seg_Oulanka2023_Session01_T067)

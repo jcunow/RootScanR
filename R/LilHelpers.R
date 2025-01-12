@@ -2,11 +2,11 @@
 
 #' Calculate a circular mean to determine average Directionality
 #'
-#' @param angles input angles
-#' @param input_units can be either "radians" or "degrees"
-#' @param output_units can be either "radians" or "degrees"
+#' @param angles Numeric vector of input angles
+#' @param input_units Character string specifying input units ("radians" or "degrees")
+#' @param output_units Character string specifying output units ("radians" or "degrees")
 #'
-#' @return average angle
+#' @return Numeric value representing the average angle
 #' @export
 #'
 #' @examples circular_mean(angles = c(360,90,0), input_units = "degrees", output_units = "degrees")
@@ -45,14 +45,14 @@ circular_mean <- function(angles, input_units = "degrees", output_units = "degre
 
 
 
-#' Threshoold an image to rebinarize a blurred image (e.g., jpeg compression)
+#' Threshold an image to rebinarize a blurred image
 #'
-#' @param img raster
-#' @param threshold ratio of max value assigned as 1
-#' @param focus.layer which layer should be used to capture blurr
-#' @param mask.layer preserve mask sections (e.g., tape) in one layer
+#' @param img SpatRaster object
+#' @param threshold Numeric value between 0 and 1 for thresholding
+#' @param focus.layer Integer specifying which layer should be used to capture blur
+#' @param mask.layer Integer specifying which layer preserves mask sections
 #'
-#' @return raster
+#' @return SpatRaster object
 #' @export
 #'
 #' @examples
@@ -82,132 +82,19 @@ blur.correction = function(img,threshold = 0.4,focus.layer = 2,mask.layer = 1){
 }
 
 
-## helper functions
 
-#' Skeletonize a segmented image
+
+
+
+#' Calculate root accumulation
 #'
-#' @param img can be: path, array, raster, or magick object
-#' @param itr iterations of thinning. see magick::image_morphology
-#' @param kernel kernel used for image operation. Other operations than skeletonizing is possible.max(se)
-#' @importFrom methods is
+#' @param x Data frame containing group, depth, and variable columns
+#' @param group Character vector specifying grouping variable(s)
+#' @param depth Character string specifying depth column name
+#' @param variable Character string specifying accumulating values column
+#' @param stdrz Character string specifying standardization method
 #'
-#' @return image in as magick object
-#' @export
-#' @details
-#' Uses magick::image_morphology but eases the image input format
-#'
-#'
-#' @examples
-#' data(skl_Oulanka2023_Session01_T067)
-#' img.skeleton = skeletonize(skl_Oulanka2023_Session01_T067,itr = 2)
-skeletonize = function(img,itr = 2, kernel = 'Skeleton:3'){
-  if(is.character(img)){
-    magick_img = magick::image_read(img)
-  }else{
-    if(methods::is(img,"Raster") | methods::is(img,"RasterBrick") | methods::is(img,"RasterLayer") | methods::is(img,"SpatRaster") ){
-      if(max(terra::as.array(img) > 1)){
-        img = terra::as.array(img)/255
-      }
-      magick_img = magick::image_read(terra::as.array(img))
-    }else{
-      img_array <- as.array(img)
-      if(!terra::global(img, "max")[[1]] > 1){
-        img_array <- img_array * 255
-      }
-      # Convert to raw array (required by magick)
-      magick_img <- imager::cimg2magick(imager::as.cimg( img_array))
-  }
-  }
-
-  grayscale_img = magick::image_channel(magick_img,"lightness")
-  # core fucntion, Perform morphological thinning
-  thinned_img <- magick::image_morphology(grayscale_img, 'Thinning', kernel= kernel,iterations = itr)
-
-
-  thinned_img = terra::rast( as.matrix(grDevices::as.raster(thinned_img)))-1
-
-
-
-  return(thinned_img)
-}
-
-
-
-
-
-#' Adaptive Kernel size
-#'
-#' @param n the amount of connecting pixels. kernelsize = 2n-1
-#' @param fill.value Other kernel fields. Default is NA
-#' @param normalized.center value of kernel center. Negative values result in a normalized difference
-#' @param diag.weighted diagonal pixels are weighted 1/sqrt(2) to reflect increased diagonal pixel distance.
-#'
-#' @return a list containing D8 kernels with degrees: 0,45,90,135,180,225,270,315
-#' @export
-#'
-#' @examples
-#' adaptive.Kernelsize.Directionality(n = 5)
-adaptive.Kernelsize.Directionality = function(n = 3,fill.value = NA,normalized.center = -1, diag.weighted = TRUE){
-  k = n*2 -1
-
-  # Should diagonals be distance weighted?
-  if(diag.weighted == TRUE){
-    diag.weight = sqrt(2)
-  }else{
-    diag.weight = 1
-  }
-
-  antidiagonal <- function(mat, new_values) {
-    n <- nrow(mat)
-    anti_diag_indices <- cbind(1:n, n:1)
-
-    if(length(new_values) != n) {
-      stop("Length of new_values must be equal to the number of anti-diagonal elements")
-    }
-
-    mat[anti_diag_indices] <- new_values
-    return(mat)
-  }
-
-  base.kernel <- matrix(fill.value, nrow = k, ncol = k)
-  # vertical
-  kernel_0  = base.kernel
-  kernel_180 = base.kernel
-  kernel_0[1:n, n] <- c(rep(1,n-1),normalized.center)
-  kernel_180[n:k, n] <- c(normalized.center,rep(1,n-1))
-  # horizontal
-  kernel_90 = base.kernel
-  kernel_270 <- base.kernel
-  kernel_90[ n, n:k] <- c(normalized.center,rep(1,n-1))
-  kernel_270[ n, 1:n] <- c(rep(1,n-1),normalized.center)
-  # diagonal from topleft
-  kernel_135 <- base.kernel
-  kernel_315 <- base.kernel
-  diag(kernel_135) <- c(rep(fill.value,n-1),normalized.center,rep(1,n-1)/diag.weight)
-  diag(kernel_315) <- c(rep(1,n-1)/diag.weight,normalized.center,rep(fill.value,n-1))
-  # diagonal from bottom left
-  kernel_45 <- base.kernel
-  kernel_225 <- base.kernel
-  kernel_45 <- antidiagonal(kernel_45,c(rep(1,n-1)/diag.weight,normalized.center,rep(fill.value,n-1)))
-  kernel_225 <- antidiagonal(kernel_225, c(rep(fill.value,n-1),normalized.center,rep(1,n-1)/diag.weight))
-
-  return( list(kernel_0,kernel_45,kernel_90,kernel_135,kernel_180,kernel_225,kernel_270,kernel_315) )
-}
-
-
-
-
-
-#' Root accumulation Curve
-#'
-#' @param x data.frame must include group,depth, and variable columns
-#' @param group specify the grouping variable e.g., Plot. Can be multiple groups in a vector.
-#' @param depth specify column name which includes depth values
-#' @param variable accumulating values
-#' @param stdrz choose between "counts" return of accumulative amount, "additive" returns the added the accumulative share 0-1, with "relative", all accumulative values sum to 1
-#' @import dplyr
-#' @return data.frame with one added column "cs" containing the accumulated values
-#' @export
+#' @return Numeric vector of accumulated values
 #'
 #' @examples
 #'df = data.frame(depth = c(seq(0,80,20),seq(0,80,20)),
@@ -261,15 +148,12 @@ root.accumulation = function(x,group,depth,variable,stdrz = "counts"){
 
 
 
-#' Converts RGB to Grayscale
+#' Convert RGB image to grayscale with optimized memory management and parallel processing
 #'
-#' @param img rgb raster
-#' @param r weight for red color
-#' @param g weight for green color
-#' @param b weight for blue color
-#'
-#' @return a single layer gray scale raster
-#' @export
+#' @param img SpatRaster RGB image
+#' @param r Weight for red channel
+#' @param g Weight for green channel
+#' @param b Weight for blue channel
 #'
 #' @examples
 #' data(seg_Oulanka2023_Session01_T067)
@@ -282,6 +166,23 @@ rgb2gray = function(img, r=0.21,g=0.72,b=0.07){
 }
 
 
+#' Helper function to convert various input formats to terra raster
+#' @keywords internal
+convert_to_raster <- function(input) {
+  if (inherits(input, "SpatRaster")) {
+    return(input)
+  } else if (is.character(input) && file.exists(input)) {
+    tryCatch({
+      return(terra::rast(input))
+    }, error = function(e) {
+      stop("Failed to read image file: ", e$message)
+    })
+  } else if (is.matrix(input) || is.array(input)) {
+    return(terra::rast(input))
+  } else {
+    stop("Unsupported input format. Please provide a terra SpatRaster, matrix, array, or valid file path.")
+  }
+}
 
 
 

@@ -1,15 +1,9 @@
-
-
-
-
-
-#' Estimate Kimura Root Length
+#' Calculate Root Length using Kimura's Method with optimizations
 #'
-#' @param im a skeletonized root image raster
-#' @param unit output unit
-#' @param dpi image resolution
-#'
-#' @return root length
+#' @param im A skeletonized root image raster
+#' @param unit Output unit ("px" or "cm")
+#' @param dpi Image resolution (required when unit = "cm")
+#' @return Numeric value representing root length in specified unit
 #' @export
 #'
 #' @examples
@@ -48,86 +42,6 @@ RootLength = function(im,unit="cm",dpi=300){
 
 }
 
-
-#' Estimate the directional of a skeleton pixels
-#'
-#' @param im skeletonized image raster. Roots must be 1, background 0. Consider the input image rotation to interpret the output
-#' @param rotate should the image be rotated 90 degrees before entering?
-#' @param kernelsize number of connecting cells
-#' @param leeway amount of gaps allowed in connecting lines
-#'
-#' @return percentage of pixels with given neighbor pixel position
-#' @export
-#'
-#' @examples
-#' library(terra);library(raster)
-#'
-#' data("skl_Oulanka2023_Session01_T067")
-#' img = terra::rast(skl_Oulanka2023_Session01_T067)
-#' direction.frame = Directionality(img,kernelsize = 3)
-Directionality = function(im,rotate = TRUE, kernelsize = 3, leeway =0){
-  if(terra::global(im[[2]],"max",na.rm = TRUE)[[1]] > 1){
-    im2 = im / 255
-  }else{
-    im2 = im
-  }
-
-
-  # the rotation of the image matters !
-  if(rotate == TRUE){
-    im2 = terra::t(im2)
-  }
-
-  # background white or objects white matters - we want to count white objects (1's not 0's)
-
-  # Kernel
-  kerns = adaptive.Kernelsize.Directionality(n = kernelsize)
-  D_horizontal = kerns[[2]]
-  D_vertical = kerns[[1]]
-  D_dia_topleft = kerns[[3]]
-  D_dia_botleft = kerns[[4]]
-
-  # orthogonal
-  r_Dho <- terra::focal(im2,w = D_horizontal, fun = "sum",na.rm = TRUE)
-  r_Dve <- terra::focal(im2,w = D_vertical, fun = "sum",na.rm = TRUE)
-  rr_Dho = sum(r_Dho >= (kernelsize-leeway))
-  rr_Dve = sum(r_Dve >= (kernelsize-leeway))
-  #sum.Dho <- raster::cellStats(rr_Dho,"sum")
-  #sum.Dve <- raster::cellStats(rr_Dve,"sum")
-  sum.Dho <- terra::global(rr_Dho,"sum",na.rm = TRUE)[[1]]
-  sum.Dve <- terra::global(rr_Dve,"sum",na.rm = TRUE)[[1]]
-
-
-  # diagonal
-  r_Dtopleft <- terra::focal(im2,w = D_dia_topleft, fun = "sum",na.rm = TRUE)
-  r_Dbotleft <- terra::focal(im2,w = D_dia_botleft, fun = "sum",na.rm = TRUE)
-  rr_Dtopleft = sum(r_Dtopleft >= (kernelsize-leeway))
-  rr_Dbotleft = sum(r_Dbotleft >= (kernelsize-leeway))
-  # sum.Dtl <- raster::cellStats(rr_Dtopleft,"sum")
-  # sum.Dbl <- raster::cellStats(rr_Dbotleft,"sum")
-  sum.Dtl <- terra::global(rr_Dtopleft,"sum",na.rm = TRUE)[[1]]
-  sum.Dbl <- terra::global(rr_Dbotleft,"sum",na.rm = TRUE)[[1]]
-
-# pixel neigbourhood sums
-  all.px = sum.Dho + sum.Dve + sum.Dtl + sum.Dbl
-
-
-
-Directions = data.frame(
-                        horizontal = round(sum.Dho / all.px, 4),
-                        vertical = round(sum.Dve / all.px, 4),
-                        topleft.bottomright = round(sum.Dtl / all.px, 4),
-                        topright.bottom.left = round(sum.Dbl / all.px, 4),
-                        horizontalpx = sum.Dho,
-                        verticalpx = sum.Dve,
-                        topleftpx = sum.Dtl,
-                        botleftpx = sum.Dbl,
-                        avg.down.angle = circular_mean(angles = c(rep(225,sum.Dbl),rep(135,sum.Dtl),rep(180,sum.Dve)),
-                                                  input_units = "degrees",output_units = "degrees"))
-colnames(Directions) <- c("a90_270%","a180%","a135%","a225%","a90_270px","a180px","a135px","a225px","avg.down_angle")
-  return(Directions)
-
-}
 
 
 
@@ -192,16 +106,13 @@ px.sum = function(root.zone){
 
 
 
-#' Coloration of the image
+#' Calculate Image Coloration Metrics
 #'
-#' @param img raster with 3 color bands
-#' @param r weight for first channel - typically red
-#' @param g weight for second channel - typically green
-#' @param b weight for third channel - typically blue
-#' @importFrom "grDevices" "rgb2hsv"
-#' @import dplyr
-#'
-#' @return a vector with chromatic coordinates,luminosity, brightness, luminosity, color values, saturation
+#' @param img Three-band raster (RGB) or path to image
+#' @param r Red channel weight
+#' @param g Green channel weight
+#' @param b Blue channel weight
+#' @return Data frame of color metrics
 #' @export
 #'
 #' @examples
@@ -232,17 +143,13 @@ Tube.coloration = function(img,r=0.2126,g=0.7152,b=0.0722){
 
 
 
-#### Image Texture
-
-# uses the glcm package
-#' Texture corresponds to glmc::glmc()
+#' Enhanced texture calculation
 #'
-#' @param img.color image with three color channels. Will be converted in gray scale. raster format required.
-#' @param grays number of gray shades. Documentation is lacking, see: ?glmc::glmc()
-#' @param window convolution window size e.g., c(3,3)
-#' @param metrics texture metrics based on illumination differences. see:: ?glmc::glmc() for available methods
-#'
-#' @return raster with each layer correspond to on metric
+#' @param img.color Three-band raster or path to image
+#' @param grays Number of gray levels
+#' @param window Window size for GLCM
+#' @param metrics Texture metrics to calculate
+#' @return Raster with texture metrics
 #' @export
 #'
 #' @examples
@@ -263,8 +170,6 @@ texture = function(img.color,grays = 7, window = c(9,9), metrics = c("variance",
                        statistics = metrics)
 }
 
-
-### Root Thickness
 
 
 #' Approximate average Root Thickness

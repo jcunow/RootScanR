@@ -2,16 +2,20 @@
 
 #' Create A Phase-Shifted, Tilt-Amplitude Sine Depth Map
 #'
-#' @param im input image
-#' @param mask indicating which pixels are foreign objects like tape. The mask will be: mask = im[[1]] - im[[2]] if 'RootDetector' format is used
-#' @param tube.thicc Diameter of minirhizotron tubes
-#' @param tilt Minirhiztron tube insertion angle (typically 30-45 degrees)
-#' @param dpi Image resolution
-#' @param start.soil indicates soil boundary 0cm. Can be retrieved from 'SoilSurfE()' but in-situ calibration is recommended. Takes 'cm' as unit.
-#' @param center.offset rotational center. Set 0 if top facing tube side is perfectly in the middle. Set 1 if up facing tube is located at the edges
-#' @param sinoid set sinoid = TRUE if true depth should be used. Otherwise, tube diameter is ignored.
+#' This function generates a depth map for minirhizotron images, accounting for tube geometry
+#' and insertion angle. Supports parallel processing and efficient memory management for large images.
 #'
-#' @return raster image
+#' @param im Input image (accepts terra SpatRaster, matrix, array, or file path). For multi-band
+#'           images, specify band_index parameter
+#' @param mask Raster mask indicating foreign objects (1 = mask, 0 or NA = keep)
+#' @param sinoid Logical; if TRUE, accounts for tube curvature in depth calculation
+#' @param tube.thicc Numeric; diameter of minirhizotron tube in cm
+#' @param tilt Numeric; minirhizotron tube insertion angle in degrees (typically 30-45)
+#' @param dpi Numeric; image resolution in dots per inch
+#' @param start.soil Numeric; soil surface boundary in cm (0 = surface)
+#' @param center.offset Numeric; rotational center offset (0 = centered, 1 = edge)
+#'
+#' @return terra raster object containing the depth map
 #' @export
 #'
 #' @examples

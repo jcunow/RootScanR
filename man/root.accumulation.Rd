@@ -2,26 +2,26 @@
 % Please edit documentation in R/LilHelpers.R
 \name{root.accumulation}
 \alias{root.accumulation}
-\title{Root accumulation Curve}
+\title{Calculate root accumulation}
 \usage{
 root.accumulation(x, group, depth, variable, stdrz = "counts")
 }
 \arguments{
-\item{x}{data.frame must include group,depth, and variable columns}
+\item{x}{Data frame containing group, depth, and variable columns}
 
-\item{group}{specify the grouping variable e.g., Plot. Can be multiple groups in a vector.}
+\item{group}{Character vector specifying grouping variable(s)}
 
-\item{depth}{specify column name which includes depth values}
+\item{depth}{Character string specifying depth column name}
 
-\item{variable}{accumulating values}
+\item{variable}{Character string specifying accumulating values column}
 
-\item{stdrz}{choose between "counts" return of accumulative amount, "additive" returns the added the accumulative share 0-1, with "relative", all accumulative values sum to 1}
+\item{stdrz}{Character string specifying standardization method}
 }
 \value{
-data.frame with one added column "cs" containing the accumulated values
+Numeric vector of accumulated values
 }
 \description{
-Root accumulation Curve
+Calculate root accumulation
 }
 \examples{
 df = data.frame(depth = c(seq(0,80,20),seq(0,80,20)),

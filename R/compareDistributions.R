@@ -1,40 +1,19 @@
-#### Compare similarity between distributions
 
-
-# # Example distributions
-# P <- c(0.025,0.05,0.1,0.15, 0.2, 0.3,0.4, 0.5,0.3,0.1)  # Distribution P
-# Q <- c(0.025,0.05,0.1,0.15, 0.2, 0.3,0.4, 0.5,0.3,0.1)**6  # Distribution Q
-#
-# # Ensure the distributions are valid (non-negative and sum to 1)
-# P <- P / sum(P)
-# Q <- Q / sum(Q)
-#
-# plot(Q);points(P,col="red")
-
-
-
-
-
-
-
-
-#' Tail weight function (e.g., exponential weight for tail emphasis)
+#' Calculate weights for probability distribution comparison
 #'
-#' @param index a positive numeric vector containing probability spacing e.g., depth
-#' @param index.spacing whether index intervals are equally distant i.e., c(1,2,3,4....n), if "equal" than index is c(1,n)
-#' @param inverse changes from right tail to left tail if TRUE
-#' @param parameter list with lambda -> shape parameter (0 = constant weighting) & x0 -> curve offset (= inflexion point? )
-#' @param method weighting function along index. Available options are: c("constant", "asymptotic", "linear, "exponential", "sigmoid", "gompertz","step")
-#' @param baseline.weight  minimal weight between 0-1
+#' @param index Numeric vector specifying the positions for weight calculation
+#' @param parameter List containing:
+#'   - lambda: Shape parameter (0 = constant weighting)
+#'   - x0: Curve offset/inflection point
+#' @param index.spacing Character, either "equal" or "custom" for index spacing type
+#' @param method Character, weighting function type:
+#'   "constant", "asymptotic", "linear", "exponential", "sigmoid", "gompertz", "step"
+#' @param baseline.weight Numeric between 0-1, minimum weight value
+#' @param inverse Logical, if TRUE reverses weight distribution (left vs right tail)
+#' @return Normalized weight vector
 #'
 #' @keywords internal
 #' @export
-#' @return weights between 0-1 along the index
-#'
-#'
-#'
-#'
-#'
 tail_weight_function <- function(index = NULL, parameter = list(lambda = 0.2,x0=5), index.spacing = "equal",
                                  method = "sigmoid",baseline.weight = 0,inverse =FALSE) {
 
@@ -165,19 +144,19 @@ tail_weighted_kl_divergence <- function(P, Q, index= 1:min(c(length(Q),length(P)
 
 
 
-#' Compute the tail-weighted Jensen-Shannon divergence
+#' Calculate tail-weighted Jensen-Shannon divergence
 #'
 #' @param Q probability vector 1
 #' @param P probability vector 2
-#' @param inverse changes from right tail to left tail if TRUE
 #' @param index a positive numeric vector containing probability spacing e.g., depth
 #' @param index.spacing whether index intervals are equally distant i.e., c(1,2,3,4....n), if "equal" than index is c(1,n)
+#' @param inverse changes from right tail to left tail if TRUE
 #' @param parameter list with lambda -> shape parameter (0 = constant weighting) & x0 -> curve offset (= inflexion point )
 #' @param method weighting function along index. Available options are: c("constant", "asymptotic", "linear, "exponential", "sigmoid", "gompertz","step")
 #' @param alignPQ if TRUE, index end values will be cut off in case of unequal length of P & Q so that length of P & Q is equal
 #' @param cut if FALSE, 0 will be added to the shorter vector. If TRUE, the longer vector will be shortened at the end.
+#' @return Numeric JS divergence value
 #'
-#' @return Jensen-Shannon Divergence - symmetric version of KL
 #' @export
 #'
 #' @examples
@@ -235,14 +214,14 @@ tail_weighted_js_divergence <- function(P, Q,  parameter = list(lambda = 0.2,x0=
 #'
 #' @param Q probability vector 1
 #' @param P probability vector 2
-#' @param inverse changes from right tail to left tail if TRUE
-#' @param parameter list with lambda -> shape parameter (0 = constant weighting) & x0 -> curve offset (= inflexion point )
-#' @param method weighting function along index. Available options are: c("constant", "linear, "exponential", "sigmoid", "gompertz")
 #' @param index a positive numeric vector containing probability spacing e.g., depth
 #' @param index.spacing whether index intervals are equally distant i.e., c(1,2,3,4....n), if "equal" than index is c(1,n)
-#' @param baseline.weight  minimal weight between 0-1
+#' @param inverse changes from right tail to left tail if TRUE
+#' @param parameter list with lambda -> shape parameter (0 = constant weighting) & x0 -> curve offset (= inflexion point )
+#' @param method weighting function along index. Available options are: c("constant", "asymptotic", "linear, "exponential", "sigmoid", "gompertz","step")
+#' @param baseline.weight Numeric between 0-1
 #'
-#' @return wasserstein metric
+#' @return Numeric Wasserstein distance
 #' @export
 #'
 #' @examples
@@ -270,37 +249,30 @@ tail_weighted_wasserstein_distance = function(Q,P,inverse=F,parameter = list(lam
 
 
 
-#### root index
-#' Root Weight Depth Index
+#' Calculate Root Weight Depth Index
 #'
-#' @param w weight, typically a vector containing depths
-#' @param roots root cover
-#'
-#' @return a value between 0-1
-#' @export
-#'
+#' @param w Numeric vector of weights (typically depths)
+#' @param roots Numeric vector of root coverage values
+#' @return Numeric RWDI value
 #' @examples
-#' w = seq(5,25,5)
-#' roots = c(0,10,7,3,1)
-#' RWDI(w,roots)
+#' w <- seq(5, 25, 5)
+#' roots <- c(0, 10, 7, 3, 1)
+#' rwdi <- RWDI(w, roots)
 RWDI = function(w,roots){
   rwdi = sum((w+0.000000000000001)*roots)/sum(roots)
   return(rwdi)
 }
 
 
-#' Root Penetration Index
+#' Calculate Root Penetration Index
 #'
-#' @param roots root cover
-#' @param w weight, typically a vector containing depths
-#'
-#' @return a value between 0-1
-#' @export
-#'
+#' @param roots Numeric vector of root coverage values
+#' @param w Numeric vector of weights (typically depths)
+#' @return Numeric RPI value between -1 and 1
 #' @examples
-#' w = seq(5,25,5)
-#' roots = c(0,10,7,3,1)
-#' RPI(w,roots)
+#' w <- seq(5, 25, 5)
+#' roots <- c(0, 10, 7, 3, 1)
+#' rpi <- RPI(roots, w)
 RPI = function(roots,w){
 
   rpi = 1-2*(sum(roots/sum(roots) * ((w+0.0000000000000000001)/(sum(w)))))

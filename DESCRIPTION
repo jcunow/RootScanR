@@ -1,7 +1,7 @@
 Type: Package
 Package: MinirhizotronR
 Title: Extracting Depth Resolved Metrics from Minirhizotron Root Scans
-Version: 1.0.0
+Version: 1.1.0
 Authors@R: c(person(given = "Johannes",
              family = "Cunow",
              role = c("aut", "cre"),
@@ -11,13 +11,14 @@ Maintainer: Johannes Cunow <johannes.cunow@gmail.com>
 Description: With MinirhizotronR, analyzing root scans from minirhizotron
     tubes becomes a piece of cake. It enables the user to extract various
     root metrics and relate them to a depth distribution, or assess
-    rotational biases. It relies on outside handling of Image
-    Segmentation.
+    rotational biases. You do need to segment your scans beforehand though (e.g., 'RootDetector').
 License: GPL (>= 3)
 URL: https://github.com/jcunow/MinirhizotronR, https://jcunow.github.io/MinirhizotronR/
 BugReports: https://github.com/jcunow/MinirhizotronR/issues
 Depends: 
-    R(>= 3.6)
+    R(>= 3.6),
+    raster,
+    terra
 Imports: 
     dplyr,
     glcm,
@@ -25,19 +26,14 @@ Imports:
     imager,
     landscapemetrics,
     magick,
-    methods,
     minpack.lm,
     nloptr,
-    raster,
     RStoolbox,
     stats,
-    terra,
     transport
 Suggests:
-    cowplot,
     ggplot2,
     knitr,
-    OpenImageR,
     rmarkdown,
     png,
     tiff,

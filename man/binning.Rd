@@ -2,22 +2,22 @@
 % Please edit documentation in R/CreateZoning.R
 \name{binning}
 \alias{binning}
-\title{Takes a continues depth map and bins it to a specified range}
+\title{Bin continuous depth values into discrete intervals}
 \usage{
 binning(depthmap, nn, round.option = "rounding")
 }
 \arguments{
-\item{depthmap}{1-layer raster, takes output from create.depthmap()}
+\item{depthmap}{SpatRaster/matrix/array - continuous depth values}
 
-\item{nn}{bin width}
+\item{nn}{numeric - bin width}
 
-\item{round.option}{choose the binning operation. Available are "rounding", "ceiling", and "floor".}
+\item{round.option}{character - binning method: "rounding", "ceiling", or "floor"}
 }
 \value{
-raster with input depths in bins
+SpatRaster - binned depth values
 }
 \description{
-Takes a continues depth map and bins it to a specified range
+Bin continuous depth values into discrete intervals
 }
 \examples{
 data(seg_Oulanka2023_Session01_T067)

@@ -1,11 +1,17 @@
 
-#' Deep Drive Estimate
+#' Calculate Deep Drive Estimate for Root Systems
 #'
-#' @param DepthMap SpatRast with Depth information
-#' @param AngleMap SpatRast with D8 root angles. See e.g., terra::terrain( v= "flowdir")
-#' @param RootMap  If no Angle MAp is supplied, an AngleMap is calculated from SpatRast containing a segmented, presence-abscence root image.
+#' This function analyzes root growth directions in relation to depth gradients.
+#' It calculates the ratio of root pixels growing in the direction of the steepest
+#' depth slope compared to all root pixels.
 #'
-#' @return ratio of root px with an angle == to the steepest depth slope to the sum of all root px
+#' @param DepthMap SpatRast object containing depth information
+#' @param AngleMap Optional SpatRast with D8 root angles (from terra::terrain(v="flowdir"))
+#' @param RootMap Optional SpatRast containing segmented, presence-absence root image
+#' @param layer.index Numeric indicating which layer to use for multi-layer RootMaps (default: 2)
+#'
+#' @return If return_diagnostics=FALSE, returns numeric value representing the ratio of aligned root pixels
+#'         to total root pixels. If TRUE, returns a list containing the ratio and diagnostic information.
 #' @export
 #'
 #' @examples
@@ -14,12 +20,12 @@
 #' DepthMap = terra::t(create.depthmap(im,center.offset=0,tube.thicc=3.5))
 #'
 #' deep.drive(DepthMap = DepthMap, RootMap = im)
-deep.drive = function(DepthMap=NULL,AngleMap=NULL,RootMap = NULL){
+deep.drive = function(DepthMap=NULL,AngleMap=NULL,RootMap = NULL,layer.index = 2){
   ## if not root angles are supplied than rootmap is used to create an AngleMap
   if(is.null(AngleMap)){
     # default chooses second layer
     if(dim(RootMap)[3] != 1){
-      RootMap = RootMap[[2]]
+      RootMap = RootMap[[layer.index]]
     }
 
     if(terra::global(RootMap,"max",na.rm=TRUE)$max[1] > 1){

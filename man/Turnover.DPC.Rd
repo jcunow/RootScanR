@@ -2,7 +2,7 @@
 % Please edit documentation in R/Turnover.R
 \name{Turnover.DPC}
 \alias{Turnover.DPC}
-\title{Extracts Root Decay, New Root Production, and No-Change Roots. Relies on 'RootDetector'}
+\title{Extract Root Decay, New Root Production, and No-Change Roots (only 'RootDetector' images)}
 \usage{
 Turnover.DPC(
   img,
@@ -14,23 +14,24 @@ Turnover.DPC(
 )
 }
 \arguments{
-\item{img}{image in the 'RootDetector' format - one layer for production, one layer for decay, one layer for stagnation}
+\item{img}{SpatRaster with three layers for production, decay, and stagnation}
 
-\item{product.layer}{layer indicating production}
+\item{product.layer}{Integer indicating the production layer index (1-3)}
 
-\item{decay.layer}{layer indicating decay & tape}
+\item{decay.layer}{Integer indicating the decay & tape layer index (1-3)}
 
-\item{blur.capture}{pixel are included if:  value >= max value * blur.capture. Ensures that attenuated pixels (as a result of blurring or resizing) are also included}
+\item{blur.capture}{Threshold for pixel inclusion (0-1). Default: 0.95}
 
-\item{im.return}{return images instead of values?}
+\item{im.return}{Logical: return images instead of values? Default: FALSE}
 
-\item{include.virtualroots}{should all roots which were present at some point in one of the two time steps be considered? Consider decay in production ratio, and production in decay ratio?}
+\item{include.virtualroots}{Logical: consider all roots present at any timepoint? Default: FALSE}
 }
 \value{
-either pixel sums if im.return = F, or individual layers corresponding to tape, production, decay, and no change
+If im.return = FALSE: tibble with pixel sums and ratios
+        If im.return = TRUE: list of SpatRaster layers for tape, constant, production, and decay
 }
 \description{
-Extracts Root Decay, New Root Production, and No-Change Roots. Relies on 'RootDetector'
+Extract Root Decay, New Root Production, and No-Change Roots (only 'RootDetector' images)
 }
 \examples{
 data(TurnoverDPC_data)

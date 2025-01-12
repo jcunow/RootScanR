@@ -2,24 +2,24 @@
 % Please edit documentation in R/Zonestats.R
 \name{Tube.coloration}
 \alias{Tube.coloration}
-\title{Coloration of the image}
+\title{Calculate Image Coloration Metrics}
 \usage{
 Tube.coloration(img, r = 0.2126, g = 0.7152, b = 0.0722)
 }
 \arguments{
-\item{img}{raster with 3 color bands}
+\item{img}{Three-band raster (RGB) or path to image}
 
-\item{r}{weight for first channel - typically red}
+\item{r}{Red channel weight}
 
-\item{g}{weight for second channel - typically green}
+\item{g}{Green channel weight}
 
-\item{b}{weight for third channel - typically blue}
+\item{b}{Blue channel weight}
 }
 \value{
-a vector with chromatic coordinates,luminosity, brightness, luminosity, color values, saturation
+Data frame of color metrics
 }
 \description{
-Coloration of the image
+Calculate Image Coloration Metrics
 }
 \examples{
 data(rgb_Oulanka2023_Session03_T067)

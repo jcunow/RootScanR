@@ -2,7 +2,7 @@
 % Please edit documentation in R/compareDistributions.R
 \name{tail_weighted_js_divergence}
 \alias{tail_weighted_js_divergence}
-\title{Compute the tail-weighted Jensen-Shannon divergence}
+\title{Calculate tail-weighted Jensen-Shannon divergence}
 \usage{
 tail_weighted_js_divergence(
   P,
@@ -36,10 +36,10 @@ tail_weighted_js_divergence(
 \item{index.spacing}{whether index intervals are equally distant i.e., c(1,2,3,4....n), if "equal" than index is c(1,n)}
 }
 \value{
-Jensen-Shannon Divergence - symmetric version of KL
+Numeric JS divergence value
 }
 \description{
-Compute the tail-weighted Jensen-Shannon divergence
+Calculate tail-weighted Jensen-Shannon divergence
 }
 \examples{
 P <- c(0.025,0.05,0.1,0.15, 0.2, 0.3,0.4, 0.5,0.3,0.1)  # Distribution P

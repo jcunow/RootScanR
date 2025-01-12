@@ -2,24 +2,24 @@
 % Please edit documentation in R/LilHelpers.R
 \name{blur.correction}
 \alias{blur.correction}
-\title{Threshoold an image to rebinarize a blurred image (e.g., jpeg compression)}
+\title{Threshold an image to rebinarize a blurred image}
 \usage{
 blur.correction(img, threshold = 0.4, focus.layer = 2, mask.layer = 1)
 }
 \arguments{
-\item{img}{raster}
+\item{img}{SpatRaster object}
 
-\item{threshold}{ratio of max value assigned as 1}
+\item{threshold}{Numeric value between 0 and 1 for thresholding}
 
-\item{focus.layer}{which layer should be used to capture blurr}
+\item{focus.layer}{Integer specifying which layer should be used to capture blur}
 
-\item{mask.layer}{preserve mask sections (e.g., tape) in one layer}
+\item{mask.layer}{Integer specifying which layer preserves mask sections}
 }
 \value{
-raster
+SpatRaster object
 }
 \description{
-Threshoold an image to rebinarize a blurred image (e.g., jpeg compression)
+Threshold an image to rebinarize a blurred image
 }
 \examples{
 blurred.img = terra::rast(seg_Oulanka2023_Session03_T067)

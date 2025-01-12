@@ -1,22 +1,19 @@
-## Halo function
-
-#' Halo creates a buffer around pixel bigger than 0
+#' Create a buffer (halo) around non-zero pixels
 #'
-#' @param im segmented raster
-#' @param width buffer around roots in px, the rhizosphere extent.
-#' Exudation diffusion distance is typically 2mm (1-12mm) (Finzi et al. 2015, https://doi.org/10.1111/gcb.12816), but higher values have been suggested.
-#' At 300 dpi, 1mm = 11.8px
-#' @param halo.only set TRUE if only the buffer around roots should be returned (the rhizosphere only)
-#' @param kernel the thickening shape. Available options are: "circle" & "diamond"
-#' @return SpatRaster
+#' @param im SpatRaster/matrix/array - segmented image
+#' @param width numeric - buffer width in pixels (default: 2)
+#' @param halo.only logical - if TRUE, returns only the buffer zone (default: TRUE)
+#' @param kernel character - shape of the thickening kernel: "circle" or "diamond"
+#'
+#' @return SpatRast - buffer zone around non-zero pixels
 #' @export
 #'
-#' @examples
-#' library(terra)
+#' @import raster
 #'
-#' data(seg_Oulanka2023_Session01_T067)
-#' img = terra::rast(seg_Oulanka2023_Session01_T067)
-#' Halo(im = img, width = 2, halo.only = TRUE)
+#' @examples
+#' data(skl_Oulanka2023_Session03_T067)
+#' im <- terra::rast(skl_Oulanka2023_Session03_T067)
+#' Halo(im = im)
 Halo = function(im, width=2, halo.only = TRUE, kernel = "circle"){
 
   if(terra::global(im,"max",na.rm=TRUE)$max[1] > 1){
@@ -34,13 +31,12 @@ Halo = function(im, width=2, halo.only = TRUE, kernel = "circle"){
   }
 
 
-  itr = 1
-  while(itr <= width){
-    im2 <- terra::focal(im2,w = k0, fun = "sum") #%>% suppressWarnings()
-    itr = itr + 1
+  # Apply the focal operation iteratively
+  for(itr in 1:width){
+    im2 <- terra::focal(im2, w = k0, fun = "sum", na.policy = "omit")
   }
 
-  out.im = sum(im2 >= 1) #%>% suppressWarnings()
+  out.im = sum(im2 >= 1)
 
   if(halo.only  == TRUE){
     out.im = out.im - im
@@ -51,13 +47,12 @@ Halo = function(im, width=2, halo.only = TRUE, kernel = "circle"){
 
 
 
-#' Takes a continues depth map and bins it to a specified range
+#' Bin continuous depth values into discrete intervals
 #'
-#' @param depthmap 1-layer raster, takes output from create.depthmap()
-#' @param nn bin width
-#' @param round.option choose the binning operation. Available are "rounding", "ceiling", and "floor".
-#'
-#' @return raster with input depths in bins
+#' @param depthmap SpatRaster/matrix/array - continuous depth values
+#' @param nn numeric - bin width
+#' @param round.option character - binning method: "rounding", "ceiling", or "floor"
+#' @return SpatRaster - binned depth values
 #' @export
 #'
 #' @examples
@@ -83,16 +78,14 @@ im
 
 
 
-#' Cuts out a zone of interest
+#' Extract a zone of interest based on depth values
 #'
-#' @param rootpic the image which should be cut
-#' @param binned.map image which supplies the cut condition
-#' @param indexD the condition
-#' @param nn bin width in binned.map. Should be the same as used in 'binning()'
-#' @param silent verbose
-#' @import dplyr
-#'
-#' @return a cutout of the root pic image
+#' @param rootpic SpatRaster/matrix/array - source image
+#' @param binned.map SpatRaster/matrix/array - binned depth map
+#' @param indexD numeric - depth index to extract
+#' @param nn numeric - bin width used in binning
+#' @param silent logical - suppress messages
+#' @return SpatRaster - extracted zone
 #' @export
 #'
 #' @examples
@@ -143,15 +136,13 @@ zone.fun = function(rootpic,binned.map,indexD= 0,nn = 5,silent =FALSE){
 
 # Adressing rotational Bias
 
-#' RotationZones
+#' Extract zones based on rotation axis
 #'
-#' @param rootpic the "to be cut" image
-#' @param kk  number of total cuts along rotation axis
-#' @param k specify which cuts to keep. Must be <= nn
-#' @param mm limit the region along the tube = c(start,end). Adjust to your tube dimensions!
-#' @import dplyr
-#'
-#' @return raster, cut along rotation axis
+#' @param rootpic array/matrix/SpatRaster - source image
+#' @param k numeric vector - which cuts to keep (length 2)
+#' @param kk numeric - total number of cuts
+#' @param mm numeric vector - region limits (length 2)
+#' @return SpatRaster - extracted rotation zone
 #' @export
 #'
 #' @examples
