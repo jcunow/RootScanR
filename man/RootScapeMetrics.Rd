@@ -5,16 +5,19 @@
 \title{RootScapeMetric relies on Landscapemetrics to extract 'Root Scape' Features akin to landscape analysis.}
 \usage{
 RootScapeMetrics(
-  im,
+  img,
   indexD = NA,
+  select.layer = NULL,
   metrics = c("lsm_c_ca", "lsm_l_ent", "lsm_c_pd", "lsm_c_np", "lsm_c_pland",
     "lsm_c_area_mn", "lsm_c_area_cv", "lsm_c_enn_mn", "lsm_c_enn_cv")
 )
 }
 \arguments{
-\item{im}{segmented raster  (values = 0,1). Consider whether skeletonized raster is appropriate.}
+\item{img}{segmented raster  (values = 0,1). Consider whether skeletonized raster is appropriate.}
 
 \item{indexD}{please specify depth. Will only affect the output column = "depth". Useful when used in a loop.}
+
+\item{select.layer}{Integer. Specifies which layer to use if the input is a multi-band image. Default is `2`.}
 
 \item{metrics}{which ,metrics should be calculated from the available ones in 'landscapemetrics::calculate_lsm()'.}
 }

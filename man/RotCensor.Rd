@@ -9,7 +9,8 @@ RotCensor(
   center.offset = 0,
   cut.buffer = 0.02,
   fixed.rotation = TRUE,
-  fixed.width = 1000
+  fixed.width = 1000,
+  select.layer = NULL
 )
 }
 \arguments{
@@ -22,6 +23,8 @@ RotCensor(
 \item{fixed.rotation}{Use fixed output dimensions}
 
 \item{fixed.width}{Output width when fixed_rotation=TRUE}
+
+\item{select.layer}{Integer. Specifies which layer to use if the input is a multi-band image. Default is `NULL`.}
 }
 \value{
 Cropped raster image

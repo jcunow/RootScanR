@@ -14,7 +14,8 @@ SoilSurfE(
   tape.overlap = 0.5,
   tape.brightness = 0.6,
   extra.rows = 100,
-  tape.quantile = 0.98
+  tape.quantile = 0.98,
+  select.layer = NULL
 )
 }
 \arguments{
@@ -37,6 +38,8 @@ SoilSurfE(
 \item{extra.rows}{Additional analysis rows}
 
 \item{tape.quantile}{Brightness alignment quantile}
+
+\item{select.layer}{Integer. Specifies which layer to use if the input is a multi-band image. Default is `NULL`.}
 }
 \value{
 data.frame with soil surface and tape end positions

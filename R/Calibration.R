@@ -9,29 +9,17 @@
 #' @param extra.rows Additional rows to add for analysis
 #' @param search.area Proportion of image to analyze (0-1)
 #' @param nclasses Number of classes for pixel clustering
+#' @param select.layer Integer. Specifies which layer to use if the input is a multi-band image. Default is `NULL`.
 #' @return numeric Position of the center of extruding tape
 #' @export
 #'
 #' @examples
-#' img = terra::rast(seg_Oulanka2023_Session01_T067)
+#' img = seg_Oulanka2023_Session01_T067
 #' r0 = RotationE(img)
-RotationE = function(img,tape.brightness = 0.66,extra.rows = 100,search.area = 0.45,tape.quantile = 0.98, nclasses = 3){
+RotationE = function(img,tape.brightness = 0.66,extra.rows = 100,search.area = 0.45,tape.quantile = 0.98, nclasses = 3,select.layer = NULL){
 
-  if(is.character(img)){
-    im = terra::rast(img)
-    im = terra::as.array(im)
-  }else{
-    if(!is.array(img) ){
-      im = terra::as.array(img)
-    }else{
-      if(is.array(img) ){
-        im = img
-      }else{
-        print("not the right input format. Try RasterBrick or array type of format.")
-      }
 
-    }
-  }
+  im <- load_flexible_image(img,select.layer = select.layer, output_format = "array", normalize = TRUE  )
 
 
   ## add one row of red tape pixel
@@ -86,6 +74,7 @@ RotationE = function(img,tape.brightness = 0.66,extra.rows = 100,search.area = 0
 #' @param cor.type Correlation type: "ccf" (cross) or "phase" (frequency domain)
 #' @param fixed.depth.pixel Depth range to analyze c(start, end)
 #' @param fixed.width Width of analysis region in pixels
+#' @param select.layer Integer. Specifies which layer to use if the input is a multi-band image. Default is `NULL`.
 #' @return Vector of shifts (x,y) in pixels
 #' @export
 #'
@@ -93,33 +82,14 @@ RotationE = function(img,tape.brightness = 0.66,extra.rows = 100,search.area = 0
 #' img1 = seg_Oulanka2023_Session01_T067
 #' img2 = seg_Oulanka2023_Session03_T067
 #' y.lag = RotShiftDet(img1,img2,"phase")
-RotShiftDet = function(img1,img2,cor.type = "phase",fixed.depth.pixel  = c(1000,4000),fixed.width  =1500){
-  ## import image
-  # check image type for image 1
-  if(is.character(img1)){
-    im1 = terra::rast(img1)
-    im1 = terra::as.array(im1)
-  }else{
-    if(!is.array(img1) ){
-      im1 = terra::as.array(img1)
-    }else{
-      im1 = img1
-    }
+RotShiftDet = function(img1,img2,cor.type = "phase",fixed.depth.pixel  = c(1000,4000),fixed.width  =NULL,select.layer = NULL){
+
+  im1 <- load_flexible_image(img1,select.layer = select.layer, output_format = "array", normalize = FALSE  )
+  im2 <- load_flexible_image(img2, select.layer = select.layer, output_format = "array", normalize = FALSE  )
+
+  if(is.null(fixed.width)){
+    fixed.width = min(dim(img1)[1],dim(img2)[2])
   }
-
-
-  # check image type for image 2
-  if(is.character(img2)){
-    im2 = terra::rast(img2)
-    im2 = terra::as.array(im2)
-  }else{
-    if(!is.array(img2) ){
-      im2 = terra::as.array(img2)
-    }else{
-      im2 = img2
-    }
-  }
-
 
   # grayscale conversion
   img11 <- im1[,,1]*0.21 + im1[,,2]*0.72 + im1[,,3] * 0.07
@@ -181,6 +151,7 @@ RotShiftDet = function(img1,img2,cor.type = "phase",fixed.depth.pixel  = c(1000,
 #' @param cut.buffer Proportion of image to cut when fixed_rotation=FALSE
 #' @param fixed.rotation Use fixed output dimensions
 #' @param fixed.width Output width when fixed_rotation=TRUE
+#' @param select.layer Integer. Specifies which layer to use if the input is a multi-band image. Default is `NULL`.
 #' @return Cropped raster image
 #' @export
 #'
@@ -188,11 +159,13 @@ RotShiftDet = function(img1,img2,cor.type = "phase",fixed.depth.pixel  = c(1000,
 #' data(seg_Oulanka2023_Session01_T067)
 #' img = terra::rast(seg_Oulanka2023_Session01_T067)
 #' censored.raster = RotCensor(img,center.offset = 120, cut.buffer = 0.02)
-RotCensor = function(img, center.offset=0,  cut.buffer = 0.02, fixed.rotation = TRUE,fixed.width  =1000 ){
+RotCensor = function(img, center.offset=0,  cut.buffer = 0.02, fixed.rotation = TRUE,
+                     fixed.width  =1000, select.layer = NULL ){
 
   ###### uses the detected shift to whiten the region that doesnt appear in another image (y-dimension) or slide them up and down the tube (x-dimension)
-  img.c=img
-  offset.ratio = (abs(center.offset))/  dim(img)[1]
+  img.c <- load_flexible_image(img, select.layer = select.layer, output_format = "spatrast", normalize = FALSE  )
+
+  offset.ratio = (abs(center.offset))/  dim(img.c)[1]
   cut.ratio = offset.ratio + cut.buffer
 
 if(fixed.rotation == FALSE){
@@ -249,6 +222,7 @@ if(fixed.rotation == TRUE){
 #' @param tape.overlap Safety margin for tape (cm)
 #' @param tape.brightness Brightness threshold for tape
 #' @param extra.rows Additional analysis rows
+#' @param select.layer Integer. Specifies which layer to use if the input is a multi-band image. Default is `NULL`.
 #' @param tape.quantile Brightness alignment quantile
 #' @return data.frame with soil surface and tape end positions
 #' @export
@@ -257,25 +231,9 @@ if(fixed.rotation == TRUE){
 #' img = seg_Oulanka2023_Session01_T067
 #' Soil0Estimates = SoilSurfE(img)
 SoilSurfE = function(img,search.area = 0.45, tape.tresh = 0.33,dpi = 300, nclasses = 3, inverse = FALSE,
-                     tape.overlap = 0.5,tape.brightness = 0.6,extra.rows = 100,tape.quantile = 0.98 ){
+                     tape.overlap = 0.5,tape.brightness = 0.6,extra.rows = 100,tape.quantile = 0.98, select.layer = NULL ){
 
-  if(is.character(img)){
-    im = terra::rast(img)
-    im = terra::as.array(im)
-  }else{
-    if(!is.array(img) ){
-      im = terra::as.array(img)
-    }else{
-      if(is.array(img) ){
-        im = img
-      }else{
-        print("not the right input format. Try RasterBrick or array type of format.")
-      }
-
-    }
-  }
-
-
+  im <- load_flexible_image(img, select.layer = select.layer, output_format = "array", normalize = FALSE  )
 
   if(inverse == TRUE){
     tape.quantile = 1- tape.quantile

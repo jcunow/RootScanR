@@ -4,14 +4,14 @@
 \alias{medial_axis_transform}
 \title{Medial Axis Transform (Internal)}
 \usage{
-medial_axis_transform(img, verbose = FALSE, layer = 2)
+medial_axis_transform(img, verbose = FALSE, select.layer = 2)
 }
 \arguments{
 \item{img}{A matrix, data frame, or `SpatRaster` object representing the binary image for transformation.}
 
 \item{verbose}{Logical. If `TRUE`, outputs diagnostic information such as image dimensions, progress of computation, and final skeleton size. Default is `FALSE`.}
 
-\item{layer}{Integer indicating the layer to use if `img` is a multi-layer `SpatRaster`. Default is 2.}
+\item{select.layer}{Integer indicating the layer to use if `img` is a multi-layer `SpatRaster`. Default is 2.}
 }
 \value{
 A binary matrix where `1` represents skeleton pixels and `0` represents the background.
@@ -20,7 +20,7 @@ A binary matrix where `1` represents skeleton pixels and `0` represents the back
 This internal function computes the medial axis transform of a binary image, identifying the set of skeleton points equidistant to the object's boundaries.
 }
 \details{
-- The input image is first processed using \code{\link{prepare_image}} to ensure it is a binary matrix.
+- The input image is first processed using \code{\link{load_flexible_image}} to ensure it is a binary matrix.
 - The algorithm proceeds through the following steps:
   1. **Distance Transform**: Computes the distance of each foreground pixel to the nearest background pixel using a two-pass algorithm.
   2. **Local Maxima Detection**: Identifies local maxima in the distance transform to mark potential skeleton points.

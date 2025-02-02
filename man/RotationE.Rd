@@ -10,7 +10,8 @@ RotationE(
   extra.rows = 100,
   search.area = 0.45,
   tape.quantile = 0.98,
-  nclasses = 3
+  nclasses = 3,
+  select.layer = NULL
 )
 }
 \arguments{
@@ -25,6 +26,8 @@ RotationE(
 \item{tape.quantile}{Quantile used to align brightness with tape (0-1)}
 
 \item{nclasses}{Number of classes for pixel clustering}
+
+\item{select.layer}{Integer. Specifies which layer to use if the input is a multi-band image. Default is `NULL`.}
 }
 \value{
 numeric Position of the center of extruding tape
@@ -34,6 +37,6 @@ This function analyzes image data to determine rotation based on tape coverage,
 assuming more tape is present on the upper side of the tube.
 }
 \examples{
-img = terra::rast(seg_Oulanka2023_Session01_T067)
+img = seg_Oulanka2023_Session01_T067
 r0 = RotationE(img)
 }

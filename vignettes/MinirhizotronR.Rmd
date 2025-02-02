@@ -66,9 +66,7 @@ Tipp: split your stitched images if the root detection algorithm has trouble wit
 library(raster)
 library(terra)
 library(MinirhizotronR)
-#library(cowplot)
-library(ggplot2)
-library(dplyr)
+library(tidyverse)
 
 data(rgb_Oulanka2023_Session03_T067)
 data(seg_Oulanka2023_Session03_T067)
@@ -105,7 +103,7 @@ For many purposes, we will need a skeleton version of the segmentation:
 First, we need to load the images. The example images were taken in a sedge fen in north eastern Finland at Oulanka National Park.
 ```{r Start the package, echo=TRUE,  warning=FALSE,include=TRUE}
 library(MinirhizotronR)
-library(dplyr)
+library(tidyverse)
 library(terra)
 
 # read color image, segmented, and skeletonize
@@ -120,7 +118,7 @@ rgb_Oulanka2023_Session03_T067 = terra::rast(rgb_Oulanka2023_Session03_T067)
 skl_Oulanka2023_Session01_T067 = terra::rast(skl_Oulanka2023_Session01_T067)
 skl_Oulanka2023_Session03_T067 = terra::rast(skl_Oulanka2023_Session03_T067)
 TurnoverDPC_data = terra::rast(TurnoverDPC_data)
-demo_skl_Oulanka2023_Session03_T067 = skeletonize_image(seg_Oulanka2023_Session03_T067,methods = "MAT",layer=2)
+demo_skl_Oulanka2023_Session03_T067 = skeletonize_image(seg_Oulanka2023_Session03_T067/255,methods = "MAT",select.layer=2)
 
 ```
 <br />
@@ -163,11 +161,11 @@ We are ready now to create a depth map. The here goal is to supply every pixel o
 # The format of 'RootDetector' uses the red channel to show mask and root px, while blue and green only show root px
 mask = (seg_Oulanka2023_Session03_T067[[1]] - seg_Oulanka2023_Session03_T067[[2]] ) / 255
 mask = terra::t(mask)
-## Create the Map 
+## Create the Map (soil0 in cm)
 center.offset = r0  / dim(seg_Oulanka2023_Session03_T067)[1]
 DepthMap = create.depthmap(im = seg_Oulanka2023_Session03_T067, 
                            sinoid = TRUE, 
-                           mask = mask,start.soil = s0$soil0,
+                           mask = mask,start.soil = s0$soil0*(2.54/dpi),
                            center.offset = center.offset )
 
 # Now lets bin the depth to be able to calculate some stats. Analysis on continuous depth will feature in a future release.
@@ -203,11 +201,12 @@ terra::plot(rootzone)
 
 # Also do it for the skeletonized version
 rootzone.skeleton = zone.fun(skl_Oulanka2023_Session03_T067, binned.map = bm, indexD = 20, nn = 2)
+rootzone.skeleton  = terra::rast(skeletonize_image(seg_Oulanka2023_Session03_T067, methods = "MAT"))
 terra::ext(rootzone.skeleton) <- c(0,dim(rootzone.skeleton)[2],0,dim(rootzone.skeleton)[1])
 
 
 # Get the landscape metrics of the root scape - keep the output units in mind (assuming... input and deliver hectar output)
-rsm = RootScapeMetrics(rootzone,indexD = 8, metrics = c( "lsm_c_ca","lsm_l_ent","lsm_c_pd",
+rsm = RootScapeMetrics( rootzone,indexD = 8, metrics = c( "lsm_c_ca","lsm_l_ent","lsm_c_pd",
                                       "lsm_c_enn_mn")) 
 print(rsm) 
 
@@ -238,11 +237,11 @@ colnames(void.sum) <- c("zone","sum")
 colnames(root.sum) <- c("zone","sum")
 
 # if you want to include this function within a depth wise loop use this
-rootpixel = px.sum(root.zone = rootzone) # uses the segmented - so its total root pixel
+rootpixel = px.sum(img = rootzone) # uses the segmented - so its total root pixel
 
 
 # for root length do something like this
-kimroot = RootLength(rootzone.skeleton)
+kimroot = RootLength(rootzone.skeleton,unit="cm",dpi=150,select.layer = NULL)
 # lastly Root thickness
 root.thicc = root.thickness(kimuralength = kimroot, rootpx = rootpixel, dpi = 150)
 
@@ -285,7 +284,7 @@ terra::plot(buff.im, main= "The sphere of influence (roots + 0.3mm each side)")
 
 ## lets do some stats on the sphere of influence
 buffer.sum = terra::zonal( buff.im,bm, "sum",na.rm=TRUE )
-plot(scale(buffer.sum)); points(scale(root.sum),col="red") + title("The difference between distribution of influence (black) vs distribution of rotos (red)")
+plot(scale(buffer.sum)); points(scale(root.sum),col="red") + title("The difference between distribution of influence (black) vs distribution of roots (red)")
 
 # Hint: sphere of influence might not be the same across depth with varying physiology and hydraulic conductivity
 ```
@@ -297,6 +296,7 @@ plot(scale(buffer.sum)); points(scale(root.sum),col="red") + title("The differen
 ```{r Characterize the soil, echo=TRUE, message=FALSE, warning=FALSE,  eval=TRUE, include=TRUE}
 # only consider soil pixels - not tape nor roots
 peat.color = terra::crop(rgb_Oulanka2023_Session03_T067,gray.roots)
+
 terra::values(peat.color)[terra::values(buff.im) == 1] = NA 
 terra::values(peat.color)[terra::values(terra::t(mask)) == 1] = NA 
 # plot & color
@@ -314,16 +314,18 @@ tube.color.root = Tube.coloration(root.color);tube.color.root
 
 ##  Lets try to get texture information as well
 gray.peat = raster::raster(rgb2gray(peat.color))
-void.tx = glcm::glcm(gray.peat,n_grey = 7,window = c(9,9), 
+void.tx = glcm::glcm(gray.peat,n_grey = 7,window = c(3,3), 
                      statistics = c("second_moment","homogeneity"),
                      shift=list(c(0,1), c(1,1), c(1,0), c(1,-1)))
-#void.tx = terra::rast(void.tx)
+
+void.tx = terra::rast(void.tx)
 terra::plot(void.tx[[1]], main = "available texture pixels and their second moment characteristic") 
 ## extent don't match
-bm2 = raster::brick(bm)
-terra::ext(bm) = terra::ext(void.tx) 
-tx.mean = terra::zonal(void.tx,bm2)
-plot(tx.mean) + title("second moment - peat texture characterization")
+bm2 = bm
+bm2 = crop(bm2,void.tx[[1]])
+terra::ext(bm2) = terra::ext(void.tx) 
+tx.mean = terra::zonal(void.tx,bm2);tx.mean
+#plot(tx.mean) + title("second moment - peat texture characterization")
 ```
 <br />
 
@@ -341,7 +343,7 @@ rot.df = data.frame(rotation = 1:splits,rotation.rootpx = NA)
 
 for (k in 1:splits) {
 rotation.z = zone.rotation.fun(rootpic = root.seg, mm= c(1500,4000), kk = splits, k = c(k-1,k))  
-rot.df[k,2] = px.sum(root.zone = rotation.z)
+rot.df[k,2] = px.sum(img = rotation.z)
 }
 rot.df$sc.rotationpx = scale(rot.df$rotation.rootpx)
 ggplot(data= rot.df, aes(rotation,sc.rotationpx)) + 
@@ -460,6 +462,13 @@ bm.turn2 =raster::brick(raster::t(bm.turn))
    geom_line(aes(y = con,color = "con")) + geom_line(aes(y = con/rootpx,color = "con"))
 ```
 
+## Estimate the Diameter Distribution
+```{r}
+# diameters estimation based on distance from the center line to the edge. Results can varyu with skeletonizatioin method.
+diameters = root.diameters(seg_Oulanka2023_Session01_T067, skeleton_method = "MAT")
+terra::plot(diameters$diameter_rast)
+hist(diameters$diameter_rast,breaks = 20)
+```
 
 
 

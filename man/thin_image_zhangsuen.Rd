@@ -4,14 +4,14 @@
 \alias{thin_image_zhangsuen}
 \title{Thin Binary Image using Zhang-Suen Algorithm (Internal)}
 \usage{
-thin_image_zhangsuen(img, verbose = TRUE, layer = 2)
+thin_image_zhangsuen(img, verbose = TRUE, select.layer = 2)
 }
 \arguments{
 \item{img}{A matrix, data frame, or `SpatRaster` object representing the binary image to be thinned.}
 
 \item{verbose}{Logical. If `TRUE`, prints diagnostic information such as iteration progress and pixel removal counts. Default is `TRUE`.}
 
-\item{layer}{Integer indicating the layer to use if `img` is a multi-layer `SpatRaster`. Default is 2.}
+\item{select.layer}{Integer indicating the layer to use if `img` is a multi-layer `SpatRaster`. Default is 2.}
 }
 \value{
 A binary matrix representing the thinned image (skeleton).
@@ -21,7 +21,7 @@ This internal function performs image thinning using the Zhang-Suen thinning alg
 It reduces binary images to their skeleton while preserving the structure and connectivity of the foreground pixels.
 }
 \details{
-- The function first prepares the image using the \code{\link{prepare_image}} function, ensuring binary matrix format.
+- The function first prepares the image using the \code{\link{load_flexible_image}} function, ensuring binary matrix format.
 - Thinning is performed iteratively in two subiterations per cycle:
   1. Identifying pixels to be removed based on Zhang-Suen conditions (first subiteration).
   2. Refining removal decisions in the second subiteration.

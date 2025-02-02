@@ -4,7 +4,14 @@
 \alias{deep.drive}
 \title{Calculate Deep Drive Estimate for Root Systems}
 \usage{
-deep.drive(DepthMap = NULL, AngleMap = NULL, RootMap = NULL, layer.index = 2)
+deep.drive(
+  DepthMap = NULL,
+  AngleMap = NULL,
+  RootMap = NULL,
+  select.layerRM = 2,
+  select.layerDM = NULL,
+  select.layerAM = NULL
+)
 }
 \arguments{
 \item{DepthMap}{SpatRast object containing depth information}
@@ -13,7 +20,11 @@ deep.drive(DepthMap = NULL, AngleMap = NULL, RootMap = NULL, layer.index = 2)
 
 \item{RootMap}{Optional SpatRast containing segmented, presence-absence root image}
 
-\item{layer.index}{Numeric indicating which layer to use for multi-layer RootMaps (default: 2)}
+\item{select.layerRM}{Integer. Specifies which layer to use if the input is a multi-band image. Default is `2`.}
+
+\item{select.layerDM}{Integer. Specifies which layer to use if the input is a multi-band image. Default is `NULL`.}
+
+\item{select.layerAM}{Integer. Specifies which layer to use if the input is a multi-band image. Default is `NULL`.}
 }
 \value{
 If return_diagnostics=FALSE, returns numeric value representing the ratio of aligned root pixels

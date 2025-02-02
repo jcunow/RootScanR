@@ -28,6 +28,6 @@ Enhanced texture calculation
 }
 \examples{
 data(rgb_Oulanka2023_Session03_T067)
-img = rgb_Oulanka2023_Session03_T067
+img = raster::brick(rgb_Oulanka2023_Session03_T067)
 texture(img, 7, c(9,9), metrics = "second_moment")
 }

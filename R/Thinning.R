@@ -1,57 +1,6 @@
 ### thinning algorithm
 
-#' Prepare Image for Processing (Internal)
-#'
-#' This internal function ensures that the input image is in binary format and a matrix structure.
-#' It accepts matrices, data frames, or `SpatRaster` objects and standardizes the format for further processing.
-#'
-#' @param img A matrix, data frame, or `SpatRaster` object representing the image to be processed.
-#' @param layer Integer indicating the layer to use if `img` is a multi-layer `SpatRaster`. Default is 2.
-#'
-#' @details
-#' - If `img` is a `SpatRaster`, it will be converted to a matrix. For multi-layer rasters, the specified `layer` is used.
-#' - If `img` is a data frame, it will be converted to a matrix.
-#' - Ensures the matrix contains binary values (`1` for foreground and `0` for background).
-#' - Validates that the matrix contains at least one foreground pixel (`1`).
-#'
-#' @return A binary matrix with dimensions corresponding to the input image.
-#'
-#' @keywords internal
-#'
-#' @examples
-#' \dontrun{
-#' # Example usage
-#' raster <- terra::rast(matrix(c(0, 1, 0, 1), nrow = 2))
-#' binary_image <- prepare_image(raster)
-#' }
-prepare_image <- function(img,layer = 2) {
-  if (inherits(img, "SpatRaster")) {
-    # Convert SpatRaster to matrix
-    if(dim(img)[3]>1){
-      img = img[[layer]]
-    }
-    img <- terra::as.array(img)
-  } else if (is.data.frame(img)) {
-    # Convert data.frame to matrix
-    img <- as.matrix(img)
-  } else if (!is.matrix(img)) {
-    stop("Unsupported input type. Please provide a matrix, data.frame, or SpatRaster.")
-  }
 
-  # Ensure numeric type
-  img <- matrix(as.numeric(img), nrow = nrow(img))
-
-  # Force binary values (1 for foreground, 0 for background)
-  img[abs(img - 1) < 1e-10] <- 1
-  img[abs(img) < 1e-10] <- 0
-
-  # Check if the image contains any foreground pixels
-  if (sum(img == 1) == 0) {
-    stop("No foreground pixels found after type conversion. Ensure the input is binary.")
-  }
-
-  return(img)
-}
 
 
 #' Thin Binary Image using Zhang-Suen Algorithm (Internal)
@@ -61,10 +10,10 @@ prepare_image <- function(img,layer = 2) {
 #'
 #' @param img A matrix, data frame, or `SpatRaster` object representing the binary image to be thinned.
 #' @param verbose Logical. If `TRUE`, prints diagnostic information such as iteration progress and pixel removal counts. Default is `TRUE`.
-#' @param layer Integer indicating the layer to use if `img` is a multi-layer `SpatRaster`. Default is 2.
+#' @param select.layer Integer indicating the layer to use if `img` is a multi-layer `SpatRaster`. Default is 2.
 #'
 #' @details
-#' - The function first prepares the image using the \code{\link{prepare_image}} function, ensuring binary matrix format.
+#' - The function first prepares the image using the \code{\link{load_flexible_image}} function, ensuring binary matrix format.
 #' - Thinning is performed iteratively in two subiterations per cycle:
 #'   1. Identifying pixels to be removed based on Zhang-Suen conditions (first subiteration).
 #'   2. Refining removal decisions in the second subiteration.
@@ -80,9 +29,12 @@ prepare_image <- function(img,layer = 2) {
 #' raster <- terra::rast(matrix(c(0, 1, 1, 0, 0, 1, 1, 0), nrow = 4))
 #' thinned_image <- thin_image_zhangsuen(raster, verbose = TRUE)
 #' }
-thin_image_zhangsuen <- function(img, verbose = TRUE,layer = 2) {
-    # flexible input
-  img = prepare_image(img,layer = layer)
+thin_image_zhangsuen <- function(img, verbose = TRUE,select.layer = 2) {
+
+  # flexible input
+  img <- load_flexible_image(img, select.layer = select.layer, output_format = "spatrast", normalize = TRUE  )
+  img <- matrix(as.numeric(img), nrow = nrow(img))
+
 
   if(verbose){
     # Initial diagnostics
@@ -94,6 +46,7 @@ thin_image_zhangsuen <- function(img, verbose = TRUE,layer = 2) {
   # Force binary values
   img[abs(img - 1) < 1e-10] <- 1
   img[abs(img) < 1e-10] <- 0
+
 
   if(sum(img == 1) == 0) {
     stop("No foreground pixels found after type conversion")
@@ -197,10 +150,10 @@ thin_image_zhangsuen <- function(img, verbose = TRUE,layer = 2) {
 #'
 #' @param img A matrix, data frame, or `SpatRaster` object representing the binary image to be thinned.
 #' @param verbose Logical. If `TRUE`, outputs diagnostic information such as image dimensions, pixel removal counts, and iteration progress. Default is `FALSE`.
-#' @param layer Integer indicating the layer to use if `img` is a multi-layer `SpatRaster`. Default is 2.
+#' @param select.layer Integer indicating the layer to use if `img` is a multi-layer `SpatRaster`. Default is 2.
 #'
 #' @details
-#' - The input image is first processed using \code{\link{prepare_image}} to ensure it is a binary matrix.
+#' - The input image is first processed using \code{\link{load_flexible_image}} to ensure it is a binary matrix.
 #' - Thinning is performed in an iterative process consisting of two subiterations per cycle:
 #'   1. In the first subiteration, pixels are marked for removal based on specific Guo-Hall conditions.
 #'   2. In the second subiteration, a different set of conditions is applied to mark additional pixels for removal.
@@ -217,9 +170,12 @@ thin_image_zhangsuen <- function(img, verbose = TRUE,layer = 2) {
 #' raster <- terra::rast(matrix(c(0, 1, 1, 0, 0, 1, 1, 0), nrow = 4))
 #' thinned_image <- thin_image_guohall(raster, verbose = TRUE)
 #' }
-thin_image_guohall <- function(img, verbose = FALSE,layer = 2) {
+thin_image_guohall <- function(img, verbose = FALSE,select.layer = 2) {
+
   # flexible input
-  img = prepare_image(img,layer = layer)
+  img <- load_flexible_image(img, select.layer = select.layer, output_format = "spatrast", normalize = TRUE  )
+  img <- matrix(as.numeric(img), nrow = nrow(img))
+
 
   if(verbose){
     cat("Image dimensions:", nrow(img), "x", ncol(img), "\n")
@@ -350,10 +306,10 @@ thin_image_guohall <- function(img, verbose = FALSE,layer = 2) {
 #'
 #' @param img A matrix, data frame, or `SpatRaster` object representing the binary image for transformation.
 #' @param verbose Logical. If `TRUE`, outputs diagnostic information such as image dimensions, progress of computation, and final skeleton size. Default is `FALSE`.
-#' @param layer Integer indicating the layer to use if `img` is a multi-layer `SpatRaster`. Default is 2.
+#' @param select.layer Integer indicating the layer to use if `img` is a multi-layer `SpatRaster`. Default is 2.
 #'
 #' @details
-#' - The input image is first processed using \code{\link{prepare_image}} to ensure it is a binary matrix.
+#' - The input image is first processed using \code{\link{load_flexible_image}} to ensure it is a binary matrix.
 #' - The algorithm proceeds through the following steps:
 #'   1. **Distance Transform**: Computes the distance of each foreground pixel to the nearest background pixel using a two-pass algorithm.
 #'   2. **Local Maxima Detection**: Identifies local maxima in the distance transform to mark potential skeleton points.
@@ -370,10 +326,11 @@ thin_image_guohall <- function(img, verbose = FALSE,layer = 2) {
 #' raster <- terra::rast(matrix(c(0, 1, 1, 0, 0, 1, 1, 0), nrow = 4))
 #' skeleton <- medial_axis_transform(raster, verbose = TRUE)
 #' }
-medial_axis_transform <- function(img, verbose = FALSE,layer = 2) {
+medial_axis_transform <- function(img, verbose = FALSE,select.layer = 2) {
 
   # flexible input
-  img = prepare_image(img,layer = layer)
+  img <- load_flexible_image(img, output_format = "spatrast", normalize = T, select.layer = 2)
+  img <- matrix(as.numeric(img), nrow = nrow(img))
 
 
   # Force binary values
@@ -496,7 +453,7 @@ medial_axis_transform <- function(img, verbose = FALSE,layer = 2) {
 #' @param img A matrix, data frame, or `SpatRaster` object representing the binary image to be skeletonized.
 #' @param methods A character vector specifying the skeletonization methods to apply. Valid options are \code{"ZhangSuen"}, \code{"GuoHall"}, and \code{"MAT"}. Defaults to all three methods.
 #' @param verbose Logical. If \code{TRUE}, displays progress and diagnostic messages during processing. Defaults to \code{TRUE}.
-#' @param layer Integer specifying the layer to use if \code{img} is a multi-layer `SpatRaster`. Defaults to 2.
+#' @param select.layer Integer specifying the layer to use if \code{img} is a multi-layer `SpatRaster`. Defaults to 2.
 #'
 #' @details
 #' This function allows for flexible and streamlined skeletonization of binary images using one or more supported algorithms:
@@ -527,7 +484,7 @@ medial_axis_transform <- function(img, verbose = FALSE,layer = 2) {
 #'
 #' @seealso \code{\link{thin_image_zhangsuen}}, \code{\link{thin_image_guohall}}, \code{\link{medial_axis_transform}}
 #' @export
-skeletonize_image <- function(img, methods = c("ZhangSuen", "GuoHall", "MAT"), verbose = TRUE, layer = 2) {
+skeletonize_image <- function(img, methods = c("ZhangSuen", "GuoHall", "MAT"), verbose = TRUE, select.layer = 2) {
   # Ensure methods are valid
   valid_methods <- c("ZhangSuen", "GuoHall", "MAT")
   methods <- intersect(methods, valid_methods)
@@ -535,8 +492,6 @@ skeletonize_image <- function(img, methods = c("ZhangSuen", "GuoHall", "MAT"), v
     stop("No valid methods specified. Choose from: 'ZhangSuen', 'GuoHall', 'MAT'.")
   }
 
-  # # input flexibility
-  # img = prepare_image(img = img)
 
   # Process each method
   results <- list()
@@ -545,9 +500,9 @@ skeletonize_image <- function(img, methods = c("ZhangSuen", "GuoHall", "MAT"), v
     result <- switch(
       method,
       "ZhangSuen" =
-        terra::rast(thin_image_zhangsuen(img, verbose = verbose)),
-      "GuoHall" = terra::rast(thin_image_guohall(img, verbose = verbose)),
-      "MAT" = terra::rast(medial_axis_transform(img, verbose = verbose)),
+        thin_image_zhangsuen(img, verbose = verbose),
+      "GuoHall" = thin_image_guohall(img, verbose = verbose),
+      "MAT" = medial_axis_transform(img, verbose = verbose),
       stop(paste("Unsupported method:", method))
     )
     results[[method]] <- result
@@ -567,6 +522,7 @@ skeletonize_image <- function(img, methods = c("ZhangSuen", "GuoHall", "MAT"), v
 #' Identifies the branching points and endpoints of a skeletonized binary image.
 #'
 #' @param img A matrix, data frame, or `SpatRaster` object representing the skeletonized binary image.
+#' @param select.layer Integer. Specifies which layer to use if the input is a multi-band image. Default is `2`.
 #'
 #' @details
 #' This function detects key points in a skeletonized binary image:
@@ -602,8 +558,12 @@ skeletonize_image <- function(img, methods = c("ZhangSuen", "GuoHall", "MAT"), v
 #'
 #' @seealso \code{\link{skeletonize_image}}, \code{\link{thin_image_zhangsuen}}, \code{\link{thin_image_guohall}}
 #' @export
-detect_skeleton_points <- function(img) {
-  img = prepare_image(img)
+detect_skeleton_points <- function(img, select.layer = 2) {
+
+  # flexible input
+  img <- load_flexible_image(img, select.layer = select.layer, output_format = "spatrast", normalize = TRUE  )
+  img <- matrix(as.numeric(img), nrow = img)
+
   # Count neighbors using a kernel method
   count_neighbors <- function(img) {
     # Ensure the input is binary

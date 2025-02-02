@@ -1,28 +1,33 @@
 #' Calculate Root Length using Kimura's Method with optimizations
 #'
-#' @param im A skeletonized root image raster
+#' @param img A skeletonized root image raster
 #' @param unit Output unit ("px" or "cm")
 #' @param dpi Image resolution (required when unit = "cm")
+#' @param select.layer Integer. Specifies which layer to use if the input is a multi-band image. Default is `2`.
 #' @return Numeric value representing root length in specified unit
 #' @export
 #'
 #' @examples
 #' data(skl_Oulanka2023_Session01_T067)
-#' img = terra::rast(skl_Oulanka2023_Session01_T067[[2]])
-#' RL = RootLength(im = img,unit = "cm", dpi = 300)
-RootLength = function(im,unit="cm",dpi=300){
-  im2 = im / terra::global(im,"max",na.rm=TRUE)[[1]]
+#' img = terra::rast(skl_Oulanka2023_Session01_T067)
+#' RL = RootLength(img = img,unit = "cm", dpi = 300)
+RootLength = function(img,unit="cm",dpi=300,select.layer = NULL){
+
+  # flexible input
+  img <- load_flexible_image(img, select.layer = select.layer, output_format = "spatrast", normalize = TRUE  )
+
+
   ## kimura image
   k0 = matrix(c(0,1,0,0,1,0,0,0,0), nrow = 3, ncol = 3)
   k1 = matrix(c(0,0,0,1,1,0,0,0,0), nrow = 3, ncol = 3)
-  r0 <- terra::focal(im2,w = k0, fun = "sum",na.rm=TRUE)
-  r1 <- terra::focal(im2,w = k1, fun = "sum",na.rm=TRUE)
+  r0 <- terra::focal(img,w = k0, fun = "sum",na.rm=TRUE)
+  r1 <- terra::focal(img,w = k1, fun = "sum",na.rm=TRUE)
   orth.img = sum((r0 == 2) | (r1 == 2))
 
   g0 = matrix(c(1,0,0,0,1,0,0,0,0), nrow = 3, ncol = 3)
   g1 = matrix(c(0,0,1,0,1,0,0,0,0), nrow = 3, ncol = 3)
-  u0 <- terra::focal(im2 ,w = g0, fun = "sum",na.rm=TRUE)
-  u1 <- terra::focal(im2 ,w = g1, fun = "sum",na.rm=TRUE)
+  u0 <- terra::focal(img ,w = g0, fun = "sum",na.rm=TRUE)
+  u1 <- terra::focal(img ,w = g1, fun = "sum",na.rm=TRUE)
   diag.img = sum((u0 == 2) | (u1 == 2))
 
   kimura.sum.diag <- terra::global(diag.img,"sum",na.rm=TRUE)
@@ -38,7 +43,7 @@ RootLength = function(im,unit="cm",dpi=300){
     }
   }
 
-  return(rootlength)
+  return(rootlength[[1]])
 
 }
 
@@ -51,9 +56,10 @@ RootLength = function(im,unit="cm",dpi=300){
 
 #' RootScapeMetric relies on Landscapemetrics to extract 'Root Scape' Features akin to landscape analysis.
 #'
-#' @param im segmented raster  (values = 0,1). Consider whether skeletonized raster is appropriate.
+#' @param img segmented raster  (values = 0,1). Consider whether skeletonized raster is appropriate.
 #' @param indexD please specify depth. Will only affect the output column = "depth". Useful when used in a loop.
 #' @param metrics which ,metrics should be calculated from the available ones in 'landscapemetrics::calculate_lsm()'.
+#' @param select.layer Integer. Specifies which layer to use if the input is a multi-band image. Default is `2`.
 #' @import dplyr
 #' @return a bunch of metric values
 #' @export
@@ -62,10 +68,14 @@ RootLength = function(im,unit="cm",dpi=300){
 #' data(seg_Oulanka2023_Session01_T067)
 #' img = terra::rast(seg_Oulanka2023_Session01_T067)[[2]]
 #' RootScapeObject  = RootScapeMetrics(img,indexD = 80, metrics = c("lsm_c_ca"))
-RootScapeMetrics = function(im,indexD=NA, metrics = c( "lsm_c_ca","lsm_l_ent","lsm_c_pd","lsm_c_np","lsm_c_pland",
+RootScapeMetrics = function(img,indexD=NA, select.layer = NULL, metrics = c( "lsm_c_ca","lsm_l_ent","lsm_c_pd","lsm_c_np","lsm_c_pland",
                                                     "lsm_c_area_mn","lsm_c_area_cv","lsm_c_enn_mn","lsm_c_enn_cv")){
 
-  rsm = landscapemetrics::calculate_lsm(im, directions = 8, neighbourhood = 8,what = metrics)
+  # flexible input
+  img <- load_flexible_image(img, select.layer = select.layer, output_format = "spatrast", normalize = FALSE  )
+
+
+  rsm = landscapemetrics::calculate_lsm(img, directions = 8, neighbourhood = 8,what = metrics)
   t.object = ifelse(rsm$class == 0,"deletable","root")
   t.object = ifelse(is.na(rsm$class),"root",t.object )
   rsm$object = t.object
@@ -87,19 +97,20 @@ RootScapeMetrics = function(im,indexD=NA, metrics = c( "lsm_c_ca","lsm_l_ent","l
 
 #' counts all pixels in a segmented image
 #'
-#' @param root.zone one layer raster
+#' @param img one layer image
 #'
 #' @return a numeric value
 #' @export
 #'
 #' @examples
 #' data(seg_Oulanka2023_Session01_T067)
-#' img = terra::rast(seg_Oulanka2023_Session01_T067[[2]])
+#' img = terra::rast(seg_Oulanka2023_Session01_T067)[[2]]
 #' rootpixel  = px.sum(img)
-px.sum = function(root.zone){
-  rootpx = as.numeric(terra::values(root.zone)/ terra::global(root.zone,"max",na.rm = TRUE)[[1]] ) ==1
-  rootpx = rootpx * 1
-  srpx = sum(rootpx,na.rm=T)
+px.sum = function(img){
+  # flexible input
+  img <- load_flexible_image(img, output_format = "spatrast", normalize = TRUE  )
+
+  srpx = terra::global(img,"sum",na.rm = TRUE)[[1]]
   return(srpx)
 }
 
@@ -118,8 +129,12 @@ px.sum = function(root.zone){
 #' @examples
 #' data(rgb_Oulanka2023_Session03_T067)
 #' img = terra::rast(rgb_Oulanka2023_Session03_T067)
-#' colorvector = Tube.coloration(img = img)
+#' colorvector = Tube.coloration(img)
 Tube.coloration = function(img,r=0.2126,g=0.7152,b=0.0722){
+  # flexible input
+  img <- load_flexible_image(img, output_format = "spatrast", normalize = FALSE  )
+
+
   vr = terra::values(img[[1]])
   vg = terra::values(img[[2]])
   vb = terra::values(img[[3]])
@@ -152,11 +167,16 @@ Tube.coloration = function(img,r=0.2126,g=0.7152,b=0.0722){
 #' @return Raster with texture metrics
 #' @export
 #'
+#' @import raster
+#'
 #' @examples
 #' data(rgb_Oulanka2023_Session03_T067)
-#' img = rgb_Oulanka2023_Session03_T067
+#' img = raster::brick(rgb_Oulanka2023_Session03_T067)
 #' texture(img, 7, c(9,9), metrics = "second_moment")
 texture = function(img.color,grays = 7, window = c(9,9), metrics = c("variance","second_moment") ){
+
+  # flexible input
+  img <- load_flexible_image(img, output_format = "spatrast", normalize = FALSE  )
 
   mx = max(raster::values(img.color),na.rm=TRUE)
   if(mx > 1){

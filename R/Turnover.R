@@ -24,8 +24,7 @@
 #'   turnover.values <- Turnover.TC(
 #'     im.t1 = time1,
 #'     im.t2 = time2,
-#'     method = "kimura",
-#'     verbose = TRUE)
+#'     method = "kimura")
 Turnover.TC = function(im.t1, im.t2,method="kimura",unit = "cm",dpi = 300){
 
   if(method == "rootpx"){
@@ -67,6 +66,12 @@ Turnover.TC = function(im.t1, im.t2,method="kimura",unit = "cm",dpi = 300){
 #' img = terra::rast(TurnoverDPC_data)
 #' DPCs = Turnover.DPC(img = img, im.return = FALSE)
 Turnover.DPC = function(img,product.layer = 2, decay.layer = 1, blur.capture = 0.95, im.return = FALSE, include.virtualroots = FALSE){
+
+
+  # flexible input
+  img <- load_flexible_image(img, output_format = "spatrast", normalize = TRUE  )
+
+
   l.indx = 1:3
   no.change.layer = which(!l.indx %in% c(product.layer,decay.layer))
   l.pr = img[[product.layer]]
@@ -106,7 +111,7 @@ if(include.virtualroots == TRUE){
 }
   constant.ratio  = const.px / (prodc.px + decay.px + const.px)
   state.change = (decay.px + prodc.px) / (prodc.px + decay.px + const.px)
-  return(dplyr::tibble("tape" = tape.px, "constant" = const.px,
+  return(data.frame("tape" = tape.px, "constant" = const.px,
                   "production" = prodc.px, "decay" = decay.px,
                   "newgrowth.ratio" = round(newgrowth.ratio,4),
                   "decay.ratio" = round(decay.ratio,4),

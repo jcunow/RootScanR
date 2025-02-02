@@ -57,8 +57,9 @@ rgb.im.ls = list.files(rgb.path)
 
 ### Action !!! (consider if the soil starts later Tape, unit is cm!)
 # If the Tubes have been calibrated; otherwise soil start has to be assumed
-s0 = read.csv(paste0(cal.path ,"OulankaTubeInsertionAngle.csv"))
-s0$soil0 = s0$Soil.Excess 
+#s0 = read.csv(paste0(cal.path ,"OulankaTubeInsertionAngle.csv"))
+s0 = data.frame(soil0 = rep(0,36), InsertionAngle = 45)
+#s0$soil0 = s0$Soil.Excess 
 
 ## alternativly
 #s0 = data.frame(soil0 = 0, InsertionAngle = 45)

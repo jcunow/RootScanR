@@ -4,10 +4,10 @@
 \alias{Halo}
 \title{Create a buffer (halo) around non-zero pixels}
 \usage{
-Halo(im, width = 2, halo.only = TRUE, kernel = "circle")
+Halo(img, width = 2, halo.only = TRUE, kernel = "circle")
 }
 \arguments{
-\item{im}{SpatRaster/matrix/array - segmented image}
+\item{img}{SpatRaster/matrix/array - segmented image}
 
 \item{width}{numeric - buffer width in pixels (default: 2)}
 
@@ -22,7 +22,7 @@ SpatRast - buffer zone around non-zero pixels
 Create a buffer (halo) around non-zero pixels
 }
 \examples{
-data(skl_Oulanka2023_Session03_T067)
-im <- terra::rast(skl_Oulanka2023_Session03_T067)
-Halo(im = im)
+data(seg_Oulanka2023_Session03_T067)
+img <- terra::rast(seg_Oulanka2023_Session03_T067)
+Halo(img)
 }

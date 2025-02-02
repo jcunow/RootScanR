@@ -4,7 +4,13 @@
 \alias{zone.rotation.fun}
 \title{Extract zones based on rotation axis}
 \usage{
-zone.rotation.fun(rootpic, k = c(3, 4), kk = 5, mm = c(2000, 5000))
+zone.rotation.fun(
+  rootpic,
+  k = c(3, 4),
+  kk = 5,
+  mm = c(2000, 5000),
+  select.layer = NULL
+)
 }
 \arguments{
 \item{rootpic}{array/matrix/SpatRaster - source image}
@@ -14,6 +20,8 @@ zone.rotation.fun(rootpic, k = c(3, 4), kk = 5, mm = c(2000, 5000))
 \item{kk}{numeric - total number of cuts}
 
 \item{mm}{numeric vector - region limits (length 2)}
+
+\item{select.layer}{Integer. Specifies which layer to use if the input is a multi-band image. Default is `NULL`.}
 }
 \value{
 SpatRaster - extracted rotation zone

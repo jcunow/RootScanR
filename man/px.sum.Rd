@@ -4,10 +4,10 @@
 \alias{px.sum}
 \title{counts all pixels in a segmented image}
 \usage{
-px.sum(root.zone)
+px.sum(img)
 }
 \arguments{
-\item{root.zone}{one layer raster}
+\item{img}{one layer image}
 }
 \value{
 a numeric value
@@ -17,6 +17,6 @@ counts all pixels in a segmented image
 }
 \examples{
 data(seg_Oulanka2023_Session01_T067)
-img = terra::rast(seg_Oulanka2023_Session01_T067[[2]])
+img = terra::rast(seg_Oulanka2023_Session01_T067)[[2]]
 rootpixel  = px.sum(img)
 }

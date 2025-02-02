@@ -45,7 +45,7 @@ Multi-layer representation of root dynamics where:
 Background is represented as 0 in all layers.
 }
 \examples{
-\donttest{
+\dontrun{
   data(TurnoverDPC_data)
   img = terra::rast(TurnoverDPC_data)
   # Plot individual layers

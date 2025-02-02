@@ -33,9 +33,10 @@ Skeletonization reduces root width to single-pixel lines while preserving
 the root system topology.
 }
 \examples{
-\donttest{
+\dontrun{
   data(skl_Oulanka2023_Session01_T067)
-  plot(skl_Oulanka2023_Session01_T067)
+  skl_Oulanka2023_Session01_T067 = terra::rast(skl_Oulanka2023_Session01_T067)
+  terra::plot(skl_Oulanka2023_Session01_T067)
 }
 }
 \author{

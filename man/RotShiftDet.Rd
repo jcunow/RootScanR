@@ -9,7 +9,8 @@ RotShiftDet(
   img2,
   cor.type = "phase",
   fixed.depth.pixel = c(1000, 4000),
-  fixed.width = 1500
+  fixed.width = NULL,
+  select.layer = NULL
 )
 }
 \arguments{
@@ -22,6 +23,8 @@ RotShiftDet(
 \item{fixed.depth.pixel}{Depth range to analyze c(start, end)}
 
 \item{fixed.width}{Width of analysis region in pixels}
+
+\item{select.layer}{Integer. Specifies which layer to use if the input is a multi-band image. Default is `NULL`.}
 }
 \value{
 Vector of shifts (x,y) in pixels

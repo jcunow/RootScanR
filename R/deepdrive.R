@@ -8,7 +8,9 @@
 #' @param DepthMap SpatRast object containing depth information
 #' @param AngleMap Optional SpatRast with D8 root angles (from terra::terrain(v="flowdir"))
 #' @param RootMap Optional SpatRast containing segmented, presence-absence root image
-#' @param layer.index Numeric indicating which layer to use for multi-layer RootMaps (default: 2)
+#' @param select.layerRM Integer. Specifies which layer to use if the input is a multi-band image. Default is `2`.
+#' @param select.layerDM Integer. Specifies which layer to use if the input is a multi-band image. Default is `NULL`.
+#' @param select.layerAM Integer. Specifies which layer to use if the input is a multi-band image. Default is `NULL`.
 #'
 #' @return If return_diagnostics=FALSE, returns numeric value representing the ratio of aligned root pixels
 #'         to total root pixels. If TRUE, returns a list containing the ratio and diagnostic information.
@@ -20,17 +22,12 @@
 #' DepthMap = terra::t(create.depthmap(im,center.offset=0,tube.thicc=3.5))
 #'
 #' deep.drive(DepthMap = DepthMap, RootMap = im)
-deep.drive = function(DepthMap=NULL,AngleMap=NULL,RootMap = NULL,layer.index = 2){
+deep.drive = function(DepthMap=NULL,AngleMap=NULL,RootMap = NULL,select.layerRM = 2,select.layerDM = NULL,select.layerAM = NULL){
+
+  DepthMap <- load_flexible_image(DepthMap, select.layer = select.layerDM, output_format = "spatrast", normalize = FALSE  )
   ## if not root angles are supplied than rootmap is used to create an AngleMap
   if(is.null(AngleMap)){
-    # default chooses second layer
-    if(dim(RootMap)[3] != 1){
-      RootMap = RootMap[[layer.index]]
-    }
-
-    if(terra::global(RootMap,"max",na.rm=TRUE)$max[1] > 1){
-      RootMap = ceiling(RootMap / 255)
-    }
+    RootMap <- load_flexible_image(RootMap, select.layer = select.layerRM, output_format = "spatrast", normalize = TRUE  )
 
     # align extents
     terra::ext(RootMap) <- terra::ext(DepthMap)
@@ -43,6 +40,8 @@ deep.drive = function(DepthMap=NULL,AngleMap=NULL,RootMap = NULL,layer.index = 2
     AngleMap = terra::terrain(dem,v = "flowdir")
     AngleMap = terra::subst(AngleMap, from = c(0, 1, 2, 4, 8, 16, 32, 64, 128), to = c( NA, 90,135,180,225,270,315,0,45))
 
+  }else{
+    AngleMap <- load_flexible_image(AngleMap, select.layer = select.layerAM, output_format = "spatrast", normalize = FALSE  )
   }
 
   # align orientation with AngleMap

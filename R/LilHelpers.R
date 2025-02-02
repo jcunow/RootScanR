@@ -166,24 +166,6 @@ rgb2gray = function(img, r=0.21,g=0.72,b=0.07){
 }
 
 
-#' Helper function to convert various input formats to terra raster
-#' @keywords internal
-convert_to_raster <- function(input) {
-  if (inherits(input, "SpatRaster")) {
-    return(input)
-  } else if (is.character(input) && file.exists(input)) {
-    tryCatch({
-      return(terra::rast(input))
-    }, error = function(e) {
-      stop("Failed to read image file: ", e$message)
-    })
-  } else if (is.matrix(input) || is.array(input)) {
-    return(terra::rast(input))
-  } else {
-    stop("Unsupported input format. Please provide a terra SpatRaster, matrix, array, or valid file path.")
-  }
-}
-
 
 
 
@@ -306,41 +288,9 @@ convert_to_raster <- function(input) {
 #' @author Tony Plate \email{tplate@acm.org} and Richard Heiberger
 #' @import utils
 #' @return merged multidimensional arrays
-#'
-#' @examples
-#' # Five different ways of binding together two matrices
-#' x <- matrix(1:12,3,4)
-#' y <- x+100
-#'dim(abind2(x,y,along=0))     # binds on new dimension before first
-#'dim(abind2(x,y,along=1))     # binds on first dimension
-#'dim(abind2(x,y,along=1.5))
-#'dim(abind2(x,y,along=2))
-#'dim(abind2(x,y,along=3))
-#'dim(abind2(x,y,rev.along=1)) # binds on last dimension
-#'dim(abind2(x,y,rev.along=0)) # binds on new dimension after last
+#' @keywords internal
 
-#'# Unlike cbind or rbind in that the default is to bind
-#'# along the last dimension of the inputs, which for vectors
-#'# means the result is a vector (because a vector is
-#'# treated as an array with length(dim(x))==1).
-#'abind2(x=1:4,y=5:8)
-#'# Like cbind
-#'abind2(x=1:4,y=5:8,along=2)
-#'abind2(x=1:4,matrix(5:20,nrow=4),along=2)
-#'abind2(1:4,matrix(5:20,nrow=4),along=2)
-#'# Like rbind
-#'abind2(x=1:4,matrix(5:20,nrow=4),along=1)
-#'abind2(1:4,matrix(5:20,nrow=4),along=1)
-#'# Create a 3-d array out of two matrices
-#'abind2(x=matrix(1:16,nrow=4),y=matrix(17:32,nrow=4),along=3)
-#'# Use of hier.names
-#'abind2(x=cbind(a=1:3,b=4:6), y=cbind(a=7:9,b=10:12), hier.names=TRUE)
-#'# Use a list argument
-#'abind2(list(x=x, y=x), along=3)
-#'# Use lapply(..., get) to get the objects
-#'an <- c('x','y')
-#'names(an) <- an
-#'abind2(lapply(an, get), along=3)
+
 abind2 = function (..., along = N, rev.along = NULL, new.names = NULL,
                    force.array = TRUE, make.names = use.anon.names, use.anon.names = FALSE,
                    use.first.dimnames = FALSE, hier.names = FALSE, use.dnns = FALSE)
@@ -580,3 +530,372 @@ abind2 = function (..., along = N, rev.along = NULL, new.names = NULL,
 
 
 
+
+    #' Get list of supported formats as a string
+    #' @keywords internal
+    supported_formats_string <- function() {
+      paste(
+        "Supported formats:",
+        "- File path (.jpg, .jpeg, .png, .tif, .tiff, .bmp)",
+        "- SpatRaster",
+        "- RasterLayer",
+        "- RasterBrick",
+        "- RasterStack",
+        "- cimg",
+        "- magick-image",
+        "- matrix",
+        "- array",
+        sep = "\n"
+      )
+    }
+
+    #' Helper function to convert various input formats to terra SpatRaster
+    #' Helper function to convert various input formats to terra SpatRaster
+    #' @param input Any supported image format
+    #' @param normalize Logical, whether to normalize values to 0-1 range if they're in 0-255
+    #' @param select.layer Numeric, which layer to select if input has multiple layers
+    #' @keywords internal
+    convert_to_spatrast <- function(input, normalize = TRUE, select.layer = NULL) {
+      if (inherits(input, "SpatRaster")) {
+        out <- input
+      }
+      else if (is.character(input) && file.exists(input)) {
+        ext <- tolower(tools::file_ext(input))
+        if (ext %in% c("tif", "tiff")) {
+          out <- terra::rast(input)
+        } else {
+          arr <- as.array(imager::load.image(input))
+          # Handle 4D arrays from imager
+          if (length(dim(arr)) == 4) {
+            arr <- arr[,,,1]  # Take first frame if multiple frames
+          }
+          out <- terra::rast(arr)
+        }
+      }
+      else if (is.matrix(input)) {
+        out <- terra::rast(array(input, dim = c(dim(input), 1)))
+      }
+      else if (is.array(input)) {
+        dims <- dim(input)
+        if (length(dims) == 2) {
+          out <- terra::rast(array(input, dim = c(dims, 1)))
+        } else if (length(dims) == 3) {
+          out <- terra::rast(input)
+        } else if (length(dims) == 4) {
+          out <- terra::rast(input[,,,1])  # Take first frame if multiple frames
+        }
+      }
+      else if (inherits(input, c("RasterLayer", "RasterBrick", "RasterStack"))) {
+        out <- terra::rast(input)
+      }
+      else if (inherits(input, "magick-image")) {
+        arr <- as.array(input[[1]])
+        if (length(dim(arr)) == 4) {
+          arr <- arr[,,,1]  # Take first frame if multiple frames
+        }
+        out <- terra::rast(arr)
+      }
+      else if (inherits(input, "cimg")) {
+        arr <- as.array(input)
+        if (length(dim(arr)) == 4) {
+          arr <- arr[,,,1]  # Take first frame if multiple frames
+        }
+        out <- terra::rast(arr)
+      }
+      else {
+        stop("Unsupported input format.\n", supported_formats_string())
+      }
+
+      if (!is.null(select.layer) && terra::nlyr(out) > 1) {
+        out <- out[[select.layer]]
+      }
+
+      if (normalize && terra::global(out, "max", na.rm = TRUE)$max[1] > 1) {
+        out <- out / 255
+      }
+
+      return(out)
+    }
+
+    #' Helper function to convert various input formats to RasterBrick
+    #' @param input Any supported image format
+    #' @param normalize Logical, whether to normalize values to 0-1 range if they're in 0-255
+    #' @param select.layer Numeric, which layer to select if input has multiple layers
+    #' @keywords internal
+    convert_to_brick <- function(input, normalize = TRUE, select.layer = NULL) {
+      if (inherits(input, "RasterBrick")) {
+        out <- input
+      }
+      else if (is.character(input) && file.exists(input)) {
+        ext <- tolower(tools::file_ext(input))
+        if (ext %in% c("tif", "tiff")) {
+          out <- raster::brick(input)
+        } else {
+          arr <- as.array(imager::load.image(input))
+          if (length(dim(arr)) == 4) {
+            arr <- arr[,,,1]  # Take first frame if multiple frames
+          }
+          out <- raster::brick(arr)
+        }
+      }
+      else if (is.matrix(input)) {
+        out <- raster::brick(array(input, dim = c(dim(input), 1)))
+      }
+      else if (is.array(input)) {
+        dims <- dim(input)
+        if (length(dims) == 2) {
+          out <- raster::brick(array(input, dim = c(dims, 1)))
+        } else if (length(dims) == 3) {
+          out <- raster::brick(input)
+        } else if (length(dims) == 4) {
+          out <- raster::brick(input[,,,1])  # Take first frame if multiple frames
+        }
+      }
+      else if (inherits(input, c("RasterLayer", "RasterStack"))) {
+        out <- raster::brick(input)
+      }
+      else if (inherits(input, "SpatRaster")) {
+        out <- raster::brick(raster::raster(input))
+      }
+      else if (inherits(input, "magick-image")) {
+        arr <- as.array(input[[1]])
+        if (length(dim(arr)) == 4) {
+          arr <- arr[,,,1]  # Take first frame if multiple frames
+        }
+        out <- raster::brick(arr)
+      }
+      else if (inherits(input, "cimg")) {
+        arr <- as.array(input)
+        if (length(dim(arr)) == 4) {
+          arr <- arr[,,,1]  # Take first frame if multiple frames
+        }
+        out <- raster::brick(arr)
+      }
+      else {
+        stop("Unsupported input format.\n", supported_formats_string())
+      }
+
+      if (!is.null(select.layer) && raster::nlayers(out) > 1) {
+        out <- raster::brick(out[[select.layer]])
+      }
+
+      if (normalize && max(raster::maxValue(out)) > 1) {
+        out <- out / 255
+      }
+
+      return(out)
+    }
+
+    #' Helper function to convert various input formats to RasterLayer
+    #' @param input Any supported image format
+    #' @param normalize Logical, whether to normalize values to 0-1 range if they're in 0-255
+    #' @param select.layer Numeric, which layer to select if input has multiple layers
+    #' @keywords internal
+    convert_to_raster <- function(input, normalize = TRUE, select.layer = NULL) {
+      if (inherits(input, "RasterLayer")) {
+        out <- input
+      }
+      else if (is.character(input) && file.exists(input)) {
+        ext <- tolower(tools::file_ext(input))
+        if (ext %in% c("tif", "tiff")) {
+          out <- raster::raster(input)
+        } else {
+          arr <- as.array(imager::load.image(input))
+          layer_idx <- if(is.null(select.layer)) 1 else select.layer
+          if (length(dim(arr)) == 4) {
+            arr <- arr[,,,1]  # Take first frame if multiple frames
+          }
+          out <- raster::raster(arr[,,layer_idx])
+        }
+      }
+      else if (is.matrix(input)) {
+        out <- raster::raster(input)
+      }
+      else if (is.array(input)) {
+        dims <- dim(input)
+        layer_idx <- if(is.null(select.layer)) 1 else select.layer
+        if (length(dims) == 2) {
+          out <- raster::raster(input)
+        } else if (length(dims) == 3) {
+          out <- raster::raster(input[,,layer_idx])
+        } else if (length(dims) == 4) {
+          out <- raster::raster(input[,,layer_idx,1])  # Take first frame
+        }
+      }
+      else if (inherits(input, c("RasterBrick", "RasterStack"))) {
+        layer_idx <- if(is.null(select.layer)) 1 else select.layer
+        out <- input[[layer_idx]]
+      }
+      else if (inherits(input, "SpatRaster")) {
+        layer_idx <- if(is.null(select.layer)) 1 else select.layer
+        out <- raster::raster(input[[layer_idx]])
+      }
+      else if (inherits(input, "magick-image")) {
+        arr <- as.array(input[[1]])
+        layer_idx <- if(is.null(select.layer)) 1 else select.layer
+        if (length(dim(arr)) == 4) {
+          arr <- arr[,,,1]  # Take first frame if multiple frames
+        }
+        out <- raster::raster(arr[,,layer_idx])
+      }
+      else if (inherits(input, "cimg")) {
+        arr <- as.array(input)
+        layer_idx <- if(is.null(select.layer)) 1 else select.layer
+        if (length(dim(arr)) == 4) {
+          arr <- arr[,,,1]  # Take first frame if multiple frames
+        }
+        out <- raster::raster(arr[,,layer_idx])
+      }
+      else {
+        stop("Unsupported input format.\n", supported_formats_string())
+      }
+
+      if (normalize && max(raster::maxValue(out)) > 1) {
+        out <- out / 255
+      }
+
+      return(out)
+    }
+
+    #' Helper function to convert various input formats to array
+    #' @param input Any supported image format
+    #' @param normalize Logical, whether to normalize values to 0-1 range if they're in 0-255
+    #' @param select.layer Numeric, which layer to select if input has multiple layers
+    #' @keywords internal
+    convert_to_array <- function(input, normalize = TRUE, select.layer = NULL) {
+      if (is.array(input)) {
+        dims <- dim(input)
+        if (length(dims) == 4) {
+          out <- input[,,,1]  # Take first frame from 4D array
+        } else {
+          out <- input  # Keep 2D or 3D as is
+        }
+      }
+      else if (is.matrix(input)) {
+        out <- array(input, dim = c(dim(input), 1))  # Convert to 3D
+      }
+      else if (is.character(input) && file.exists(input)) {
+        ext <- tolower(tools::file_ext(input))
+        if (ext %in% c("tif", "tiff")) {
+          out <- as.array(tiff::readTIFF(input))  # Already 3D
+        } else {
+          arr <- as.array(imager::load.image(input))  # 4D array
+          out <- arr[,,,1]  # Convert to 3D by taking first frame
+        }
+      }
+      else if (inherits(input, "SpatRaster")) {
+        out <- terra::as.array(input)  # Already 3D
+      }
+      else if (inherits(input, c("RasterLayer", "RasterBrick", "RasterStack"))) {
+        out <- as.array(terra::rast(input))  # Already 3D
+      }
+      else if (inherits(input, "magick-image")) {
+        arr <- as.array(input[[1]])  # 4D array
+        out <- arr[,,,1]  # Convert to 3D
+      }
+      else if (inherits(input, "cimg")) {
+        arr <- as.array(input)  # 4D array
+        out <- arr[,,,1]  # Convert to 3D
+      }
+      else {
+        stop("Unsupported input format.\n", supported_formats_string())
+      }
+
+      # Ensure 2D becomes 3D
+      if (length(dim(out)) == 2) {
+        out <- array(out, dim = c(dim(out), 1))
+      }
+
+      # Handle layer selection for 3D arrays
+      if (!is.null(select.layer) && dim(out)[3] > 1) {
+        out <- out[,,select.layer,drop=FALSE]
+      }
+
+      if (normalize && max(out, na.rm = TRUE) > 1) {
+        out <- out / 255
+      }
+
+      return(out)
+    }
+
+    #' Helper function to convert various input formats to cimg
+    #' @param input Any supported image format
+    #' @param normalize Logical, whether to normalize values to 0-1 range if they're in 0-255
+    #' @param select.layer Numeric, which layer to select if input has multiple layers
+    #' @keywords internal
+    convert_to_cimg <- function(input, normalize = TRUE, select.layer = NULL) {
+      if (inherits(input, "cimg")) {
+        out <- input
+      }
+      else if (is.character(input) && file.exists(input)) {
+        ext <- tolower(tools::file_ext(input))
+        if (ext %in% c("tif", "tiff")) {
+          arr <- tiff::readTIFF(input)  # 3D array
+          out <- imager::as.cimg(arr)  # Converts to 4D (adds dim=1)
+        } else {
+          out <- imager::load.image(input)  # Already 4D
+        }
+      }
+      else if (is.matrix(input)) {
+        # Convert 2D to 4D (adding color channel and frame dimensions)
+        out <- imager::as.cimg(array(input, dim = c(dim(input), 1, 1)))
+      }
+      else if (is.array(input)) {
+        dims <- dim(input)
+        if (length(dims) == 2) {
+          # 2D to 4D (adding color channel and frame dimensions)
+          out <- imager::as.cimg(array(input, dim = c(dims, 1, 1)))
+        } else if (length(dims) == 3) {
+          # 3D to 4D (adding frame dimension)
+          out <- imager::as.cimg(array(input, dim = c(dims, 1)))
+        } else if (length(dims) == 4) {
+          # Take first frame if multiple frames
+          out <- imager::as.cimg(input[,,,1,drop=FALSE])
+        }
+      }
+      else if (inherits(input, "SpatRaster")) {
+        arr <- as.array(input)  # Get 3D array
+        out <- imager::as.cimg(array(arr, dim = c(dim(arr), 1)))  # Convert to 4D
+      }
+      else if (inherits(input, c("RasterLayer", "RasterBrick", "RasterStack"))) {
+        arr <- as.array(terra::rast(input))  # Get 3D array
+        out <- imager::as.cimg(array(arr, dim = c(dim(arr), 1)))  # Convert to 4D
+      }
+      else if (inherits(input, "magick-image")) {
+        arr <- as.array(input[[1]])  # Get 4D array
+        out <- imager::as.cimg(arr[,,,1,drop=FALSE])  # Keep as 4D with single frame
+      }
+      else {
+        stop("Unsupported input format.\n", supported_formats_string())
+      }
+
+      # Handle layer selection (for color channels)
+      if (!is.null(select.layer) && dim(out)[3] > 1) {
+        out <- out[,,select.layer,,drop=FALSE]  # Keep 4D structure
+      }
+
+      if (normalize && max(out, na.rm = TRUE) > 1) {
+        out <- out / 255
+      }
+
+      return(out)
+    }
+
+#' Load an image flexibly from file or convert from memory
+#' @param input File path or image object
+#' @param normalize Logical, whether to normalize values to 0-1 range if they're in 0-255
+#' @param output_format Character, one of "cimg", "spatrast", "array", "brick", "raster"
+#' @param select.layer Numeric, which layer to select if input has multiple layers
+#' @keywords internal
+load_flexible_image <- function(input, normalize = TRUE, output_format = "cimg", select.layer = NULL) {
+  # And in load_flexible_image():
+  converter <- switch(output_format,
+                      "cimg" = convert_to_cimg,
+                      "spatrast" = convert_to_spatrast,
+                      "array" = convert_to_array,
+                      "brick" = convert_to_brick,
+                      "raster" = convert_to_raster,
+                      stop("Unsupported output format.\n", supported_formats_string()))
+
+  return(converter(input, normalize = normalize, select.layer = select.layer))
+}

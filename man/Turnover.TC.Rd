@@ -36,6 +36,5 @@ Calculate global root production and root turnover from temporal comparison
   turnover.values <- Turnover.TC(
     im.t1 = time1,
     im.t2 = time2,
-    method = "kimura",
-    verbose = TRUE)
+    method = "kimura")
 }

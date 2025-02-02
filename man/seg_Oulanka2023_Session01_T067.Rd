@@ -33,9 +33,10 @@ Spatial dimensions correspond to physical tube measurements:
 columns = tube length, rows = tube rotation.
 }
 \examples{
-\donttest{
+\dontrun{
   data(seg_Oulanka2023_Session01_T067)
-  plot(seg_Oulanka2023_Session01_T067)
+  seg_Oulanka2023_Session01_T067 = terra::rast(seg_Oulanka2023_Session01_T067)
+  terra::plot(seg_Oulanka2023_Session01_T067)
 }
 }
 \author{

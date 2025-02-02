@@ -8,7 +8,7 @@ skeletonize_image(
   img,
   methods = c("ZhangSuen", "GuoHall", "MAT"),
   verbose = TRUE,
-  layer = 2
+  select.layer = 2
 )
 }
 \arguments{
@@ -18,7 +18,7 @@ skeletonize_image(
 
 \item{verbose}{Logical. If \code{TRUE}, displays progress and diagnostic messages during processing. Defaults to \code{TRUE}.}
 
-\item{layer}{Integer specifying the layer to use if \code{img} is a multi-layer `SpatRaster`. Defaults to 2.}
+\item{select.layer}{Integer specifying the layer to use if \code{img} is a multi-layer `SpatRaster`. Defaults to 2.}
 }
 \value{
 If a single method is selected, the function returns a `SpatRaster` object representing the skeletonized image. If multiple methods are selected, a named list of `SpatRaster` objects is returned.

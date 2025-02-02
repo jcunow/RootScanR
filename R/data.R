@@ -1,105 +1,5 @@
 #### open issue: get away from raster and save data as other type
 
-#' @title Example Image with Vertical Lines
-#' @description
-#' Test dataset containing an image with approximately vertical lines for
-#' directionality analysis.
-#'
-#' @details
-#' The image consists of multiple vertical lines suitable for testing
-#' directionality detection algorithms.
-#'
-#' @author Johannes Cunow \email{johannes.cunow@gmail.com}
-#' @format A RasterBrick object with dimensions:
-#'   \itemize{
-#'     \item 144 columns (width)
-#'     \item 99 rows (height)
-#'     \item 4 layers (channels)
-#'   }
-#' @usage data(lines_vertical)
-#' @source Images by J.Cunow
-#' @examples
-#' \donttest{
-#'   data(lines_vertical)
-#'   plot(lines_vertical)
-#' }
-"lines_vertical"
-
-#' @title Example Image with Horizontal Lines
-#' @description
-#' Test dataset containing an image with approximately horizontal lines for
-#' directionality analysis.
-#'
-#' @details
-#' The image consists of multiple horizontal lines suitable for testing
-#' directionality detection algorithms.
-#'
-#' @author Johannes Cunow \email{johannes.cunow@gmail.com}
-#' @format A RasterBrick object with dimensions:
-#'   \itemize{
-#'     \item 184 columns (width)
-#'     \item 90 rows (height)
-#'     \item 4 layers (channels)
-#'   }
-#' @usage data(lines_horizontal)
-#' @source Images by J.Cunow
-#' @examples
-#' \donttest{
-#'   data(lines_horizontal)
-#'   plot(lines_horizontal)
-#' }
-"lines_horizontal"
-
-#' @title Example Image with Diagonal Lines (Top-Left to Bottom-Right)
-#' @description
-#' Test dataset containing an image with diagonal lines running from
-#' top-left to bottom-right for directionality analysis.
-#'
-#' @details
-#' The image consists of multiple diagonal lines suitable for testing
-#' directionality detection algorithms.
-#'
-#' @author Johannes Cunow \email{johannes.cunow@gmail.com}
-#' @format A RasterBrick object with dimensions:
-#'   \itemize{
-#'     \item 194 columns (width)
-#'     \item 100 rows (height)
-#'     \item 4 layers (channels)
-#'   }
-#' @usage data(lines_diagonal_topleft)
-#' @source Images by J.Cunow
-#' @examples
-#' \donttest{
-#'   data(lines_diagonal_topleft)
-#'   plot(lines_diagonal_topleft)
-#' }
-"lines_diagonal_topleft"
-
-#' @title Example Image with Diagonal Lines (Bottom-Left to Top-Right)
-#' @description
-#' Test dataset containing an image with diagonal lines running from
-#' bottom-left to top-right for directionality analysis.
-#'
-#' @details
-#' The image consists of multiple diagonal lines suitable for testing
-#' directionality detection algorithms.
-#'
-#' @author Johannes Cunow \email{johannes.cunow@gmail.com}
-#' @format A RasterBrick object with dimensions:
-#'   \itemize{
-#'     \item 191 columns (width)
-#'     \item 99 rows (height)
-#'     \item 4 layers (channels)
-#'   }
-#' @usage data(lines_diagonal_botleft)
-#' @source Images by J.Cunow
-#' @examples
-#' \donttest{
-#'   data(lines_diagonal_botleft)
-#'   plot(lines_diagonal_botleft)
-#' }
-"lines_diagonal_botleft"
-
 #' @title Original Minirhizotron Root Scan - Session 3, Tube 67
 #' @description
 #' Original RGB root scan image from a sedge fen in northern Finland (October 2023).
@@ -123,9 +23,10 @@
 #' @usage data(rgb_Oulanka2023_Session03_T067)
 #' @source Images by J.Cunow
 #' @examples
-#' \donttest{
+#' \dontrun{
 #'   data(rgb_Oulanka2023_Session03_T067)
-#'   plotRGB(rgb_Oulanka2023_Session03_T067)
+#'   rgb_Oulanka2023_Session03_T067 = terra::rast(rgb_Oulanka2023_Session03_T067)
+#'   terra::plotRGB(rgb_Oulanka2023_Session03_T067)
 #' }
 "rgb_Oulanka2023_Session03_T067"
 
@@ -154,9 +55,10 @@
 #' @usage data(seg_Oulanka2023_Session01_T067)
 #' @source Images by J.Cunow
 #' @examples
-#' \donttest{
+#' \dontrun{
 #'   data(seg_Oulanka2023_Session01_T067)
-#'   plot(seg_Oulanka2023_Session01_T067)
+#'   seg_Oulanka2023_Session01_T067 = terra::rast(seg_Oulanka2023_Session01_T067)
+#'   terra::plot(seg_Oulanka2023_Session01_T067)
 #' }
 "seg_Oulanka2023_Session01_T067"
 
@@ -185,9 +87,10 @@
 #' @usage data(seg_Oulanka2023_Session03_T067)
 #' @source Images by J.Cunow
 #' @examples
-#' \donttest{
+#' \dontrun{
 #'   data(seg_Oulanka2023_Session03_T067)
-#'   plot(seg_Oulanka2023_Session03_T067)
+#'   seg_Oulanka2023_Session03_T067 = terra::rast(seg_Oulanka2023_Session03_T067)
+#'   terra::plot(seg_Oulanka2023_Session03_T067)
 #' }
 "seg_Oulanka2023_Session03_T067"
 
@@ -216,9 +119,10 @@
 #' @usage data(skl_Oulanka2023_Session01_T067)
 #' @source Images by J.Cunow
 #' @examples
-#' \donttest{
+#' \dontrun{
 #'   data(skl_Oulanka2023_Session01_T067)
-#'   plot(skl_Oulanka2023_Session01_T067)
+#'   skl_Oulanka2023_Session01_T067 = terra::rast(skl_Oulanka2023_Session01_T067)
+#'   terra::plot(skl_Oulanka2023_Session01_T067)
 #' }
 "skl_Oulanka2023_Session01_T067"
 
@@ -247,9 +151,10 @@
 #' @usage data(skl_Oulanka2023_Session03_T067)
 #' @source Images by J.Cunow
 #' @examples
-#' \donttest{
+#' \dontrun{
 #'   data(skl_Oulanka2023_Session03_T067)
-#'   plot(skl_Oulanka2023_Session03_T067)
+#'   skl_Oulanka2023_Session03_T067 = terra::rast(skl_Oulanka2023_Session03_T067)
+#'   terra::plot(skl_Oulanka2023_Session03_T067)
 #' }
 "skl_Oulanka2023_Session03_T067"
 
@@ -290,7 +195,7 @@
 #' @usage data(TurnoverDPC_data)
 #' @source Images by J.Cunow
 #' @examples
-#' \donttest{
+#' \dontrun{
 #'   data(TurnoverDPC_data)
 #'   img = terra::rast(TurnoverDPC_data)
 #'   # Plot individual layers

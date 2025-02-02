@@ -4,18 +4,27 @@
 \alias{zone.fun}
 \title{Extract a zone of interest based on depth values}
 \usage{
-zone.fun(rootpic, binned.map, indexD = 0, nn = 5, silent = FALSE)
+zone.fun(
+  rootpic,
+  binned.map,
+  indexD = 0,
+  nn = 5,
+  silent = FALSE,
+  select.layer = NULL
+)
 }
 \arguments{
 \item{rootpic}{SpatRaster/matrix/array - source image}
 
 \item{binned.map}{SpatRaster/matrix/array - binned depth map}
 
-\item{indexD}{numeric - depth index to extract}
+\item{indexD}{numeric - depth index to extract. Usually used to index in a loop to iterate over depths.}
 
-\item{nn}{numeric - bin width used in binning}
+\item{nn}{numeric - bin width that has been used in binning}
 
 \item{silent}{logical - suppress messages}
+
+\item{select.layer}{Integer. Specifies which layer to use if the input is a multi-band image. Default is `2`.}
 }
 \value{
 SpatRaster - extracted zone
@@ -25,10 +34,10 @@ Extract a zone of interest based on depth values
 }
 \examples{
 data(seg_Oulanka2023_Session01_T067)
-img = terra::rast(seg_Oulanka2023_Session01_T067[[2]])
-mask = seg_Oulanka2023_Session01_T067[[1]] - seg_Oulanka2023_Session01_T067[[2]]
+img = terra::rast(seg_Oulanka2023_Session01_T067)
+mask = img[[1]] - img[[2]]
 mask[mask == 255] <- NA
-depthmap = create.depthmap(img,mask,start.soil = 290 )
+depthmap = create.depthmap(img,mask,start.soil = 0, tube.thicc = 3, select.layer = 2 )
 binned.map = binning(depthmap,nn = 5)
-image.zone = zone.fun(img, binned.map, indexD = 0, nn=5, silent = FALSE)
+image.zone = zone.fun(img, binned.map, indexD = 10, nn=5, silent = FALSE,select.layer = 2)
 }

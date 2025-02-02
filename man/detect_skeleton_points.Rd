@@ -4,10 +4,12 @@
 \alias{detect_skeleton_points}
 \title{Detect Skeleton Points: Branching Points and Endpoints}
 \usage{
-detect_skeleton_points(img)
+detect_skeleton_points(img, select.layer = 2)
 }
 \arguments{
 \item{img}{A matrix, data frame, or `SpatRaster` object representing the skeletonized binary image.}
+
+\item{select.layer}{Integer. Specifies which layer to use if the input is a multi-band image. Default is `2`.}
 }
 \value{
 A named list containing two `SpatRaster` objects:

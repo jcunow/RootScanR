@@ -4,14 +4,14 @@
 \alias{thin_image_guohall}
 \title{Thin Binary Image using Guo-Hall Algorithm (Internal)}
 \usage{
-thin_image_guohall(img, verbose = FALSE, layer = 2)
+thin_image_guohall(img, verbose = FALSE, select.layer = 2)
 }
 \arguments{
 \item{img}{A matrix, data frame, or `SpatRaster` object representing the binary image to be thinned.}
 
 \item{verbose}{Logical. If `TRUE`, outputs diagnostic information such as image dimensions, pixel removal counts, and iteration progress. Default is `FALSE`.}
 
-\item{layer}{Integer indicating the layer to use if `img` is a multi-layer `SpatRaster`. Default is 2.}
+\item{select.layer}{Integer indicating the layer to use if `img` is a multi-layer `SpatRaster`. Default is 2.}
 }
 \value{
 A binary matrix representing the thinned image (skeleton).
@@ -20,7 +20,7 @@ A binary matrix representing the thinned image (skeleton).
 This internal function applies the Guo-Hall thinning algorithm to reduce binary images to their skeletons while preserving connectivity and structure.
 }
 \details{
-- The input image is first processed using \code{\link{prepare_image}} to ensure it is a binary matrix.
+- The input image is first processed using \code{\link{load_flexible_image}} to ensure it is a binary matrix.
 - Thinning is performed in an iterative process consisting of two subiterations per cycle:
   1. In the first subiteration, pixels are marked for removal based on specific Guo-Hall conditions.
   2. In the second subiteration, a different set of conditions is applied to mark additional pixels for removal.

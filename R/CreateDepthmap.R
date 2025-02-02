@@ -5,7 +5,7 @@
 #' This function generates a depth map for minirhizotron images, accounting for tube geometry
 #' and insertion angle. Supports parallel processing and efficient memory management for large images.
 #'
-#' @param im Input image (accepts terra SpatRaster, matrix, array, or file path). For multi-band
+#' @param img Input image (accepts terra SpatRaster, matrix, array, or file path). For multi-band
 #'           images, specify band_index parameter
 #' @param mask Raster mask indicating foreign objects (1 = mask, 0 or NA = keep)
 #' @param sinoid Logical; if TRUE, accounts for tube curvature in depth calculation
@@ -14,6 +14,7 @@
 #' @param dpi Numeric; image resolution in dots per inch
 #' @param start.soil Numeric; soil surface boundary in cm (0 = surface)
 #' @param center.offset Numeric; rotational center offset (0 = centered, 1 = edge)
+#' @param select.layer Integer. Specifies which layer to use if the input is a multi-band image. Default is `2`.
 #'
 #' @return terra raster object containing the depth map
 #' @export
@@ -21,16 +22,26 @@
 #' @examples
 #' data(seg_Oulanka2023_Session01_T067)
 #' seg_Oulanka2023_Session01_T067 = terra::rast(seg_Oulanka2023_Session01_T067)
-#' img = seg_Oulanka2023_Session01_T067[[2]]
+#' img = seg_Oulanka2023_Session01_T067
 #' mask = seg_Oulanka2023_Session01_T067[[1]] - seg_Oulanka2023_Session01_T067[[2]]
 #' mask[mask == 255] <- NA
-#' map = create.depthmap(img,mask,start.soil = 290 )
-create.depthmap = function(im, mask = NULL, sinoid = TRUE,
+#' map = create.depthmap(img,mask,start.soil = 0.1,
+#'   sinoid = TRUE,
+#'   tube.thicc = 7,
+#'   tilt = 45,
+#'   dpi = 300,
+#'   center.offset = 0 )
+create.depthmap = function(img, mask = NULL, sinoid = TRUE,
                            tube.thicc = 7,tilt = 45,dpi = 300,
-                           start.soil = 0,center.offset = 0){
+                           start.soil = 0,center.offset = 0,select.layer = 2){
+
+  # flexible input
+  img <- load_flexible_image(img, select.layer = select.layer, output_format = "spatrast", normalize = FALSE  )
+
+
 # if no mask is supplied nothing is masked
   if(length(mask) == 0){
-    mask = im
+    mask = img
     terra::values(mask) <- 0
   }
 
@@ -45,8 +56,8 @@ create.depthmap = function(im, mask = NULL, sinoid = TRUE,
   px.to.cm.h = (2.54/dpi)
 
   # get dims
-  target.col = dim(im)[1]
-  target.row = dim(im)[2]
+  target.col = dim(img)[1]
+  target.row = dim(img)[2]
 
   if(sinoid == TRUE){
     # simulate a sine wave function across one row

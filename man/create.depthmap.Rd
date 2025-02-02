@@ -5,18 +5,19 @@
 \title{Create A Phase-Shifted, Tilt-Amplitude Sine Depth Map}
 \usage{
 create.depthmap(
-  im,
+  img,
   mask = NULL,
   sinoid = TRUE,
   tube.thicc = 7,
   tilt = 45,
   dpi = 300,
   start.soil = 0,
-  center.offset = 0
+  center.offset = 0,
+  select.layer = 2
 )
 }
 \arguments{
-\item{im}{Input image (accepts terra SpatRaster, matrix, array, or file path). For multi-band
+\item{img}{Input image (accepts terra SpatRaster, matrix, array, or file path). For multi-band
 images, specify band_index parameter}
 
 \item{mask}{Raster mask indicating foreign objects (1 = mask, 0 or NA = keep)}
@@ -32,6 +33,8 @@ images, specify band_index parameter}
 \item{start.soil}{Numeric; soil surface boundary in cm (0 = surface)}
 
 \item{center.offset}{Numeric; rotational center offset (0 = centered, 1 = edge)}
+
+\item{select.layer}{Integer. Specifies which layer to use if the input is a multi-band image. Default is `2`.}
 }
 \value{
 terra raster object containing the depth map
@@ -43,8 +46,13 @@ and insertion angle. Supports parallel processing and efficient memory managemen
 \examples{
 data(seg_Oulanka2023_Session01_T067)
 seg_Oulanka2023_Session01_T067 = terra::rast(seg_Oulanka2023_Session01_T067)
-img = seg_Oulanka2023_Session01_T067[[2]]
+img = seg_Oulanka2023_Session01_T067
 mask = seg_Oulanka2023_Session01_T067[[1]] - seg_Oulanka2023_Session01_T067[[2]]
 mask[mask == 255] <- NA
-map = create.depthmap(img,mask,start.soil = 290 )
+map = create.depthmap(img,mask,start.soil = 0.1,
+  sinoid = TRUE,
+  tube.thicc = 7,
+  tilt = 45,
+  dpi = 300,
+  center.offset = 0 )
 }
