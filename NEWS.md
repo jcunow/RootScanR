@@ -1,3 +1,3 @@
-# MinirhizotronR 0.1.0
+# RootScape 1.0.0
 
 * Initial CRAN submission.

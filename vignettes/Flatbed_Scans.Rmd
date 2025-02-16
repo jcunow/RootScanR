@@ -1,0 +1,94 @@
+---
+title: "Flatbed Scans"
+author: "Johannes Cunow"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Flatbed Scans}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# Introduction
+
+This vignette demonstrates how to analyze flatbed scans using the **RootScape Package**. The workflow is streamlined as flatbed scans do not require depth information or calibration, focusing on skeletonization and basic root trait extraction.
+
+## Installation
+
+To install the package from the source or GitHub:
+
+```{r}
+# Install the package from GitHub
+# install.packages("remotes")
+# remotes::install_github("jcunow/RootScape")
+
+# install.packages("devtools")
+# devtools::install_github("jcunow/RootScape")
+
+# Load the package
+library(RootScape)
+```
+
+## Key Functionalities
+
+This route includes:
+
+1. Skeletonization of flatbed scans.
+2. Root trait extraction (e.g., root length, root pixel sum).
+3. Extra features like peat texture and rhizosphere analysis.
+
+## Example Workflow
+
+### 1. Load Image & setup:
+
+```{r}
+library(RootScape)
+library(tidyverse)
+
+# load image
+img = load_flexible_image("path/image.tiff")
+```
+
+
+### 2. Skeletonization
+
+Skeletonize the flatbed scan:
+
+```{r}
+skeleton <- skeletonize_image(img, 
+                              binarize = TRUE, 
+                              output_format = "spatrast")
+plot(skeleton, main = "Skeletonized Image")
+```
+
+### 3. Root Trait Extraction
+
+Extract key root traits:
+The RootScape package offers a couple of root trait estimations. 
+
+```{r}
+# Extract Brancnhing Points
+SkeletonPoints <- detect_skeleton_points(skeleton)
+roottips = px.sum(SkeletonPoints$Endpoints)
+branchingpoints = px.sum(SkeletonPoints$Branchingoints)
+
+# Get Kimura Root Length
+rootlength = RootLength(skeleton)
+
+# Calculate Root Cover Density
+void = (load_flexible_image(img, binarize = TRUE)-1)*-1
+rootpx = px.sum(img, select.layer = 2)
+voidpx = px.sum(void, select.layer = 2)
+rootdensity = rootpx / (rootpx + voidpx)
+
+# Get the 'deepdrive' trait
+ddrive = deep.drive(RootMap = img, DepthMap = DepthMap)
+
+# diameter estimation
+diameters = root.diameters(img, skeleton_method = "MAT", select.layer = 2)
+
+# a couple of others using the **landscapemetrics** package
+rsm = RootScapeMetrics( img, indexD = 5, metrics = c( "lsm_c_ca","lsm_l_ent","lsm_c_pd","lsm_c_enn_mn"))
+```
+
+
+

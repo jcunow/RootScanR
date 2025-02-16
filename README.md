@@ -1,10 +1,10 @@
-# MinirhizotronR - R package
+# RootScape - R package
 
 <br />
 
 ## Overview
-MinirhizotronR is a package which has been designed to make the analysis of minirhizotron root scans just a little less stupid. 
-The package relies on prior Image segmentation. We recommend using *RootDetector* or *RootPainter*. This packages enables the user to map various root features to a continues depth distributions. 
+*RootScape* is a package which has been designed to make the analysis of minirhizotron root scans just a little less stupid. 
+The package relies on prior Image segmentation. We recommend using *RootDetector* or *RootPainter*. This packages enables the user to map various root features to a continue s depth distributions. 
 The user has the choice to include the tube insertion angle and tube diameter - or ignore it (?). Rotational bias of root prevalence can be tested. Let me know if you have questions, improvements, or found bugs & errors.
 
 ````
@@ -12,7 +12,7 @@ The user has the choice to include the tube insertion angle and tube diameter - 
 if (!require("devtools")) {
   install.packages("devtools")
 }
-devtools::install_github("jcunow/MinirhizotronR")
+devtools::install_github("jcunow/RootScape")
 ````
 
 
@@ -22,7 +22,7 @@ ____________________________________
 <br />
 
 ## Calibration 
-More accurate results require easy to gather *in-situ* calibration of each tube. Traditionally, the assumption is that all tube have been installed perfectly, i.e., exact same insertion angle, insertion depth, same scanner rotation position, and tape overshoot for each tube. MinirhizotronR offers the possibility  to approximate the soil start and rotation center based an assumption of well-taped tubes.
+More accurate results require easy to gather *in-situ* calibration of each tube. Traditionally, the assumption is that all tube have been installed perfectly, i.e., exact same insertion angle, insertion depth, same scanner rotation position, and tape overshoot for each tube. RootScape offers the possibility  to approximate the soil start and rotation center based an assumption of well-taped tubes.
 
 1. Soil Surface Position Estimation 
 ````

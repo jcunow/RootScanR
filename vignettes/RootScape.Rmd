@@ -1,8 +1,8 @@
 ---
-title: "MinirhizotronR: Depth Resolved Analysis of Segmented Minirhizotron Scans"
+title: "RootScape: Depth Resolved Analysis of Segmented Minirhizotron Scans"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{MinirhizotronR: Depth Resolved Analysis of Segmented Minirhizotron Scans}
+  %\VignetteIndexEntry{RootScape: Depth Resolved Analysis of Segmented Minirhizotron Scans}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -18,14 +18,14 @@ knitr::opts_chunk$set(
 
 
 ## Guide on how to use this package: 
-MinirhizotronR picks up the work left behind after root scans have been segemented and root pixel, background pixel, and others have been identified. You will find some suggestions on how to get to that point below. I strongly recommend calibrating your tubes *in-situ* and note the insertion angle, tube diameter, and soil start in relation to where the scan starts for every tube (and perhaps timepoints if movment is expected). A calibration guide will follow at some point.   
+RootScape picks up the work left behind after root scans have been segemented and root pixel, background pixel, and others have been identified. You will find some suggestions on how to get to that point below. I strongly recommend calibrating your tubes *in-situ* and note the insertion angle, tube diameter, and soil start in relation to where the scan starts for every tube (and perhaps timepoints if movment is expected). A calibration guide will follow at some point.   
 
 <br />
 
 ## Installation
 ```{r Install Package, include=TRUE}
-# devtools::install_github("jcunow/MinirhizotronR")
-# remotes::install_github("jcunow/MinirhizotronR")
+# devtools::install_github("jcunow/RootScape")
+# remotes::install_github("jcunow/RootScape")
 ```
 <br />    
 
@@ -65,7 +65,7 @@ Tipp: split your stitched images if the root detection algorithm has trouble wit
 ```{r hidden import, echo =FALSE}
 library(raster)
 library(terra)
-library(MinirhizotronR)
+library(RootScape)
 library(tidyverse)
 
 data(rgb_Oulanka2023_Session03_T067)
@@ -102,7 +102,7 @@ For many purposes, we will need a skeleton version of the segmentation:
 ## Let's look at example input 
 First, we need to load the images. The example images were taken in a sedge fen in north eastern Finland at Oulanka National Park.
 ```{r Start the package, echo=TRUE,  warning=FALSE,include=TRUE}
-library(MinirhizotronR)
+library(RootScape)
 library(tidyverse)
 library(terra)
 
@@ -144,10 +144,10 @@ s0 = s0 %>% round()
 ### If you don't have any calibration data available - too bad!
 ## Try this instead:
 # Based on Tape Cover, soil start is estimated
-s0 = MinirhizotronR::SoilSurfE(rgb_Oulanka2023_Session03_T067)
+s0 = RootScape::SoilSurfE(rgb_Oulanka2023_Session03_T067)
 print(paste0("Soil Surface Beginning in columns: ",s0$soil0))
 # While we're at it, lets estimate the rotion center (Here, we assume that the tape extrusion on the upside of the Tube is perfectly centered - go and calibrate !!!)
-r0 = MinirhizotronR::RotationE(rgb_Oulanka2023_Session03_T067)
+r0 = RootScape::RotationE(rgb_Oulanka2023_Session03_T067)
 print(paste0("Rotation Center in rows: ",r0))
 ```
 <br />
@@ -170,7 +170,7 @@ DepthMap = create.depthmap(im = seg_Oulanka2023_Session03_T067,
 
 # Now lets bin the depth to be able to calculate some stats. Analysis on continuous depth will feature in a future release.
 # we use 5cm intervals here but any bandwidth can be used.
-bm = MinirhizotronR::binning(DepthMap, nn = 2, "rounding")
+bm = RootScape::binning(DepthMap, nn = 2, "rounding")
 terra::ext(bm) <- c(0,dim(bm)[2],0,dim(bm)[1])
 # Binned Depthmap Plot
 tbm = terra::t(bm)
@@ -265,7 +265,7 @@ rootpx_per_av.space =  root.sum
 rootpx_per_av.space[,2] = root.sum[,2] / av.space[,2]
 df.rootpx_per_av.space = as.data.frame(rootpx_per_av.space)
 ggplot(data=df.rootpx_per_av.space,aes(zone,sum)) + geom_point() + geom_smooth(span=0.25) + theme_classic() + ylab("% covered by roots") + xlab("Depth [cm]") +ggtitle("Roots per available rooting space")
-#ggsave("C:/Users/jocu0013/Documents/GitHub/MinirhizotronR/figures/rootsperavailablespace.png")  
+#ggsave("C:/Users/jocu0013/Documents/GitHub/RootScape/figures/rootsperavailablespace.png")  
 ```
 <br />
 
@@ -381,7 +381,7 @@ terra::plot(root.seg) +
                                    mean((seq(0,dim(root.seg)[1],
                                              length = splits)))),
             color="black",size=1.5) 
-#ggsave("C:/Users/jocu0013/Documents/GitHub/MinirhizotronR/figures/rotation_splicing.png")
+#ggsave("C:/Users/jocu0013/Documents/GitHub/RootScape/figures/rotation_splicing.png")
 
 # based on rotation center determined previously
 df1 = seq(0*pi,-2*pi,-2*pi/(max(rot.df$rotation)-1))

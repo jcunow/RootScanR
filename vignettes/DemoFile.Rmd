@@ -21,12 +21,12 @@ knitr::opts_chunk$set(
 
 ## Load libraries
 ```{r install package, message=FALSE, warning=FALSE }
-# ## Install MinirhizotronR package
+# ## Install RootScape package
 # if (!require("devtools")) {
 #   install.packages("devtools")
 # }
-# devtools::install_github("jcunow/MinirhizotronR")
-# library(MinirhizotronR)
+# devtools::install_github("jcunow/RootScape")
+# library(RootScape)
 # 
 # ## other libraries
 # library(dplyr);library(ggplot2)
@@ -39,7 +39,7 @@ knitr::opts_chunk$set(
 t00 = Sys.time()
 
 
-library(MinirhizotronR)
+library(RootScape)
 library(tidyverse)
 
 # Directory
@@ -260,7 +260,7 @@ for (i in im.ls) {
 # Qcut = Q$sRX[1:min(c(length(P$rxprob),length(Q$rxprob)))]
 # 
 # 
-# MinirhizotronR::tail_weighted_wasserstein_distance(Pcut,Qcut, method = "constant", inverse = FALSE)
+# RootScape::tail_weighted_wasserstein_distance(Pcut,Qcut, method = "constant", inverse = FALSE)
 # tail_weighted_js_divergence(Pcut, Qcut, method = "constant", inverse = FALSE)
 # plot(Q$rxprob,type = "l"); points(P$rxprob,col = "red",type = "line")
 
