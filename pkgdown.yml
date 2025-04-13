@@ -1,10 +1,11 @@
 pandoc: 3.1.11
-pkgdown: 2.1.0
+pkgdown: 2.1.1
 pkgdown_sha: ~
 articles:
-  DemoFile: DemoFile.html
-  MinirhizotronR: MinirhizotronR.html
-last_built: 2024-09-25T14:19Z
+  FlatBedScans_vignettes: FlatBedScans_vignettes.html
+  MinirhizotronScans_vignettes: MinirhizotronScans_vignettes.html
+  Rotation_Bias_vignettes: Rotation_Bias_vignettes.html
+last_built: 2025-04-13T16:39Z
 urls:
-  reference: https://jcunow.github.io/MinirhizotronR/reference
-  article: https://jcunow.github.io/MinirhizotronR/articles
+  reference: https://jcunow.github.io/RootScanR/reference
+  article: https://jcunow.github.io/RootScanR/articles
