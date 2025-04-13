@@ -23,7 +23,6 @@ navbar:
   - text: Tutorial
     href: articles/RootScanR.html
   - text: DemoFile
-    href: articles/DemoFile.html
   - text: News
     href: news/index.html
   - text: Reference
