@@ -3,7 +3,7 @@ title: "Analyzing Root Traits from Flatbed Scans with RootScanR in R"
 author: "Johannes Cunow"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Flatbed Scans Analysis}
+  %\VignetteIndexEntry{Analyzing Root Traits from Flatbed Scans with RootScanR in R}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

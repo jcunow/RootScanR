@@ -3,7 +3,7 @@ title: "Rotation Bias and Circadian Analysis with RootScanR"
 author: "Johannes Cunow"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Rotation Bias and Circadian Analysis}
+  %\VignetteIndexEntry{Rotation Bias and Circadian Analysis with RootScanR}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

@@ -21,7 +21,9 @@ template:
 navbar:
   left:
   - text: Tutorial
-    href: articles/RootScanR.html
+    href: articles/FlatBedScans_vignettes.html
+          articles/MinirhizotronScans_vignettes.html
+          articles/Rotation_Bias_vignettes.html
   - text: DemoFile
   - text: News
     href: news/index.html

@@ -4,8 +4,10 @@ author: "Johannes Cunow"
 output:
   rmarkdown::html_vignette: default
   pdf_document: default
-vignette: "%\\VignetteIndexEntry{Minirhizotron Scans Analysis} %\\VignetteEngine{knitr::rmarkdown}
-  %\\VignetteEncoding{UTF-8}\n"
+vignette: >
+  %\VignetteIndexEntry{Minirhizotron Scans Analysis with RootScanR in R}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 ---
 
 # Minirhizotron Scans Analysis with RootScanR
