@@ -21,9 +21,8 @@
 #' This function stitches a sequence of images together by aligning overlapping regions based on cross-correlation or phase-correlation.
 #'
 #' @param imgs A character vector of file paths to the images to be stitched.
-#' @param overlap_px An integer specifying the number of pixels to use for overlap between images. Default is 200.
+#' @param overlap_px An integer specifying the number of pixels to use to search for overlap between images. Default is 200. The CI-600 scanner produces 100-200 px overlap at 300dpi.
 #' @param side1 A string specifying the side of the previous image used for overlap (e.g., "bottom", "top", "left", "right"). Default is "bottom".
-#' @param side2 A string specifying the side of the current image used for overlap. Default is "top".
 #' @param method A string specifying the method for alignment, either "crosscorr" or "phasecorr". Default is "crosscorr".
 #'
 #' @return A stitched image as a cimg object.
@@ -32,10 +31,10 @@
 #' \dontrun{
 #' imgs <- c("image1.jpg", "image2.jpg", "image3.jpg")
 #' stitched <- stitch_sequential_images(imgs = imgs,
-#'                     overlap_px = 250, side1 = "bottom", side2 = "top")
+#'                     overlap_px = 250, side1 = "bottom")
 #'}
 #' @export
-stitch_sequential_images <- function(imgs, overlap_px = 200, side1="bottom", side2="top", method="crosscorr") {
+stitch_sequential_images <- function(imgs, overlap_px = 200, side1="bottom", method="crosscorr") {
   # Input validation module
   tryCatch({
     # Validate input parameters
@@ -47,24 +46,22 @@ stitch_sequential_images <- function(imgs, overlap_px = 200, side1="bottom", sid
       stop("overlap_px must be a positive number")
     if (!side1 %in% c("bottom", "top", "left", "right"))
       stop("side1 must be one of: 'bottom', 'top', 'left', 'right'")
-    if (!side2 %in% c("bottom", "top", "left", "right"))
-      stop("side2 must be one of: 'bottom', 'top', 'left', 'right'")
     if (!method %in% c("crosscorr", "phasecorr"))
       stop("method must be either 'crosscorr' or 'phasecorr'")
 
+    # Automatically determine the opposite side
+    opposite_sides <- list("bottom" = "top", "top" = "bottom", "left" = "right", "right" = "left")
+    side2 <- opposite_sides[[side1]]
+
     # Load images with error handling
-    images <- vector("list", length(imgs))
-    for (i in seq_along(imgs)) {
-      images[[i]] <- tryCatch({
-        img <- load_flexible_image(imgs[i], select.layer = NULL,
-                                   output_format = "cimg", normalize = FALSE)
-        if (is.null(img)) stop("Failed to load image")
-        if (any(dim(img) <= 0)) stop("Invalid image dimensions")
-        img
-      }, error = function(e) {
-        stop(sprintf("Failed to load image %d (%s): %s", i, imgs[i], e$message))
-      })
-    }
+    images <- lapply(imgs, function(img_path) {
+      img <- tryCatch({
+        load_flexible_image(img_path, select.layer = NULL, output_format = "cimg", normalize = FALSE)
+      }, error = function(e) stop(sprintf("Failed to load image: %s", img_path)))
+
+      if (is.null(img) || any(dim(img) <= 0)) stop("Invalid image dimensions")
+      return(img)
+    })
 
     # Validate image dimensions consistency
     dims <- lapply(images, dim)
@@ -99,72 +96,37 @@ stitch_sequential_images <- function(imgs, overlap_px = 200, side1="bottom", sid
         stop("Invalid translation estimation")
 
       # Validate translation magnitude
-      max_allowed_translation <- dim(curr_img)[1] * 0.5  # Allow up to 50% shift
+      max_allowed_translation <- dim(curr_img)[1] * 0.5
       if (any(abs(translation) > max_allowed_translation))
-        warning(sprintf("Large translation detected (%d, %d). Results may be unreliable.",
-                        translation[1], translation[2]))
+        warning(sprintf("Large translation detected (%d, %d). Results may be unreliable.", translation[1], translation[2]))
 
-      # Calculate new dimensions with overflow protection
+      # Calculate new dimensions
       new_width <- total_width + dim(curr_img)[2] - overlap_px
-      if (new_width <= 0) stop("Invalid resulting image width")
       R <- new_width
       C <- max(dim(curr_img)[1] + translation[2], dim(result)[1])
-      if (C <= 0) stop("Invalid resulting image height")
+
+      if (new_width <= 0 || C <= 0)
+        stop("Invalid resulting image dimensions")
 
       # Safe matrix operations
-      M_curr <- try({
-        matrix(c(
-          1, 0, total_width - overlap_px,
-          0, 1, translation[2]
-        ), nrow=2, byrow=TRUE)
-      })
-      if (inherits(M_curr, "try-error"))
-        stop("Failed to create transformation matrix")
-
-      M_prev <- matrix(c(
-        1, 0, 0,
-        0, 1, 0
-      ), nrow=2, byrow=TRUE)
-
-      # Safe image format conversion
-      tryCatch({
-        curr_warp_img <- array(curr_img, dim(curr_img))[,,,1:3]
-        prev_warp_img <- array(prev_img, dim(prev_img))[,,,1:3]
-      }, error = function(e) {
-        stop("Failed to convert images to array format")
-      })
+      M_curr <- matrix(c(1, 0, total_width - overlap_px, 0, 1, translation[2]), nrow=2, byrow=TRUE)
+      M_prev <- diag(3)[1:2,]
 
       # Safe warping operations
       warped_curr <- tryCatch({
-        OpenImageR::warpAffine(curr_warp_img, M=M_curr, R=R, C=C)
-      }, error = function(e) {
-        stop(sprintf("Warping failed for current image: %s", e$message))
-      })
+        OpenImageR::warpAffine(as.array(curr_img)[,,,1:3], M=M_curr, R=R, C=C)
+      }, error = function(e) stop("Warping failed for current image"))
 
       warped_prev <- tryCatch({
-        OpenImageR::warpAffine(prev_warp_img, M=M_prev, R=R, C=C)
-      }, error = function(e) {
-        stop(sprintf("Warping failed for previous image: %s", e$message))
-      })
+        OpenImageR::warpAffine(as.array(prev_img)[,,,1:3], M=M_prev, R=R, C=C)
+      }, error = function(e) stop("Warping failed for previous image"))
 
-      # Safe format conversion back to cimg
-      warped_curr <- tryCatch({
-        imager::as.cimg(warped_curr)
-      }, error = function(e) {
-        stop("Failed to convert warped current image to cimg format")
-      })
+      # Convert warped images back to cimg format
+      warped_curr <- tryCatch(imager::as.cimg(warped_curr), error = function(e) stop("Failed to convert warped image"))
+      warped_prev <- tryCatch(imager::as.cimg(warped_prev), error = function(e) stop("Failed to convert warped image"))
 
-      warped_prev <- tryCatch({
-        imager::as.cimg(warped_prev)
-      }, error = function(e) {
-        stop("Failed to convert warped previous image to cimg format")
-      })
-
-      # Combine images with validation
-      result <- combine_images(warped_prev, warped_curr,
-                               overlap_start=total_width - overlap_px,
-                               overlap_end=total_width)
-
+      # Combine images
+      result <- combine_images(warped_prev, warped_curr, overlap_start=total_width - overlap_px, overlap_end=total_width)
       if (is.null(result))
         stop("Failed to combine images")
 
@@ -177,6 +139,7 @@ stitch_sequential_images <- function(imgs, overlap_px = 200, side1="bottom", sid
     stop(paste("Error in stitch_sequential_images:", e$message))
   })
 }
+
 
 
 

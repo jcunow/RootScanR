@@ -33,7 +33,7 @@
 #' @examples
 #' # Example usage:
 #' data(seg_Oulanka2023_Session01_T067)
-#' result <- root.diameters(
+#' result <- root_diameter(
 #' img = seg_Oulanka2023_Session01_T067,
 #' skeleton_method = "GuoHall", select.layer = 2,
 #' diagnostics = TRUE)
@@ -43,7 +43,7 @@
 #' terra::plot(result$skeleton_rast)
 #'
 #' @export
-root.diameters <- function(img, diagnostics = FALSE, skeleton_method = "GuoHall", select.layer = 2) {
+root_diameter <- function(img, diagnostics = FALSE, skeleton_method = "GuoHall", select.layer = 2) {
   # Input validation and error handling module
   tryCatch({
     # Validate input parameters
@@ -107,10 +107,13 @@ root.diameters <- function(img, diagnostics = FALSE, skeleton_method = "GuoHall"
     distance_map <- distance_transform(img = img)
     diameters <- distance_map * 2
 
+
+
     # Convert to SpatRast with validation
     Ds <- tryCatch({
       load_flexible_image(diameters, output_format = "SpatRaster", normalize = FALSE, binarize = FALSE, select.layer = NULL)
-      terra::rast(as.array(diameters)[,,1,])
+
+
     }, error = function(e) {
       stop(sprintf("Failed to convert distance map to SpatRaster: %s", e$message))
     })
@@ -136,6 +139,10 @@ root.diameters <- function(img, diagnostics = FALSE, skeleton_method = "GuoHall"
     DsSKL <- Ds
     DsSKL[IMS == 0] <- NA
 
+     # remove non root distances
+     DsSKL[DsSKL == 0] <- NA
+
+
     # Check if we have any valid measurements
     if (all(is.na(terra::values(DsSKL)))) {
       stop("No valid diameter measurements found after filtering")
@@ -144,6 +151,7 @@ root.diameters <- function(img, diagnostics = FALSE, skeleton_method = "GuoHall"
     # Create binary skeleton mask
     skl <- DsSKL
     skl[skl > 0] <- 1
+
 
     # Compute statistics with validation
     tryCatch({

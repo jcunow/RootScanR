@@ -16,8 +16,8 @@
 #'
 #' @examples
 #' img = seg_Oulanka2023_Session01_T067
-#' r0 = RotationE(img)
-RotationE = function(img, tape.brightness=0.66, extra.rows=100, search.area=0.45,
+#' r0 = estimate_rotation_center(img)
+estimate_rotation_center = function(img, tape.brightness=0.66, extra.rows=100, search.area=0.45,
                      tape.quantile=0.98, nclasses=3, select.layer=NULL) {
 
   # Validation module
@@ -135,8 +135,8 @@ RotationE = function(img, tape.brightness=0.66, extra.rows=100, search.area=0.45
 #' @examples
 #' img1 = seg_Oulanka2023_Session01_T067
 #' img2 = seg_Oulanka2023_Session03_T067
-#' y.lag = RotShiftDet(img1,img2,"phase")
-RotShiftDet = function(img1, img2, cor.type="phase",
+#' y.lag = estimate_rotation_shift(img1,img2,"phase")
+estimate_rotation_shift = function(img1, img2, cor.type="phase",
                        fixed.depth.pixel=c(1000,4000),
                        fixed.width=NULL, select.layer=NULL) {
 
@@ -257,8 +257,8 @@ RotShiftDet = function(img1, img2, cor.type="phase",
 #' @examples
 #' data(seg_Oulanka2023_Session01_T067)
 #' img = terra::rast(seg_Oulanka2023_Session01_T067)
-#' censored.raster = RotCensor(img,center.offset = 120, cut.buffer = 0.02, fixed.rotation = FALSE)
-RotCensor = function(img, center.offset=0, cut.buffer=0.02,
+#' censored.raster = rotation_censor(img,center.offset = 120, cut.buffer = 0.02, fixed.rotation = FALSE)
+rotation_censor = function(img, center.offset=0, cut.buffer=0.02,
                      fixed.rotation=TRUE, fixed.width=500, select.layer=NULL) {
 
   # Validation module
@@ -372,8 +372,8 @@ RotCensor = function(img, center.offset=0, cut.buffer=0.02,
 #'
 #' @examples
 #' img = rgb_Oulanka2023_Session03_T067
-#' Soil0Estimates = SoilSurfE(img)
-SoilSurfE = function(img, search.area=0.45, tape.tresh=0.33, dpi=150, nclasses=3,
+#' Soil0Estimates = estimate_soil_surface(img)
+estimate_soil_surface = function(img, search.area=0.45, tape.tresh=0.33, dpi=150, nclasses=3,
                      inverse=FALSE, tape.overlap=0.5, tape.brightness=0.6,
                      extra.rows=100, tape.quantile=0.98, select.layer=NULL) {
 

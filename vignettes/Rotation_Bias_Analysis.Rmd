@@ -19,13 +19,13 @@ To install the package from the source or GitHub:
 ```{r}
 # Install the package from GitHub
 # install.packages("remotes")
-# remotes::install_github("jcunow/RootScape")
+# remotes::install_github("jcunow/RootScanR")
 
 # install.packages("devtools")
-# devtools::install_github("jcunow/RootScape")
+# devtools::install_github("jcunow/RootScanR")
 
 # Load the package
-library(RootScape)
+library(RootScanR)
 ```
 
 ## Key Functionalities

@@ -4,6 +4,7 @@ test_convert_function <- function() {
   library(magick)
   library(terra)
   library(raster)
+  library(RootScanR)
 
   # Define supported input and output formats
   input_formats <- list(

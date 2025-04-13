@@ -2,7 +2,7 @@
 % Please edit documentation in R/LilHelpers3.R
 \name{blur.correction}
 \alias{blur.correction}
-\title{Threshold an image to rebinarize a blurred image}
+\title{Threshold an image to binirize image}
 \usage{
 blur.correction(img, threshold = 0.4, select.layer = 2, mask.layer = 1)
 }
@@ -19,7 +19,7 @@ blur.correction(img, threshold = 0.4, select.layer = 2, mask.layer = 1)
 SpatRaster object
 }
 \description{
-Threshold an image to rebinarize a blurred image
+Threshold an image to binirize image
 }
 \examples{
 blurred.img = terra::rast(seg_Oulanka2023_Session03_T067)

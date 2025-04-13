@@ -12,8 +12,8 @@
 #' @examples
 #' data(skl_Oulanka2023_Session01_T067)
 #' img = terra::rast(skl_Oulanka2023_Session01_T067)
-#' RL = RootLength(img = img,unit = "cm", dpi = 300, select.layer = 2)
-RootLength = function(img, unit="cm", dpi=300, select.layer = NULL) {
+#' RL = root_length(img = img,unit = "cm", dpi = 300, select.layer = 2)
+root_length = function(img, unit="cm", dpi=300, select.layer = NULL) {
   # Input validation module
   tryCatch({
     # Check if img is provided
@@ -153,8 +153,8 @@ RootLength = function(img, unit="cm", dpi=300, select.layer = NULL) {
 #' @examples
 #' data(seg_Oulanka2023_Session01_T067)
 #' img = terra::rast(seg_Oulanka2023_Session01_T067)
-#' RootScapeObject  = RootScapeMetrics(img,indexD = 80, select.layer = 2,  metrics = c("lsm_c_ca"))
-RootScapeMetrics = function(img, indexD=NA, select.layer = NULL,
+#' RootScapeObject  = root_scape_metrics(img,indexD = 80, select.layer = 2,  metrics = c("lsm_c_ca"))
+root_scape_metrics = function(img, indexD=NA, select.layer = NULL,
                             metrics = c("lsm_c_ca", "lsm_l_ent", "lsm_c_pd", "lsm_c_np", "lsm_c_pland",
                                         "lsm_c_area_mn", "lsm_c_area_cv", "lsm_c_enn_mn", "lsm_c_enn_cv")) {
   tryCatch({
@@ -279,8 +279,8 @@ px.sum = function(img) {
 #' @examples
 #' data(rgb_Oulanka2023_Session03_T067)
 #' img = terra::rast(rgb_Oulanka2023_Session03_T067)
-#' colorvector = Tube.coloration(img)
-Tube.coloration = function(img, r=0.2126, g=0.7152, b=0.0722) {
+#' colorvector = tube_coloration(img)
+tube_coloration = function(img, r=0.2126, g=0.7152, b=0.0722) {
   tryCatch({
     # Input validation
     if (missing(img)) {
@@ -370,8 +370,8 @@ Tube.coloration = function(img, r=0.2126, g=0.7152, b=0.0722) {
 #' @examples
 #' data(rgb_Oulanka2023_Session03_T067)
 #' img = raster::brick(rgb_Oulanka2023_Session03_T067)
-#' texture(img, 7, c(9,9), metrics = "second_moment")
-texture = function(img.color, grays = 7, window = c(9,9),
+#' analyze_soil_texture(img, 7, c(9,9), metrics = "second_moment")
+analyze_soil_texture = function(img.color, grays = 7, window = c(9,9),
                    metrics = c("variance","second_moment")) {
   tryCatch({
     # Input validation
@@ -449,8 +449,8 @@ texture = function(img.color, grays = 7, window = c(9,9),
 #' @return a value in units cm
 #' @export
 #'
-#' @examples root.ticc = root.thickness(kimuralength = 300,rootpx = 9500, dpi = 300)
-root.thickness = function(kimuralength, rootpx, dpi=300) {
+#' @examples root.ticc = root_thickness(kimuralength = 300,rootpx = 9500, dpi = 300)
+root_thickness = function(kimuralength, rootpx, dpi=300) {
   tryCatch({
     # Input validation
     if (missing(kimuralength) || missing(rootpx)) {

@@ -8,18 +8,15 @@ stitch_sequential_images(
   imgs,
   overlap_px = 200,
   side1 = "bottom",
-  side2 = "top",
   method = "crosscorr"
 )
 }
 \arguments{
 \item{imgs}{A character vector of file paths to the images to be stitched.}
 
-\item{overlap_px}{An integer specifying the number of pixels to use for overlap between images. Default is 200.}
+\item{overlap_px}{An integer specifying the number of pixels to use to search for overlap between images. Default is 200. The CI-600 scanner produces 100-200 px overlap at 300dpi.}
 
 \item{side1}{A string specifying the side of the previous image used for overlap (e.g., "bottom", "top", "left", "right"). Default is "bottom".}
-
-\item{side2}{A string specifying the side of the current image used for overlap. Default is "top".}
 
 \item{method}{A string specifying the method for alignment, either "crosscorr" or "phasecorr". Default is "crosscorr".}
 }
@@ -33,6 +30,6 @@ This function stitches a sequence of images together by aligning overlapping reg
 \dontrun{
 imgs <- c("image1.jpg", "image2.jpg", "image3.jpg")
 stitched <- stitch_sequential_images(imgs = imgs,
-                    overlap_px = 250, side1 = "bottom", side2 = "top")
+                    overlap_px = 250, side1 = "bottom")
 }
 }

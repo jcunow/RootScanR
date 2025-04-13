@@ -1,9 +1,9 @@
-# RootScape - R package
+# RootScanR - R package
 
 <br />
 
 ## Overview
-*RootScape* is a package which has been designed to make the analysis of minirhizotron root scans just a little less stupid. 
+*RootScanR* is a package which has been designed to make the analysis of minirhizotron root scans just a little less stupid. 
 The package relies on prior Image segmentation. We recommend using *RootDetector* or *RootPainter*. This packages enables the user to map various root features to a continue s depth distributions. 
 The user has the choice to include the tube insertion angle and tube diameter - or ignore it (?). Rotational bias of root prevalence can be tested. Let me know if you have questions, improvements, or found bugs & errors.
 
@@ -12,7 +12,7 @@ The user has the choice to include the tube insertion angle and tube diameter - 
 if (!require("devtools")) {
   install.packages("devtools")
 }
-devtools::install_github("jcunow/RootScape")
+devtools::install_github("jcunow/RootScanR")
 ````
 
 
@@ -22,7 +22,7 @@ ____________________________________
 <br />
 
 ## Calibration 
-More accurate results require easy to gather *in-situ* calibration of each tube. Traditionally, the assumption is that all tube have been installed perfectly, i.e., exact same insertion angle, insertion depth, same scanner rotation position, and tape overshoot for each tube. RootScape offers the possibility  to approximate the soil start and rotation center based an assumption of well-taped tubes.
+More accurate results require easy to gather *in-situ* calibration of each tube. Traditionally, the assumption is that all tube have been installed perfectly, i.e., exact same insertion angle, insertion depth, same scanner rotation position, and tape overshoot for each tube. RootScanR offers the possibility  to approximate the soil start and rotation center based an assumption of well-taped tubes.
 
 1. Soil Surface Position Estimation 
 ````
@@ -46,7 +46,7 @@ requires: soil surface estimate, rotation center estimate, tube insertion angle,
 
 1. Phase shifted, trimmed sine depth mapping including tube diameter and tube insertion angle 
 ````
-depthmap = create.depthmap(img,mask, tube.thicc = 7, tilt = 45, dpi = 300, start.soil = 0,center.offset = 0)
+depthmap = create_depthmap(img,mask, tube.thicc = 7, tilt = 45, dpi = 300, start.soil = 0,center.offset = 0)
 ````
 
 <br />
@@ -67,13 +67,13 @@ root.zone = zone.fun(img, binned.map, indexD = 5, nn = 1)
 1. Parameter from segmented image cut
 ````
 RootScapeMetrics(root.zone, metrics = c("lsm_c_ca","lsm_c_pland","lsm_c_enn_mn"))
-Root.px = px.sum(root.zone)
+Root.px = count_pixel(root.zone)
 ````
 
 2. Parameter from skeletonized image cut
 ````
 root.zone.skl = skeletonize_image(root.zone, method = "MAT", layer = 2)
-RL = RootLength(root.zone.skeleton)
+RL = root_length(root.zone.skeleton)
 ````
 
 3. Combine both
@@ -85,14 +85,14 @@ root.thickness(Root.px, RL)
 ````
 Rhizosphere = Halo(root.zone, width = 5, halo.only = FALSE)
 soil = rgb.img[Rhizosphere == 1] < - NA  
-Soil.texture(soil)
-soil.color = Tube.coloration(soil)
+analyze_soil_texture(soil)
+soil.color = tube_coloration(soil)
 ````
 
 5. Turnover - either two images from different time points, or the 'RootDetector' root tracking output 
 ````
-Turnover.TC(root.zone1,root.zone2, method = "kimura",dpi = 300, unit = "cm")
-Turnover.DPC(root.zone.dpc, product.layer = 2, decay.layer = 1, im.return = F)
+turnover_tc(root.zone1,root.zone2, method = "kimura",dpi = 300, unit = "cm")
+turnover_dpc(root.zone.dpc, product.layer = 2, decay.layer = 1, im.return = F)
 ````
 
 <br />
@@ -105,7 +105,7 @@ rotation.rootpx = data.frame(kk = 1:12,px = NA)
 
 for(i in rotation.rootpx){
 rotation.zone = zone.rotation.fun(img,k = c(i-1,i),kk = 12, mm = c(1500,5000))
-rotation.rootpx$px[i,] = px.sum(rotation.zone)
+rotation.rootpx$px[i,] = count_pixel(rotation.zone)
 }
 
 

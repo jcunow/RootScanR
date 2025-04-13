@@ -27,13 +27,13 @@
 #' img = seg_Oulanka2023_Session01_T067
 #' mask = seg_Oulanka2023_Session01_T067[[1]] - seg_Oulanka2023_Session01_T067[[2]]
 #' mask[mask == 255] <- NA
-#' map = create.depthmap(img,mask,start.soil = 0.1,
+#' map = create_depthmap(img,mask,start.soil = 0.1,
 #'   sinoid = TRUE,
 #'   tube.thicc = 7,
 #'   tilt = 45,
 #'   dpi = 300,
 #'   center.offset = 0 )
-create.depthmap = function(img, mask = NULL, sinoid = TRUE,
+create_depthmap = function(img, mask = NULL, sinoid = TRUE,
                            tube.thicc = 7, tilt = 45, dpi = 300,
                            start.soil = 0, center.offset = 0, select.layer = 2) {
 

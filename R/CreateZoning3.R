@@ -13,8 +13,8 @@
 #' @examples
 #' data(seg_Oulanka2023_Session03_T067)
 #' img <- terra::rast(seg_Oulanka2023_Session03_T067)
-#' Halo(img, width = 2)
-Halo = function(img, width=2, halo.only=TRUE, kernel="circle") {
+#' create_root_buffer(img, width = 2)
+create_root_buffer = function(img, width=2, halo.only=TRUE, kernel="circle") {
 
   # Validation module
   tryCatch({
@@ -98,7 +98,7 @@ Halo = function(img, width=2, halo.only=TRUE, kernel="circle") {
 #' mask = img[[1]] - img[[2]]
 #' mask[mask == 255] <- NA
 #' img = img
-#' depthmap = create.depthmap(img,mask,start.soil = 2.9, select.layer = 2 )
+#' depthmap = create_depthmap(img,mask,start.soil = 2.9, select.layer = 2 )
 #' binned.map = binning(depthmap,nn = 5)
 binning = function(depthmap, nn, round.option="rounding") {
 
@@ -169,7 +169,6 @@ binning = function(depthmap, nn, round.option="rounding") {
 #' @param rootpic SpatRaster/matrix/array - source image
 #' @param binned.map SpatRaster/matrix/array - binned depth map
 #' @param indexD numeric - depth index to extract. Usually used to index in a loop to iterate over depths.
-#' @param nn numeric - bin width that has been used in binning
 #' @param select.layer Integer. Specifies which layer to use if the input is a multi-band image. Default is `2`.
 #' @param silent logical - suppress messages
 #' @return SpatRaster - extracted zone
@@ -181,17 +180,17 @@ binning = function(depthmap, nn, round.option="rounding") {
 #' mask = img[[1]] - img[[2]]
 #' mask[mask == 255] <- NA
 #' img = img
-#' depthmap = create.depthmap(img,mask,start.soil = 2.9, select.layer = 2 )
+#' depthmap = create_depthmap(img,mask,start.soil = 2.9, select.layer = 2 )
 #' binned.map = binning(depthmap,nn = 5)
 #'
 #' data(seg_Oulanka2023_Session01_T067)
 #' img = terra::rast(seg_Oulanka2023_Session01_T067)
 #' mask = img[[1]] - img[[2]]
 #' mask[mask == 255] <- NA
-#' depthmap = create.depthmap(img,mask,start.soil = 0, tube.thicc = 7,dpi = 150, select.layer = 2 )
+#' depthmap = create_depthmap(img,mask,start.soil = 0, tube.thicc = 7,dpi = 150, select.layer = 2 )
 #' binned.map = binning(depthmap,nn = 5)
-#' image.zone = zone.fun(img, binned.map, indexD = 10, nn=5, silent = FALSE,select.layer = NULL)
-zone.fun = function(rootpic, binned.map, indexD=0, nn=5, silent=FALSE, select.layer=NULL) {
+#' image.zone = zone.fun(img, binned.map, indexD = 10,  silent = FALSE,select.layer = NULL)
+zone.fun = function(rootpic, binned.map, indexD=0, silent=FALSE, select.layer=NULL) {
 
   # Validation module
   tryCatch({
@@ -203,9 +202,6 @@ zone.fun = function(rootpic, binned.map, indexD=0, nn=5, silent=FALSE, select.la
     # Parameter validation
     if (!is.numeric(indexD)) {
       stop("indexD must be numeric")
-    }
-    if (!is.numeric(nn) || nn <= 0) {
-      stop("nn must be positive numeric")
     }
     if (!is.logical(silent)) {
       stop("silent must be logical")
@@ -223,7 +219,7 @@ zone.fun = function(rootpic, binned.map, indexD=0, nn=5, silent=FALSE, select.la
     })
 
     binned.map <- tryCatch({
-      load_flexible_image(binned.map, select.layer=select.layer,
+      load_flexible_image(binned.map, select.layer=NULL,
                           output_format="spatrast", normalize=FALSE)
     }, error = function(e) {
       stop("Failed to load binned.map: ", e$message)

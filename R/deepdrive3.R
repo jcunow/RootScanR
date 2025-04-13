@@ -20,10 +20,10 @@
 #' @examples
 #' data(skl_Oulanka2023_Session01_T067)
 #' im = ceiling(terra::rast(skl_Oulanka2023_Session01_T067)/255)
-#' DepthMap = terra::t(create.depthmap(im,center.offset=0,tube.thicc=3.5))
+#' DepthMap = terra::t(create_depthmap(im,center.offset=0,tube.thicc=3.5))
 #'
-#' deep.drive(DepthMap = DepthMap, RootMap = im, select.layerRM = 2, select.layerAM = 2)
-deep.drive = function(DepthMap=NULL, AngleMap=NULL, RootMap=NULL,
+#' deep_drive(DepthMap = DepthMap, RootMap = im, select.layerRM = 2, select.layerAM = 2)
+deep_drive = function(DepthMap=NULL, AngleMap=NULL, RootMap=NULL,
                       select.layerRM=NULL, select.layerDM=NULL, select.layerAM=NULL) {
 
   # Validation module
