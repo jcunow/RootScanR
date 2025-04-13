@@ -1,4 +1,4 @@
-url: https://jcunow.github.io/MinirhizotronR/
+url: https://jcunow.github.io/RootScanR/
 template:
   bootstrap: 5
   theme: breeze-light
@@ -21,7 +21,7 @@ template:
 navbar:
   left:
   - text: Tutorial
-    href: articles/MinirhizotronR.html
+    href: articles/RootScanR.html
   - text: DemoFile
     href: articles/DemoFile.html
   - text: News
