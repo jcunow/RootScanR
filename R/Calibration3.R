@@ -257,7 +257,10 @@ estimate_rotation_shift = function(img1, img2, cor.type="phase",
 #' @examples
 #' data(seg_Oulanka2023_Session01_T067)
 #' img = terra::rast(seg_Oulanka2023_Session01_T067)
-#' censored.raster = rotation_censor(img,center.offset = 120, cut.buffer = 0.02, fixed.rotation = FALSE)
+#' censored.raster = rotation_censor(img,
+#'                          center.offset = 120,
+#'                          cut.buffer = 0.02,
+#'                          fixed.rotation = FALSE)
 rotation_censor = function(img, center.offset=0, cut.buffer=0.02,
                      fixed.rotation=TRUE, fixed.width=500, select.layer=NULL) {
 

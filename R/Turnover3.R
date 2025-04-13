@@ -90,8 +90,8 @@ turnover_tc = function(im.t1, im.t2, method="kimura", unit="cm", dpi=300, select
     validate_inputs(im.t1,im.t2)
 
     if (method == "rootpx") {
-      px1 <- px.sum(im.t1)
-      px2 <- px.sum(im.t2)
+      px1 <- count_pixels(im.t1)
+      px2 <- count_pixels(im.t2)
     } else {  # method == "kimura"
       px1 <- root_length(im.t1, select.layer = NULL, dpi = dpi, unit = unit)
       px2 <- root_length(im.t2, select.layer = NULL, dpi = dpi, unit = unit)
@@ -261,10 +261,10 @@ turnover_dpc = function(img, product.layer=2, decay.layer=1, blur.capture=0.95,
 
       # Calculate pixel sums and ratios
       results <- calculate_ratios(
-        tape.px = px.sum(tape),
-        const.px = px.sum(l.no2),
-        prodc.px = px.sum(l.pr2),
-        decay.px = px.sum(l.dc2),
+        tape.px = count_pixels(tape),
+        const.px = count_pixels(l.no2),
+        prodc.px = count_pixels(l.pr2),
+        decay.px = count_pixels(l.dc2),
         include_virtualroots = include.virtualroots
       )
       return(results)

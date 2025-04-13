@@ -234,8 +234,8 @@ root_scape_metrics = function(img, indexD=NA, select.layer = NULL,
 #' @examples
 #' data(seg_Oulanka2023_Session01_T067)
 #' img = terra::rast(seg_Oulanka2023_Session01_T067)[[2]]
-#' rootpixel  = px.sum(img)
-px.sum = function(img) {
+#' rootpixel  = count_pixels(img)
+count_pixels = function(img) {
   tryCatch({
     # Input validation
     if (missing(img)) {
@@ -263,7 +263,7 @@ px.sum = function(img) {
     return(srpx[[1]])
 
   }, error = function(e) {
-    stop("Error in px.sum: ", e$message)
+    stop("Error in count_pixels: ", e$message)
   })
 }
 
