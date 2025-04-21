@@ -23,8 +23,8 @@
 #' }
 smooth_root_edges <- function(img, kernel_shape = "disk", kernel_size = 3, iterations = 1) {
 
-    # Try to convert to cimg
-    img <- load_flexible_image(img, output = "cimg",binarize = T)
+  # Try to convert to cimg
+  img <- load_flexible_image(img, output_format = "cimg",binarize = T)
     
 
   # Ensure image is grayscale (3D array) if it's color (4D array)
@@ -142,7 +142,7 @@ fill_root_holes <- function(img, min_hole_size = 1, max_hole_size = Inf) {
   
   # First, label all connected components in the background (inverse of the image)
   # We need to invert the image to identify holes
-  inv_img <- !binary_img
+  inv_img <- !img
   
   # Label connected regions in the inverted image (holes)
   labeled <- imager::label(inv_img)

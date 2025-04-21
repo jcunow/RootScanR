@@ -35,5 +35,8 @@ Crops image edges to handle non-overlapping regions between sequential scans.
 \examples{
 data(seg_Oulanka2023_Session01_T067)
 img = terra::rast(seg_Oulanka2023_Session01_T067)
-censored.raster = rotation_censor(img,center.offset = 120, cut.buffer = 0.02, fixed.rotation = FALSE)
+censored.raster = rotation_censor(img,
+                         center.offset = 120,
+                         cut.buffer = 0.02,
+                         fixed.rotation = FALSE)
 }

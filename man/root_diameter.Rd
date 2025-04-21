@@ -6,20 +6,26 @@
 \usage{
 root_diameter(
   img,
-  diagnostics = FALSE,
   skeleton_method = "GuoHall",
-  select.layer = 2
+  select.layer = 2,
+  diagnostics = FALSE,
+  unit = "cm",
+  dpi = 300
 )
 }
 \arguments{
 \item{img}{A character string (file path), `SpatRaster`, `RasterBrick`, `RasterLayer`, `cimg`, `magick-image`, or array.
 The input image to process.}
 
-\item{diagnostics}{Logical. If `TRUE`, enables diagnostic plots and logging. Default is `FALSE`.}
-
 \item{skeleton_method}{Character. The method to use for skeletonization. Default is `"Guo-Hall"`.}
 
 \item{select.layer}{Integer. Specifies which layer to use if the input is a multi-band image. Default is `2`.}
+
+\item{diagnostics}{Logical. If `TRUE`, enables diagnostic plots and logging. Default is `FALSE`.}
+
+\item{unit}{output in pixel 'px', 'inch' or in 'cm'}
+
+\item{dpi}{scan resolution. Only used if unit = 'cm' or 'inch'}
 }
 \value{
 A list containing:
@@ -50,10 +56,9 @@ The function supports various input formats and normalizes image values to the r
 \examples{
 # Example usage:
 data(seg_Oulanka2023_Session01_T067)
-result <- root_diameter(
-img = seg_Oulanka2023_Session01_T067,
-skeleton_method = "GuoHall", select.layer = 2,
-diagnostics = TRUE)
+result <- root_diameter(img = seg_Oulanka2023_Session01_T067,
+  skeleton_method = "GuoHall", select.layer = 2, unit = "px",
+  diagnostics = TRUE)
 
 # Access results:
 print(result$mean_diameter)

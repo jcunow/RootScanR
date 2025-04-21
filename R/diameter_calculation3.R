@@ -32,20 +32,20 @@
 #'   \item{distance_map_rast}{`SpatRaster`. Raster showing the distance transform values.}
 #' }
 #'
-#' @examples
+#'@examples
 #' # Example usage:
 #' data(seg_Oulanka2023_Session01_T067)
-#' result <- root_diameter(
-#' img = seg_Oulanka2023_Session01_T067,
-#' skeleton_method = "GuoHall", select.layer = 2,
-#' diagnostics = TRUE)
+#' result <- root_diameter(img = seg_Oulanka2023_Session01_T067,
+#'   skeleton_method = "GuoHall", select.layer = 2, unit = "px",
+#'   diagnostics = TRUE)
 #'
 #' # Access results:
 #' print(result$mean_diameter)
 #' terra::plot(result$skeleton_rast)
 #'
 #' @export
-root_diameter <- function(img,  skeleton_method = "GuoHall", select.layer = 2,diagnostics = FALSE, unit = "cm", dpi = 300) {
+root_diameter <- function(img,  skeleton_method = "GuoHall", select.layer = 2, 
+                          diagnostics = FALSE, unit = "cm", dpi = 300) {
   # Input validation and error handling module
   tryCatch({
     # Validate input parameters

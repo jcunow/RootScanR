@@ -4,14 +4,14 @@
 \alias{root_length}
 \title{Calculate Root Length using Kimura's Method with optimizations}
 \usage{
-root_length(img, unit = "cm", dpi = 300, select.layer = NULL)
+root_length(img, unit = "cm", dpi = 300, select.layer = 1)
 }
 \arguments{
 \item{img}{A skeletonized root image raster}
 
 \item{unit}{Output unit ("px" or "cm")}
 
-\item{dpi}{Image resolution (required when unit = "cm")}
+\item{dpi}{Image resolution (required when unit = "cm" or "inch")}
 
 \item{select.layer}{Integer. Specifies which layer to use if the input is a multi-band image. Default is `2`.}
 }
