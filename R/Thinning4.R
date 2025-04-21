@@ -21,27 +21,27 @@ validate_image_input <- function(img,
   if (is.null(img)) {
     stop("Input image cannot be NULL")
   }
-
+  
   # Check if dimensions are sufficient
   if (any(dim(img)[1:2] < min_dim)) {
     stop(sprintf("Image dimensions must be at least %dx%d", min_dim[1], min_dim[2]))
   }
-
+  
   # Check for empty images if not allowed
   if (!allow_empty && all(terra::values(img) == 0)) {
     stop("Input image cannot be empty (all zeros)")
   }
-
+  
   # Check for single-value images
   if (length(unique(as.vector(img))) == 1) {
     warning("Input image contains only a single value")
   }
-
+  
   # Check for NaN or Inf values
   if (any(is.nan(terra::values(img))) || any(is.infinite(terra::values(img)))) {
     stop("Image contains NaN or Infinite values")
   }
-
+  
   # Handle numerical precision and force binary values if required
   if (require_binary) {
     if (!all(terra::values(img) %in% c(0,1))) {
@@ -54,8 +54,8 @@ validate_image_input <- function(img,
       }
     }
   }
-
-
+  
+  
   return(list(
     img = img,
     dims = dim(img),
@@ -92,57 +92,102 @@ validate_image_input <- function(img,
 #' raster <- terra::rast(matrix(c(0, 1, 1, 0, 0, 1, 1, 0,0), nrow = 3))
 #' thinned_image <- thin_image_zhangsuen(raster, verbose = TRUE, select.layer = NULL)
 #' }
-thin_image_zhangsuen <- function(img, verbose = TRUE, select.layer = NULL) {
-  # Input validation
-  tryCatch({
-    validated <- validate_image_input(
-      img = img,
-      allow_empty = FALSE,
-      min_dim = c(3,3),
-      require_binary = TRUE,
-      select.layer = select.layer
-    )
-    img <- validated$img
-  }, error = function(e) {
-    stop("Input validation failed: ", e$message)
-  }, warning = function(w) {
-    warning("Input validation warning: ", w$message)
-  })
-
-  # Flexible input processing
-  img <- tryCatch({
-    load_flexible_image(img, select.layer = select.layer,
-                        output_format = "spatrast", normalize = TRUE,binarize = TRUE)
-  }, error = function(e) {
-    stop("Failed to load image: ", e$message)
-  })
-
-  img <- matrix(as.numeric(img), nrow = nrow(img))
-
-  # Progress tracking
-  if(verbose) {
+thin_image_zhangsuen <- function(img, verbose = TRUE, select.layer = 2) {
+  
+  img <- load_flexible_image(
+    img, 
+    select.layer = select.layer, 
+    output_format = "matrix", 
+    normalize = TRUE, 
+    binarize = TRUE
+  )
+  
+  if (verbose) {
     cat("Image dimensions:", nrow(img), "x", ncol(img), "\n")
     cat("Initial foreground pixels:", sum(img == 1), "\n")
   }
-
-  # Force binary values with numerical precision handling
+  
   img[abs(img - 1) < 1e-10] <- 1
   img[abs(img) < 1e-10] <- 0
-
-  if(sum(img == 1) == 0) {
-    stop("No foreground pixels found after type conversion")
+  
+  if (sum(img == 1) == 0) stop("No foreground pixels found after type conversion")
+  
+  count_transitions <- function(p) {
+    neighbors <- c(p[2:9], p[2])
+    sum(neighbors[1:8] == 0 & neighbors[2:9] == 1)
   }
-
-  # Rest of the original function code remains the same...
-  # [Original function implementation continues here]
-
-  # Add final validation
-  if(all(img == 0)) {
-    warning("Resulting image is empty (all zeros)")
+  
+  get_neighbors <- function(img, i, j) {
+    p <- rep(0, 9)
+    p[1] <- img[i, j]
+    if (i > 1) {
+      p[2] <- img[i-1, j]
+      if (j < ncol(img)) p[3] <- img[i-1, j+1]
+    }
+    if (j < ncol(img)) p[4] <- img[i, j+1]
+    if (i < nrow(img)) {
+      if (j < ncol(img)) p[5] <- img[i+1, j+1]
+      p[6] <- img[i+1, j]
+      if (j > 1) p[7] <- img[i+1, j-1]
+    }
+    if (j > 1) {
+      p[8] <- img[i, j-1]
+      if (i > 1) p[9] <- img[i-1, j-1]
+    }
+    return(p)
   }
-
+  
+  max_iterations <- 1000
+  iteration_count <- 0
+  any_changes <- TRUE
+  
+  while (any_changes && iteration_count < max_iterations) {
+    iteration_count <- iteration_count + 1
+    any_changes <- FALSE
+    pixels_removed <- 0
+    
+    for (subiter in 1:2) {
+      to_delete <- matrix(FALSE, nrow=nrow(img), ncol=ncol(img))
+      for (i in 2:(nrow(img)-1)) {
+        for (j in 2:(ncol(img)-1)) {
+          if (img[i, j] == 1) {
+            p <- get_neighbors(img, i, j)
+            B <- sum(p[-1])
+            A <- count_transitions(p)
+            
+            if (B >= 2 && B <= 6 && A == 1) {
+              if (subiter == 1) {
+                if (p[2] * p[4] * p[6] == 0 && p[4] * p[6] * p[8] == 0) {
+                  to_delete[i, j] <- TRUE
+                  any_changes <- TRUE
+                }
+              } else {
+                if (p[2] * p[4] * p[8] == 0 && p[2] * p[6] * p[8] == 0) {
+                  to_delete[i, j] <- TRUE
+                  any_changes <- TRUE
+                }
+              }
+            }
+          }
+        }
+      }
+      pixels_removed <- pixels_removed + sum(to_delete)
+      img[to_delete] <- 0
+    }
+    
+    if (verbose && pixels_removed > 0) {
+      cat("Iteration", iteration_count, ": Removed", pixels_removed, "pixels\n")
+    }
+  }
+  
+  if (verbose) {
+    cat("Final foreground pixels:", sum(img == 1), "\n")
+    cat("Total iterations:", iteration_count, "\n")
+  }
+  
   return(img)
 }
+
 
 #' Enhanced Guo-Hall Thinning Algorithm
 #' Thin Binary Image using Guo-Hall Algorithm (Internal)
@@ -171,65 +216,110 @@ thin_image_zhangsuen <- function(img, verbose = TRUE, select.layer = NULL) {
 #' raster <- terra::rast(matrix(c(0, 1, 1, 0, 0, 1, 1, 0,0), nrow = 3))
 #' thinned_image <- thin_image_guohall(raster, verbose = TRUE)
 #' }
-thin_image_guohall <- function(img, verbose = FALSE, select.layer = NULL) {
-  # Input validation
-  tryCatch({
-    validated <- validate_image_input(
-      img = img,
-      allow_empty = FALSE,
-      min_dim = c(3,3),
-      require_binary = TRUE,
-      select.layer = select.layer
-    )
-    img <- validated$img
-  }, error = function(e) {
-    stop("Input validation failed: ", e$message)
-  }, warning = function(w) {
-    warning("Input validation warning: ", w$message)
-  })
-
-  # Flexible input processing with error handling
-  img <- tryCatch({
-    result <- load_flexible_image(img, select.layer = select.layer,
-                                  output_format = "spatrast", normalize = TRUE, binarize = TRUE)
-    matrix(as.numeric(result), nrow = nrow(result))
-  }, error = function(e) {
-    stop("Failed to load or convert image: ", e$message)
-  })
-
-  # Timeout handling for long operations
-  timeoutHandler <- function(expr) {
-    setTimeLimit(cpu = 60 * 5) # 5 minute timeout
-    tryCatch({
-      result <- eval(expr)
-      setTimeLimit(cpu = Inf)
-      result
-    }, error = function(e) {
-      setTimeLimit(cpu = Inf)
-      if (grepl("reached CPU time limit", e$message)) {
-        stop("Operation timed out after 5 minutes")
-      } else {
-        stop(e$message)
-      }
-    })
-  }
-
-  # Original function implementation with added error checking
-  if(verbose) {
+thin_image_guohall <- function(img, verbose = FALSE, select.layer = 2) {
+  
+  img <- load_flexible_image(
+    img, 
+    select.layer = select.layer, 
+    output_format = "matrix", 
+    normalize = TRUE, 
+    binarize = TRUE
+  )
+  
+  if (verbose) {
     cat("Image dimensions:", nrow(img), "x", ncol(img), "\n")
     cat("Initial foreground pixels:", sum(img == 1), "\n")
   }
-
-  # Rest of the original Guo-Hall implementation...
-  # [Original implementation continues here]
-
-  # Final validation
-  if(all(img == 0)) {
-    warning("Resulting image is empty (all zeros)")
+  
+  img[abs(img - 1) < 1e-10] <- 1
+  img[abs(img) < 1e-10] <- 0
+  
+  get_neighbors <- function(img, i, j) {
+    p <- rep(0, 9)
+    p[1] <- img[i, j]
+    if (i > 1) {
+      p[2] <- img[i-1, j]
+      if (j < ncol(img)) p[3] <- img[i-1, j+1]
+    }
+    if (j < ncol(img)) p[4] <- img[i, j+1]
+    if (i < nrow(img)) {
+      if (j < ncol(img)) p[5] <- img[i+1, j+1]
+      p[6] <- img[i+1, j]
+      if (j > 1) p[7] <- img[i+1, j-1]
+    }
+    if (j > 1) {
+      p[8] <- img[i, j-1]
+      if (i > 1) p[9] <- img[i-1, j-1]
+    }
+    return(p)
   }
-
+  
+  check_pixel <- function(p) {
+    C1 <- function(p) {
+      s <- sum(p[2:9])
+      s >= 2 && s <= 6
+    }
+    
+    C2 <- function(p) {
+      neighbors <- c(p[2:9], p[2])
+      sum(neighbors[1:8] == 0 & neighbors[2:9] == 1) == 1
+    }
+    
+    C3_C4_first <- function(p) {
+      ((p[2] * p[4] * p[6] == 0) || (p[4] * p[6] * p[8] == 0)) &&
+        ((p[2] * p[4] * p[8] == 0) || (p[2] * p[6] * p[8] == 0))
+    }
+    
+    C3_C4_second <- function(p) {
+      ((p[2] * p[4] * p[6] == 0) || (p[2] * p[4] * p[8] == 0)) &&
+        ((p[2] * p[6] * p[8] == 0) || (p[4] * p[6] * p[8] == 0))
+    }
+    
+    list(
+      first = C1(p) && C2(p) && C3_C4_first(p),
+      second = C1(p) && C2(p) && C3_C4_second(p)
+    )
+  }
+  
+  max_iterations <- 1000
+  iteration_count <- 0
+  any_changes <- TRUE
+  
+  while (any_changes && iteration_count < max_iterations) {
+    iteration_count <- iteration_count + 1
+    any_changes <- FALSE
+    pixels_removed <- 0
+    
+    for (subiter in c("first", "second")) {
+      to_delete <- matrix(FALSE, nrow=nrow(img), ncol=ncol(img))
+      for (i in 2:(nrow(img)-1)) {
+        for (j in 2:(ncol(img)-1)) {
+          if (img[i, j] == 1) {
+            p <- get_neighbors(img, i, j)
+            if (check_pixel(p)[[subiter]]) {
+              to_delete[i, j] <- TRUE
+              any_changes <- TRUE
+            }
+          }
+        }
+      }
+      pixels_removed <- pixels_removed + sum(to_delete)
+      img[to_delete] <- 0
+    }
+    
+    if (verbose && pixels_removed > 0) {
+      cat("Iteration", iteration_count, ": Removed", pixels_removed, "pixels\n")
+    }
+  }
+  
+  if (verbose) {
+    cat("Final foreground pixels:", sum(img == 1), "\n")
+    cat("Total iterations:", iteration_count, "\n")
+  }
+  
   return(img)
 }
+
 
 #' Medial Axis Transform (Internal)
 #'
@@ -273,7 +363,7 @@ medial_axis_transform <- function(img, verbose = FALSE, select.layer = NULL) {
   }, warning = function(w) {
     warning("Input validation warning: ", w$message)
   })
-
+  
   # Flexible input processing with error handling
   img <- tryCatch({
     result <- load_flexible_image(img, output_format = "spatrast",
@@ -282,7 +372,7 @@ medial_axis_transform <- function(img, verbose = FALSE, select.layer = NULL) {
   }, error = function(e) {
     stop("Failed to load or convert image: ", e$message)
   })
-
+  
   # Check for numerical stability in distance calculations
   check_numerical_stability <- function(dist_map) {
     if (any(is.nan(dist_map)) || any(is.infinite(dist_map))) {
@@ -290,15 +380,15 @@ medial_axis_transform <- function(img, verbose = FALSE, select.layer = NULL) {
     }
     invisible(TRUE)
   }
-
+  
   # Enhanced compute_distance_transform with error checking
   compute_distance_transform <- function(binary_img) {
     if (!all(binary_img %in% c(0,1))) {
       stop("Distance transform requires binary input")
     }
-
+    
     dist_map <- matrix(0, nrow = nrow(binary_img), ncol = ncol(binary_img))
-
+    
     tryCatch({
       # First pass - forward scan
       for(i in 2:nrow(binary_img)) {
@@ -312,10 +402,10 @@ medial_axis_transform <- function(img, verbose = FALSE, select.layer = NULL) {
           }
         }
       }
-
+      
       # Check stability after first pass
       check_numerical_stability(dist_map)
-
+      
       # Second pass - backward scan
       for(i in (nrow(binary_img)-1):1) {
         for(j in (ncol(binary_img)-1):1) {
@@ -329,21 +419,21 @@ medial_axis_transform <- function(img, verbose = FALSE, select.layer = NULL) {
           }
         }
       }
-
+      
       # Final stability check
       check_numerical_stability(dist_map)
-
+      
     }, error = function(e) {
       stop("Error in distance transform computation: ", e$message)
     })
-
+    
     return(dist_map)
   }
-
+  
   # Enhanced find_local_maxima with boundary checking
   find_local_maxima <- function(dist_map) {
     maxima <- matrix(FALSE, nrow = nrow(dist_map), ncol = ncol(dist_map))
-
+    
     tryCatch({
       for(i in 2:(nrow(dist_map)-1)) {
         for(j in 2:(ncol(dist_map)-1)) {
@@ -352,7 +442,7 @@ medial_axis_transform <- function(img, verbose = FALSE, select.layer = NULL) {
             i_range <- max(1, i-1):min(nrow(dist_map), i+1)
             j_range <- max(1, j-1):min(ncol(dist_map), j+1)
             neighborhood <- dist_map[i_range, j_range]
-
+            
             if(dist_map[i,j] >= max(neighborhood)) {
               maxima[i,j] <- TRUE
             }
@@ -362,28 +452,28 @@ medial_axis_transform <- function(img, verbose = FALSE, select.layer = NULL) {
     }, error = function(e) {
       stop("Error in local maxima detection: ", e$message)
     })
-
+    
     return(maxima)
   }
-
+  
   # Main processing with error handling
   tryCatch({
     dist_transform <- compute_distance_transform(img)
     if(verbose) cat("\nDistance transform computed\n")
-
-    skeleton <- find_local_maxima(dist_transform)
+    
+    skeleton <- terra::t(find_local_maxima(dist_transform))
     result <- matrix(0, nrow = nrow(img), ncol = ncol(img))
     result[skeleton] <- 1
-
+    
     # Validate final result
     if(all(result == 0)) {
       warning("No skeleton points detected in the result")
     }
-
+    
   }, error = function(e) {
     stop("Medial axis transform failed: ", e$message)
   })
-
+  
   return(result)
 }
 
@@ -428,7 +518,7 @@ medial_axis_transform <- function(img, verbose = FALSE, select.layer = NULL) {
 #'
 #' @seealso \code{\link{skeletonize_image}}, \code{\link{thin_image_zhangsuen}}, \code{\link{thin_image_guohall}}
 #' @export
- detect_skeleton_points <- function(img, select.layer = 2) {
+detect_skeleton_points <- function(img, select.layer = 2) {
   # Input validation
   tryCatch({
     validated <- validate_image_input(
@@ -442,7 +532,7 @@ medial_axis_transform <- function(img, verbose = FALSE, select.layer = NULL) {
   }, error = function(e) {
     stop("Input validation failed: ", e$message)
   })
-
+  
   # Flexible input processing with error handling
   img <- tryCatch({
     result <- load_flexible_image(img, select.layer = select.layer,
@@ -451,17 +541,17 @@ medial_axis_transform <- function(img, verbose = FALSE, select.layer = NULL) {
   }, error = function(e) {
     stop("Failed to load image: ", e$message)
   })
-
+  
   # Enhanced neighbor counting with bounds checking
   count_neighbors <- function(img) {
     if (!all(img %in% c(0,1))) {
       stop("Input must be binary for neighbor counting")
     }
-
+    
     # Define the kernel
     kernel <- matrix(1, nrow = 3, ncol = 3)
     kernel[2, 2] <- 0
-
+    
     # Safe padding
     padded_img <- tryCatch({
       result <- matrix(0, nrow = nrow(img) + 2, ncol = ncol(img) + 2)
@@ -470,10 +560,10 @@ medial_axis_transform <- function(img, verbose = FALSE, select.layer = NULL) {
     }, error = function(e) {
       stop("Failed to pad image: ", e$message)
     })
-
+    
     # Initialize result matrix
     neighbor_count <- matrix(0, nrow = nrow(img), ncol = ncol(img))
-
+    
     # Safe convolution with error checking
     tryCatch({
       for (i in 2:(nrow(padded_img) - 1)) {
@@ -485,40 +575,40 @@ medial_axis_transform <- function(img, verbose = FALSE, select.layer = NULL) {
     }, error = function(e) {
       stop("Error in neighbor counting: ", e$message)
     })
-
+    
     return(neighbor_count)
   }
-
+  
   # Main processing with validation
   tryCatch({
     neighbor_count <- count_neighbors(img)
-
+    
     endpoints <- (img == 1) & (neighbor_count == 1)
     branching_points <- (img == 1) & (neighbor_count > 2)
-
+    
     # Validate results
     if(sum(endpoints) == 0 && sum(branching_points) == 0) {
       warning("No endpoints or branching points detected")
     }
-
+    
     # Convert to SpatRaster with error handling
     endpoints_rast <- tryCatch({
       terra::rast(endpoints)
     }, error = function(e) {
       stop("Failed to convert endpoints to SpatRaster: ", e$message)
     })
-
+    
     branching_points_rast <- tryCatch({
       terra::rast(branching_points)
     }, error = function(e) {
       stop("Failed to convert branching points to SpatRaster: ", e$message)
     })
-
+    
     return(list(
       endpoints = endpoints_rast,
       branching_points = branching_points_rast
     ))
-
+    
   }, error = function(e) {
     stop("Failed to detect skeleton points: ", e$message)
   })
@@ -557,34 +647,34 @@ medial_axis_transform <- function(img, verbose = FALSE, select.layer = NULL) {
 #'
 #' @seealso \code{\link{thin_image_zhangsuen}}, \code{\link{thin_image_guohall}}, \code{\link{medial_axis_transform}}
 #' @export
- skeletonize_image <- function(img, methods = c("ZhangSuen", "GuoHall", "MAT"), verbose = TRUE, select.layer = NULL) {
-   # Ensure methods are valid
-   valid_methods <- c("ZhangSuen", "GuoHall", "MAT")
-   methods <- intersect(methods, valid_methods)
-   if (length(methods) == 0) {
-     stop("No valid methods specified. Choose from: 'ZhangSuen', 'GuoHall', 'MAT'.")
-   }
-
-
-   # Process each method
-   results <- list()
-   for (method in methods) {
-     if (verbose) cat("\nApplying method:", method, "\n")
-     result <- switch(
-       method,
-       "ZhangSuen" =
-         thin_image_zhangsuen(img, verbose = verbose, select.layer = NULL),
-       "GuoHall" = thin_image_guohall(img, verbose = verbose, select.layer = NULL),
-       "MAT" = medial_axis_transform(img, verbose = verbose, select.layer = NULL),
-       stop(paste("Unsupported method:", method))
-     )
-     results[[method]] <- result
-   }
-
-   # Return results as a list
-   if (length(results) == 1) {
-     return(results[[1]])  # Single method result
-   } else {
-     return(results)  # Multiple method results
-   }
- }
+skeletonize_image <- function(img, methods = c("ZhangSuen", "GuoHall", "MAT"), verbose = TRUE, select.layer = NULL) {
+  # Ensure methods are valid
+  valid_methods <- c("ZhangSuen", "GuoHall", "MAT")
+  methods <- intersect(methods, valid_methods)
+  if (length(methods) == 0) {
+    stop("No valid methods specified. Choose from: 'ZhangSuen', 'GuoHall', 'MAT'.")
+  }
+  
+  
+  # Process each method
+  results <- list()
+  for (method in methods) {
+    if (verbose) cat("\nApplying method:", method, "\n")
+    result <- switch(
+      method,
+      "ZhangSuen" =
+        thin_image_zhangsuen(img, verbose = verbose, select.layer = NULL),
+      "GuoHall" = thin_image_guohall(img, verbose = verbose, select.layer = NULL),
+      "MAT" = medial_axis_transform(img, verbose = verbose, select.layer = NULL),
+      stop(paste("Unsupported method:", method))
+    )
+    results[[method]] <- result
+  }
+  
+  # Return results as a list
+  if (length(results) == 1) {
+    return(results[[1]])  # Single method result
+  } else {
+    return(results)  # Multiple method results
+  }
+}
