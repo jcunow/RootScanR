@@ -8,6 +8,8 @@
 #' @param diagnostics Logical. If `TRUE`, enables diagnostic plots and logging. Default is `FALSE`.
 #' @param skeleton_method Character. The method to use for skeletonization. Default is `"Guo-Hall"`.
 #' @param select.layer Integer. Specifies which layer to use if the input is a multi-band image. Default is `2`.
+#' @param unit output in pixel 'px', 'inch' or in 'cm'
+#' @param dpi scan resolution. Only used if unit = 'cm' or 'inch'
 #'
 #' @details
 #' The function works as follows:
@@ -43,7 +45,7 @@
 #' terra::plot(result$skeleton_rast)
 #'
 #' @export
-root_diameter <- function(img, diagnostics = FALSE, skeleton_method = "GuoHall", select.layer = 2) {
+root_diameter <- function(img,  skeleton_method = "GuoHall", select.layer = 2,diagnostics = FALSE, unit = "cm", dpi = 300) {
   # Input validation and error handling module
   tryCatch({
     # Validate input parameters
@@ -51,12 +53,6 @@ root_diameter <- function(img, diagnostics = FALSE, skeleton_method = "GuoHall",
       stop("Input image is required")
     }
 
-    # Validate skeleton_method
-    valid_methods <- c("GuoHall", "MAT", "Zhang")
-    if (!skeleton_method %in% valid_methods) {
-      stop(sprintf("Invalid skeleton_method. Must be one of: %s",
-                   paste(valid_methods, collapse = ", ")))
-    }
 
     # Validate select.layer
     if (!is.numeric(select.layer) || select.layer < 1) {
@@ -66,6 +62,18 @@ root_diameter <- function(img, diagnostics = FALSE, skeleton_method = "GuoHall",
     # Validate diagnostics
     if (!is.logical(diagnostics)) {
       stop("diagnostics must be TRUE or FALSE")
+    }
+    
+    # Validate unit parameter
+    if (!unit %in% c("px", "cm","inch")) {
+      stop("Unit must be either 'px', 'cm', or 'inch'")
+    }
+    
+    # Validate DPI when unit is cm
+    if (unit == "cm" | unit == "inch") {
+      if (missing(dpi) || !is.numeric(dpi) || dpi <= 0) {
+        stop("Valid positive numeric dpi value is required when unit = 'cm' or 'inch'.")
+      }
     }
 
     # Load and validate image
@@ -105,6 +113,7 @@ root_diameter <- function(img, diagnostics = FALSE, skeleton_method = "GuoHall",
 
     # Main processing with error checking
     distance_map <- distance_transform(img = img)
+    # radius to diameter
     diameters <- distance_map * 2
 
 
@@ -141,7 +150,7 @@ root_diameter <- function(img, diagnostics = FALSE, skeleton_method = "GuoHall",
 
      # remove non root distances
      DsSKL[DsSKL == 0] <- NA
-
+     
 
     # Check if we have any valid measurements
     if (all(is.na(terra::values(DsSKL)))) {
@@ -152,6 +161,15 @@ root_diameter <- function(img, diagnostics = FALSE, skeleton_method = "GuoHall",
     skl <- DsSKL
     skl[skl > 0] <- 1
 
+    # outpur unit conversion
+    if(unit == "cm") {
+      DsSKL = DsSKL / (1800 / 2.54)
+    }else if(unit == "inch"){
+      DsSKL = DsSKL / (1800)
+    }else if(unit == "px"){
+      DsSKL = DsSKL 
+    }
+    
 
     # Compute statistics with validation
     tryCatch({
@@ -163,7 +181,7 @@ root_diameter <- function(img, diagnostics = FALSE, skeleton_method = "GuoHall",
       median_diameter <- terra::global(DsSKL,
                                        fun = function(x) stats::median(x, na.rm = TRUE))$global
       diameters <- terra::values(DsSKL, na.rm = TRUE)
-
+  
       # Validate statistics
       if (any(is.na(c(mean_diameter, median_diameter)))) {
         stop("Failed to compute diameter statistics")

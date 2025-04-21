@@ -4,7 +4,7 @@
 #'
 #' @param img A skeletonized root image raster
 #' @param unit Output unit ("px" or "cm")
-#' @param dpi Image resolution (required when unit = "cm")
+#' @param dpi Image resolution (required when unit = "cm" or "inch")
 #' @param select.layer Integer. Specifies which layer to use if the input is a multi-band image. Default is `2`.
 #' @return Numeric value representing root length in specified unit
 #' @export
@@ -13,21 +13,26 @@
 #' data(skl_Oulanka2023_Session01_T067)
 #' img = terra::rast(skl_Oulanka2023_Session01_T067)
 #' RL = root_length(img = img,unit = "cm", dpi = 300, select.layer = 2)
-root_length = function(img, unit="cm", dpi=300, select.layer = NULL) {
+root_length = function(img, unit="cm", dpi=300, select.layer = 1) {
   # Input validation module
   tryCatch({
     # Check if img is provided
     if (missing(img)) {
       stop("Image input is required")
     }
+    
+    # Check if image is valid after loading
+    img <- load_flexible_image(img, select.layer = select.layer,
+                               output_format = "spatrast", normalize = TRUE, binarize = TRUE)
+    
 
     # Validate unit parameter
-    if (!unit %in% c("px", "cm")) {
-      stop("Unit must be either 'px' or 'cm'")
+    if (!unit %in% c("px", "cm", "inch")) {
+      stop("Unit must be either 'px', 'inch' or 'cm'")
     }
 
     # Validate DPI when unit is cm
-    if (unit == "cm") {
+    if (unit == "cm" | unit =="inch") {
       if (missing(dpi) || !is.numeric(dpi) || dpi <= 0) {
         stop("Valid positive numeric dpi value is required when unit = 'cm'")
       }
@@ -38,12 +43,6 @@ root_length = function(img, unit="cm", dpi=300, select.layer = NULL) {
     if((is.null(select.layer) || select.layer<1) && terra::nlyr(img)>1){
       stop("Multiple layers present, select.layer should be a positive integer")
     }
-
-
-
-    # Check if image is valid after loading
-    img <- load_flexible_image(img, select.layer = select.layer,
-                               output_format = "spatrast", normalize = TRUE, binarize = TRUE)
 
 
     if (is.null(img) || terra::nlyr(img) < 1) {
@@ -111,13 +110,16 @@ root_length = function(img, unit="cm", dpi=300, select.layer = NULL) {
       stop("Error calculating orthogonal sum: ", e$message)
     })
 
-    # Calculate root length with validation
+    # Calculate root length 
     if(unit == "px") {
       rootlength = round(( kimura.sum.diag^2 + (kimura.sum.diag + kimura.sum.orth/2)^2 )^0.5 +
                            kimura.sum.orth/2)[[1]]
-    } else {
+    } else if(unit == "cm") {
       rootlength = round((( kimura.sum.diag^2 + (kimura.sum.diag + kimura.sum.orth/2)^2 )^0.5 +
                             kimura.sum.orth/2) / dpi/2.54, 3)[[1]]
+    }else if(unit == "inch"){
+      rootlength = round((( kimura.sum.diag^2 + (kimura.sum.diag + kimura.sum.orth/2)^2 )^0.5 +
+                            kimura.sum.orth/2) / dpi, 3)[[1]]
     }
 
     # Validate final result
