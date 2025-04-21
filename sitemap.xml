@@ -20,9 +20,11 @@
 <url><loc>https://jcunow.github.io/RootScanR/reference/binning.html</loc></url>
 <url><loc>https://jcunow.github.io/RootScanR/reference/blur.correction.html</loc></url>
 <url><loc>https://jcunow.github.io/RootScanR/reference/circular_mean.html</loc></url>
+<url><loc>https://jcunow.github.io/RootScanR/reference/clean_root_image.html</loc></url>
 <url><loc>https://jcunow.github.io/RootScanR/reference/combine_images.html</loc></url>
 <url><loc>https://jcunow.github.io/RootScanR/reference/count_pixels.html</loc></url>
 <url><loc>https://jcunow.github.io/RootScanR/reference/create_depthmap.html</loc></url>
+<url><loc>https://jcunow.github.io/RootScanR/reference/create_kernel.html</loc></url>
 <url><loc>https://jcunow.github.io/RootScanR/reference/create_root_buffer.html</loc></url>
 <url><loc>https://jcunow.github.io/RootScanR/reference/deep_drive.html</loc></url>
 <url><loc>https://jcunow.github.io/RootScanR/reference/detect_skeleton_points.html</loc></url>
@@ -31,6 +33,7 @@
 <url><loc>https://jcunow.github.io/RootScanR/reference/estimate_soil_surface.html</loc></url>
 <url><loc>https://jcunow.github.io/RootScanR/reference/estimate_translation.html</loc></url>
 <url><loc>https://jcunow.github.io/RootScanR/reference/extract_overlap_region.html</loc></url>
+<url><loc>https://jcunow.github.io/RootScanR/reference/fill_root_holes.html</loc></url>
 <url><loc>https://jcunow.github.io/RootScanR/reference/fisherInformation2.html</loc></url>
 <url><loc>https://jcunow.github.io/RootScanR/reference/fitSinCurve.html</loc></url>
 <url><loc>https://jcunow.github.io/RootScanR/reference/image_threshold.html</loc></url>
@@ -39,6 +42,7 @@
 <url><loc>https://jcunow.github.io/RootScanR/reference/medial_axis_transform.html</loc></url>
 <url><loc>https://jcunow.github.io/RootScanR/reference/modal_peaks.html</loc></url>
 <url><loc>https://jcunow.github.io/RootScanR/reference/normalize_array.html</loc></url>
+<url><loc>https://jcunow.github.io/RootScanR/reference/remove_small_foreground_objects.html</loc></url>
 <url><loc>https://jcunow.github.io/RootScanR/reference/rgb2gray.html</loc></url>
 <url><loc>https://jcunow.github.io/RootScanR/reference/rgb_Oulanka2023_Session03_T067.html</loc></url>
 <url><loc>https://jcunow.github.io/RootScanR/reference/root_accumulation.html</loc></url>
@@ -53,6 +57,7 @@
 <url><loc>https://jcunow.github.io/RootScanR/reference/skeletonize_image.html</loc></url>
 <url><loc>https://jcunow.github.io/RootScanR/reference/skl_Oulanka2023_Session01_T067.html</loc></url>
 <url><loc>https://jcunow.github.io/RootScanR/reference/skl_Oulanka2023_Session03_T067.html</loc></url>
+<url><loc>https://jcunow.github.io/RootScanR/reference/smooth_root_edges.html</loc></url>
 <url><loc>https://jcunow.github.io/RootScanR/reference/stitch_sequential_images.html</loc></url>
 <url><loc>https://jcunow.github.io/RootScanR/reference/supported_formats_string.html</loc></url>
 <url><loc>https://jcunow.github.io/RootScanR/reference/tail_weight_function.html</loc></url>
