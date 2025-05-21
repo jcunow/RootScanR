@@ -1,6 +1,6 @@
 #' Estimate Root Diameters
 #'
-#' This function estimates root diameters from an input image using skeletonization and distance transform methods.
+#' This function estimates root diameters and root volume from an input image using skeletonization and distance transform methods.
 #' The input can be a file path, raster, image object, or array, which is converted to a binary image before processing.
 #'
 #' @param img A character string (file path), `SpatRaster`, `RasterBrick`, `RasterLayer`, `cimg`, `magick-image`, or array.
@@ -30,6 +30,7 @@
 #'   \item{skeleton_rast}{`SpatRaster`. Binary raster mask of skeletonized regions.}
 #'   \item{diameter_rast}{`SpatRaster`. Raster showing diameters in the skeletonized regions.}
 #'   \item{distance_map_rast}{`SpatRaster`. Raster showing the distance transform values.}
+#'   \item{root_volume}{Numeric. The sum of root volume - assuming cylindrical roots}
 #' }
 #'
 #'@examples
@@ -99,7 +100,7 @@ root_diameter <- function(img,  skeleton_method = "GuoHall", select.layer = 2,
       }
 
       dt <- tryCatch({
-        imager::as.cimg(imager::distance_transform(imager::as.cimg(img), value = 0))
+        imager::as.cimg(imager::distance_transform(imager::as.cimg(img), value = 0, metric = 2L))
       }, error = function(e) {
         stop(sprintf("Distance transform failed: %s", e$message))
       })
@@ -181,6 +182,8 @@ root_diameter <- function(img,  skeleton_method = "GuoHall", select.layer = 2,
       median_diameter <- terra::global(DsSKL,
                                        fun = function(x) stats::median(x, na.rm = TRUE))$global
       diameters <- terra::values(DsSKL, na.rm = TRUE)
+      
+      root.volume <- sum(diameters**2 * pi, na.rm = TRUE)
   
       # Validate statistics
       if (any(is.na(c(mean_diameter, median_diameter)))) {
@@ -207,7 +210,8 @@ root_diameter <- function(img,  skeleton_method = "GuoHall", select.layer = 2,
       diameters = diameters,
       skeleton_rast = skl,
       diameter_rast = DsSKL,
-      distance_map_rast = Ds
+      distance_map_rast = Ds,
+      root_volume = root.volume
     ))
 
   }, error = function(e) {
@@ -218,3 +222,7 @@ root_diameter <- function(img,  skeleton_method = "GuoHall", select.layer = 2,
     warning(sprintf("Warning in root.diameters: %s", w$message))
   })
 }
+
+
+
+
