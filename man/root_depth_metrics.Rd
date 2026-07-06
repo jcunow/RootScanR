@@ -23,6 +23,7 @@ root_depth_metrics(
   calc_root_length = TRUE,
   calc_diameter_stats = TRUE,
   calc_diameter_quantiles = FALSE,
+  calc_modal_peaks = FALSE,
   calc_landscape_metrics = FALSE,
   calc_color_metrics = FALSE,
   calc_root_angles = FALSE,
@@ -80,8 +81,7 @@ Default \code{NULL}.}
 \item{session}{Character. Session or campaign label added as the
 \code{Session} column, e.g. \code{"2022_02"}.  Default \code{""}.}
 
-\item{dpi}{Numeric. Scanner resolution in \strong{dots per inch}.  Used to
-convert pixel distances to physical units (cm).  Default \code{300}.}
+\item{dpi}{Numeric; image resolution in dots per inch}
 
 \item{tube_diameter_cm}{Numeric. Inner diameter of the minirhizotron tube in
 \strong{centimetres}.  Passed to \code{create_depthmap()} as
@@ -125,9 +125,14 @@ roots); the two answer different questions.  Default \code{TRUE}.}
 
 \item{calc_diameter_quantiles}{Logical. Compute the diameter distribution
 percentiles set by \code{diameter_quantiles} per bin, conditional means
-above each quantile, threshold-based root lengths (see
-\code{diameter_thresholds}), and modal diameter peaks via
-\code{modal_peaks()}.  Default \code{FALSE}.}
+above each quantile, and threshold-based root lengths (see
+\code{diameter_thresholds}).  Default \code{FALSE}.}
+
+\item{calc_modal_peaks}{Logical. Compute modal diameter peaks per bin via
+\code{modal_peaks()} (\code{n.diameter.peaks}, \code{diameter.peak.1/2/3}).
+Auto-enables \code{calc_diameter_quantiles}, since it reuses the same
+per-bin diameter raster.  \strong{Slow}: one call per depth bin per
+image.  Default \code{FALSE}.}
 
 \item{calc_landscape_metrics}{Logical. Compute patch-level landscape metrics
 per depth bin via \code{root_scape_metrics()}: nearest-neighbor distance

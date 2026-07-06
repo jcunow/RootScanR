@@ -70,8 +70,7 @@
 #'   \code{Session} column, e.g. \code{"2022_02"}.  Default \code{""}.
 #'
 # --- Scan and geometry settings ---
-#' @param dpi Numeric. Scanner resolution in \strong{dots per inch}.  Used to
-#'   convert pixel distances to physical units (cm).  Default \code{300}.
+#' @inheritParams create_depthmap
 #' @param tube_diameter_cm Numeric. Inner diameter of the minirhizotron tube in
 #'   \strong{centimetres}.  Passed to \code{create_depthmap()} as
 #'   \code{tube_thicc}.  Its role in flat-window geometry (\code{flat_geometry
@@ -112,9 +111,13 @@
 # --- Extended metrics (off by default) ---
 #' @param calc_diameter_quantiles Logical. Compute the diameter distribution
 #'   percentiles set by \code{diameter_quantiles} per bin, conditional means
-#'   above each quantile, threshold-based root lengths (see
-#'   \code{diameter_thresholds}), and modal diameter peaks via
-#'   \code{modal_peaks()}.  Default \code{FALSE}.
+#'   above each quantile, and threshold-based root lengths (see
+#'   \code{diameter_thresholds}).  Default \code{FALSE}.
+#' @param calc_modal_peaks Logical. Compute modal diameter peaks per bin via
+#'   \code{modal_peaks()} (\code{n.diameter.peaks}, \code{diameter.peak.1/2/3}).
+#'   Auto-enables \code{calc_diameter_quantiles}, since it reuses the same
+#'   per-bin diameter raster.  \strong{Slow}: one call per depth bin per
+#'   image.  Default \code{FALSE}.
 #' @param calc_landscape_metrics Logical. Compute patch-level landscape metrics
 #'   per depth bin via \code{root_scape_metrics()}: nearest-neighbor distance
 #'   (\code{enn_mn}), joint entropy (\code{joinent}), relative mutual
@@ -281,6 +284,7 @@ root_depth_metrics <- function(
   
   # ---------- extended metrics (off by default) ------------------------------
   calc_diameter_quantiles = FALSE,
+  calc_modal_peaks        = FALSE,
   calc_landscape_metrics  = FALSE,
   calc_color_metrics      = FALSE,
   calc_root_angles        = FALSE,
@@ -366,6 +370,10 @@ root_depth_metrics <- function(
   if (calc_diameter_quantiles && !calc_root_length) {
     message("[Rootopia] Auto-enabling calc_root_length (required for calc_diameter_quantiles).")
     calc_root_length <- TRUE
+  }
+  if (calc_modal_peaks && !calc_diameter_quantiles) {
+    message("[Rootopia] Auto-enabling calc_diameter_quantiles (required for calc_modal_peaks).")
+    calc_diameter_quantiles <- TRUE
   }
   if (calc_root_order_metrics && !calc_root_length) {
     message("[Rootopia] Auto-enabling calc_root_length (required for calc_root_order_metrics).")
@@ -901,22 +909,27 @@ root_depth_metrics <- function(
                 mean(rd_v[!is.na(rd_v) & rd_v > thr_cm[ti]], na.rm = TRUE)
             }
             
-            rd_clean <- rd_v[!is.na(rd_v) & rd_v > 0]
-            pk <- tryCatch({
-              mp <- Rootopia::modal_peaks(rd_clean, display_type = "none",
-                                           prominence_threshold = length(rd_clean) / sqrt(length(rd_clean)),
-                                           mclust = FALSE)
-              np <- length(mp$peak_x)
-              data.frame(
-                n.diameter.peaks = np,
-                diameter.peak.1  = if (np >= 1) mp$peak_x[1] else NA_real_,
-                diameter.peak.2  = if (np >= 2) mp$peak_x[2] else NA_real_,
-                diameter.peak.3  = if (np >= 3) mp$peak_x[3] else NA_real_
-              )
-            }, error = function(e)
+            pk <- if (calc_modal_peaks) {
+              rd_clean <- rd_v[!is.na(rd_v) & rd_v > 0]
+              tryCatch({
+                mp <- Rootopia::modal_peaks(rd_clean, display_type = "none",
+                                             prominence_threshold = length(rd_clean) / sqrt(length(rd_clean)),
+                                             mclust = FALSE)
+                np <- length(mp$peak_x)
+                data.frame(
+                  n.diameter.peaks = np,
+                  diameter.peak.1  = if (np >= 1) mp$peak_x[1] else NA_real_,
+                  diameter.peak.2  = if (np >= 2) mp$peak_x[2] else NA_real_,
+                  diameter.peak.3  = if (np >= 3) mp$peak_x[3] else NA_real_
+                )
+              }, error = function(e)
+                data.frame(n.diameter.peaks = NA_real_, diameter.peak.1 = NA_real_,
+                           diameter.peak.2  = NA_real_, diameter.peak.3  = NA_real_))
+            } else {
               data.frame(n.diameter.peaks = NA_real_, diameter.peak.1 = NA_real_,
-                         diameter.peak.2  = NA_real_, diameter.peak.3  = NA_real_))
-            
+                         diameter.peak.2  = NA_real_, diameter.peak.3  = NA_real_)
+            }
+
             cbind(res, pk)
           }, fallback = data.frame(depth = d))
         }
