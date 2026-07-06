@@ -96,6 +96,7 @@ is dropped and listed in a warning at the end.</p>
 <span>  calc_root_length <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  calc_diameter_stats <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  calc_diameter_quantiles <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  calc_modal_peaks <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  calc_landscape_metrics <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  calc_color_metrics <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  calc_root_angles <span class="op">=</span> <span class="cn">FALSE</span>,</span>
@@ -178,8 +179,7 @@ Default <code>NULL</code>.</p></dd>
 
 
 <dt id="arg-dpi">dpi<a class="anchor" aria-label="anchor" href="#arg-dpi"></a></dt>
-<dd><p>Numeric. Scanner resolution in <strong>dots per inch</strong>.  Used to
-convert pixel distances to physical units (cm).  Default <code>300</code>.</p></dd>
+<dd><p>Numeric; image resolution in dots per inch</p></dd>
 
 
 <dt id="arg-tube-diameter-cm">tube_diameter_cm<a class="anchor" aria-label="anchor" href="#arg-tube-diameter-cm"></a></dt>
@@ -237,9 +237,16 @@ roots); the two answer different questions.  Default <code>TRUE</code>.</p></dd>
 <dt id="arg-calc-diameter-quantiles">calc_diameter_quantiles<a class="anchor" aria-label="anchor" href="#arg-calc-diameter-quantiles"></a></dt>
 <dd><p>Logical. Compute the diameter distribution
 percentiles set by <code>diameter_quantiles</code> per bin, conditional means
-above each quantile, threshold-based root lengths (see
-<code>diameter_thresholds</code>), and modal diameter peaks via
-<code><a href="modal_peaks.html">modal_peaks()</a></code>.  Default <code>FALSE</code>.</p></dd>
+above each quantile, and threshold-based root lengths (see
+<code>diameter_thresholds</code>).  Default <code>FALSE</code>.</p></dd>
+
+
+<dt id="arg-calc-modal-peaks">calc_modal_peaks<a class="anchor" aria-label="anchor" href="#arg-calc-modal-peaks"></a></dt>
+<dd><p>Logical. Compute modal diameter peaks per bin via
+<code><a href="modal_peaks.html">modal_peaks()</a></code> (<code>n.diameter.peaks</code>, <code>diameter.peak.1/2/3</code>).
+Auto-enables <code>calc_diameter_quantiles</code>, since it reuses the same
+per-bin diameter raster.  <strong>Slow</strong>: one call per depth bin per
+image.  Default <code>FALSE</code>.</p></dd>
 
 
 <dt id="arg-calc-landscape-metrics">calc_landscape_metrics<a class="anchor" aria-label="anchor" href="#arg-calc-landscape-metrics"></a></dt>

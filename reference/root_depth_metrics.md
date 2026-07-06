@@ -32,6 +32,7 @@ root_depth_metrics(
   calc_root_length = TRUE,
   calc_diameter_stats = TRUE,
   calc_diameter_quantiles = FALSE,
+  calc_modal_peaks = FALSE,
   calc_landscape_metrics = FALSE,
   calc_color_metrics = FALSE,
   calc_root_angles = FALSE,
@@ -111,8 +112,7 @@ root_depth_metrics(
 
 - dpi:
 
-  Numeric. Scanner resolution in **dots per inch**. Used to convert
-  pixel distances to physical units (cm). Default `300`.
+  Numeric; image resolution in dots per inch
 
 - tube_diameter_cm:
 
@@ -172,10 +172,16 @@ root_depth_metrics(
 
   Logical. Compute the diameter distribution percentiles set by
   `diameter_quantiles` per bin, conditional means above each quantile,
-  threshold-based root lengths (see `diameter_thresholds`), and modal
-  diameter peaks via
-  [`modal_peaks()`](https://jcunow.github.io/Rootopia/reference/modal_peaks.md).
-  Default `FALSE`.
+  and threshold-based root lengths (see `diameter_thresholds`). Default
+  `FALSE`.
+
+- calc_modal_peaks:
+
+  Logical. Compute modal diameter peaks per bin via
+  [`modal_peaks()`](https://jcunow.github.io/Rootopia/reference/modal_peaks.md)
+  (`n.diameter.peaks`, `diameter.peak.1/2/3`). Auto-enables
+  `calc_diameter_quantiles`, since it reuses the same per-bin diameter
+  raster. **Slow**: one call per depth bin per image. Default `FALSE`.
 
 - calc_landscape_metrics:
 
