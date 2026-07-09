@@ -782,11 +782,11 @@ root_depth_metrics <- function(
     if (do_density) {
       .safe("density metrics", {
         if (do_pixels && all(c("rootpx", "voidpx") %in% names(roots))) {
-          roots$rootpx.density <<- roots$rootpx / (roots$rootpx + roots$voidpx) * 100
+          roots$rootpx.density <- roots$rootpx / (roots$rootpx + roots$voidpx) * 100
         }
         if (do_length && do_pixels && all(c("rootlength", "rootpx", "voidpx") %in% names(roots))) {
           # rootlength.density: cm root length per cm^2 of imaged area per bin
-          roots$rootlength.density <<-
+          roots$rootlength.density <-
             roots$rootlength / ((roots$rootpx + roots$voidpx) / (dpi / 2.54)^2)
         }
       })
