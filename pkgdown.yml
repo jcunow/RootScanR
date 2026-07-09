@@ -1,5 +1,5 @@
 pandoc: 3.8.3
-pkgdown: 2.2.0
+pkgdown: 2.2.1
 pkgdown_sha: ~
 articles:
   BatchProcessing_vignette: BatchProcessing_vignette.html
@@ -8,7 +8,7 @@ articles:
   Rotation_Bias_vignettes: Rotation_Bias_vignettes.html
   SpecialTopics_vignette: SpecialTopics_vignette.html
   Stitching_vignette: Stitching_vignette.html
-last_built: 2026-07-06T20:45Z
+last_built: 2026-07-09T08:27Z
 urls:
   reference: https://jcunow.github.io/Rootopia/reference
   article: https://jcunow.github.io/Rootopia/articles
