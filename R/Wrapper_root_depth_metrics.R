@@ -897,7 +897,7 @@ root_depth_metrics <- function(
             res <- data.frame(depth = d)
             for (qi in seq_along(diameter_quantiles)) {
               res[[q_diam_names[qi]]] <- as.vector(qv[qi])
-              res[[q_top_names[qi]]]  <- mean(rd_v[rd_v > qv[qi]], na.rm = TRUE)
+              res[[q_top_names[qi]]]  <- mean(rd_v[rd_v >= qv[qi]], na.rm = TRUE)
             }
             
             sl_rl <- root.length.map; sl_rl[bm != d] <- NA
