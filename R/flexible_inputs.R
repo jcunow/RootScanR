@@ -105,6 +105,9 @@ normalize_array <- function(arr, scale = "none") {
     return(arr)
   }
   if (max_val > 255) warning("Maximum value exceeds 255, rescaling might be incorrect")
+  # An image with no foreground has max_val == 0, and ceiling(0/0) is NaN --
+  # an all-background image must binarise to all zeros, not all NaN.
+  if (identical(scale, "binary") && max_val == 0) return(arr * 0)
   switch(scale,
     binary = ceiling(arr / max_val),
     to_01  = if (max_val > 1)  arr / 255 else arr,
@@ -135,10 +138,6 @@ load_flexible_image <- function(input, output_format = "cimg",
   validate_conversion_params(input, scale, select_layer)
 
 
-  if (inherits(input, output_format) && is.null(select_layer)) {
-    return(input)   # already in the requested form
-  }
-
   # Normalize the requested output format to a canonical token, so we accept any
   # capitalisation and the common aliases without repeating long spelling lists.
   # Unknown values fall through unchanged and hit the error branch below.
@@ -152,6 +151,22 @@ load_flexible_image <- function(input, output_format = "cimg",
     `magick-image` = , magick    = "magick-image",
     tolower(output_format)
   )
+
+  # Class name matching the canonical token, so the "already in the requested
+  # form" short-circuit fires for every accepted spelling rather than only the
+  # ones that happen to equal the S4/S3 class name. The short-circuit is only
+  # safe when no value rescaling was asked for -- otherwise "SpatRaster" would
+  # return the input untouched while "spatrast" applied `scale`.
+  ofmt_class <- switch(ofmt,
+    spatraster   = "SpatRaster",
+    rasterbrick  = "RasterBrick",
+    rasterlayer  = "RasterLayer",
+    ofmt
+  )
+  if (inherits(input, ofmt_class) && is.null(select_layer) &&
+      identical(scale, "none")) {
+    return(input)   # already in the requested form, nothing to rescale
+  }
 
   arr <- NULL
 
@@ -218,6 +233,10 @@ load_flexible_image <- function(input, output_format = "cimg",
   # Handle layer selection for 3D or 4D arrays (select a specific layer/channel)
   if (!is.null(select_layer) && length(dims) > 2) {
     arr <- arr[,,select_layer]  # Select layer
+    # Re-read the shape: `arr` is now 2D, and the stale 3D `dims` would
+    # otherwise be used to reshape it below, recycling the single selected
+    # layer back up to the original band count.
+    dims <- dim(arr)
   }
 
   # Apply the requested value rescaling
@@ -226,8 +245,10 @@ load_flexible_image <- function(input, output_format = "cimg",
 
 
   ## Return based on desired output format
-  # Overwrite 3D matrix choice
-  if (ofmt == "matrix" && dims[3] > 1) {
+  # Overwrite 3D matrix choice. `dims` can be length 2 here (2D input, or a
+  # layer was selected above), so guard the third element before comparing --
+  # `dims[3]` is NA for a 2D shape and `if (NA > 1)` is an error.
+  if (ofmt == "matrix" && length(dims) > 2 && dims[3] > 1) {
     warning("You cannot convert a 3D image to 2D matrix. An array is returned instead. Consider specifying 'select_layer' if you want to return a matrix.")
     ofmt = "array"
   }

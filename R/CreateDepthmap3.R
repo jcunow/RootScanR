@@ -14,7 +14,6 @@
 #' @param dpi Numeric; image resolution in dots per inch
 #' @param start_soil Numeric; soil surface boundary in cm (0 = surface)
 #' @param center_offset Numeric; rotational center offset (0 = centered, 1 = edge)
-#' @param progress Message; indicates how mny rows have been processed  
 #'
 #' @return terra raster object containing the depth map
 #' @export
@@ -35,7 +34,7 @@
 #'   center_offset = 0.1 )
 create_depthmap = function(img, mask = NULL, sinoid = TRUE,
                            tube_thicc = 7, tilt = 45, dpi = 300,
-                           start_soil = 0, center_offset = 0.5, progress = FALSE) {
+                           start_soil = 0, center_offset = 0.5) {
 
   # Input validation module
   tryCatch({

@@ -42,12 +42,17 @@ turnover_tc = function(im.t1, im.t2, method="kimura", unit="cm", dpi=300, select
       stop("Both im.t1 and im.t2 must be SpatRaster objects")
     }
 
-    # Check if images have similar dimensions & amount of cells (within +-5%)
-    if (!all(
-      c(dim(im.t1) >= dim(im.t2)*0.95 | dim(im.t1) >= dim(im.t2)*1.05) &
-      c((terra::ncell(im.t1) / terra::ncell(im.t2)) >=0.95 | (terra::ncell(im.t1) / terra::ncell(im.t2)) <=1.05))
-    ) {
-      stop("Images must have the similar dimensions within & amount of cells (+-5%) ")
+    # Check if images have similar dimensions & amount of cells (within +-5%).
+    # Both bounds must hold, so the tests are combined with `&`: a ratio is
+    # within tolerance only when it is >= 0.95 AND <= 1.05. Written with `|`
+    # the cell-count test is a tautology (every number satisfies one side) and
+    # the dimension test loses its upper bound entirely.
+    dim_ratio  <- dim(im.t1)[1:2] / dim(im.t2)[1:2]
+    cell_ratio <- terra::ncell(im.t1) / terra::ncell(im.t2)
+    if (!all(dim_ratio >= 0.95 & dim_ratio <= 1.05) ||
+        !(cell_ratio >= 0.95 && cell_ratio <= 1.05)) {
+      warning("Images differ in dimensions or cell count by more than +-5%; ",
+              "turnover values compare unequal areas and may not be meaningful.")
     }
 
     # Validate method

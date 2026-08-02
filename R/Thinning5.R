@@ -320,7 +320,7 @@ skeletonize_image <- function(img,
       0, 0, 1, 1
     )
     
-    dev.off()
+    grDevices::dev.off()
   }
   
   result

@@ -159,8 +159,14 @@ tail_weighted_kl_divergence <- function(
       if (cut) {
         P <- P[1:n]; Q <- Q[1:n]
       } else {
-        P <- c(P, rep(0, abs(length(Q) - length(P))))
-        Q <- c(Q, rep(0, abs(length(P) - length(Q))))
+        # Pad the SHORTER vector up to the longer one. Using
+        # abs(length(other) - length(this)) padded whichever vector was already
+        # longer as well, so both ended up longer than max(length(P),
+        # length(Q)) -- equal, hence silent, but carrying spurious zero bins
+        # that stretch the index the weights are built over.
+        n_max <- max(length(P), length(Q))
+        P <- c(P, rep(0, n_max - length(P)))
+        Q <- c(Q, rep(0, n_max - length(Q)))
       }
     }
     

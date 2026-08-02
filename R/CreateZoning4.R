@@ -139,11 +139,11 @@ binning = function(depthmap, nn, round_option="rounding") {
     # Perform binning based on selected method
     im = tryCatch({
       if (round_option == "rounding") {
-        nn * round(depthmap / nn, 0)
+        nn * round(img / nn, 0)
       } else if (round_option == "ceiling") {
-        nn * ceiling(depthmap / nn)
+        nn * ceiling(img / nn)
       } else {
-        nn * floor(depthmap / nn)
+        nn * floor(img / nn)
       }
     }, error = function(e) {
       stop("Binning operation failed: ", e$message)

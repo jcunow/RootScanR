@@ -50,7 +50,11 @@ estimate_rotation_center = function(img, tape_brightness=0.66, extra_rows=100, s
     if (terra::ncell(r.img1) == 0) stop("No valid pixels after cropping")
     
     vals      = terra::as.array(r.img1)                 # [rows, cols, layers]
-    maxval    = terra::global(r.img1, "max", na.rm=TRUE)[[1]]
+    # terra::global() returns one row per layer, so [[1]] is a per-band vector.
+    # `clust.center` below is a mean across bands, so the comparable scalar is
+    # the mean of the per-band maxima. Left as a vector it compares cluster i
+    # against band i -- silently, whenever nclasses happens to equal nlyr.
+    maxval    = mean(terra::global(r.img1, "max", na.rm=TRUE)[[1]], na.rm = TRUE)
     threshold = tape_brightness * maxval
     
     # how many distinct colors are actually present? (cap k-means accordingly)
@@ -495,8 +499,11 @@ estimate_soil_surface = function(img, search_area=0.45, tape_thresh=0.33, dpi=15
     clust.center = apply(r1$model$centers, 1, mean)
 
     # Find appropriate cluster
+    # terra::global() returns one value per band; `clust.center` is a mean
+    # across bands, so collapse the per-band extremes to a single comparable
+    # scalar. Compared as a length-3 vector this pairs cluster i with band i.
     if (inverse) {
-      global_min = terra::global(r.img1, "min")[[1]][1:3]
+      global_min = mean(terra::global(r.img1, "min")[[1]], na.rm = TRUE)
       threshold = tape_brightness * global_min
       valid_clusters = clust.center[clust.center < threshold]
       if (length(valid_clusters) == 0) {
@@ -505,7 +512,7 @@ estimate_soil_surface = function(img, search_area=0.45, tape_thresh=0.33, dpi=15
       }
       clust = which(clust.center == min(valid_clusters))
     } else {
-      global_max = terra::global(r.img1, "max")[[1]][1:3]
+      global_max = mean(terra::global(r.img1, "max")[[1]], na.rm = TRUE)
       threshold = tape_brightness * global_max
       valid_clusters = clust.center[clust.center > threshold]
       if (length(valid_clusters) == 0) {
@@ -524,24 +531,38 @@ estimate_soil_surface = function(img, search_area=0.45, tape_thresh=0.33, dpi=15
     max_iter = dim(rr1)[2]  # Prevent infinite loop
     iter_count = 0
 
+    found_end = FALSE
     while (i <= max_iter && iter_count < max_iter) {
-      current_ratio = sum(rr1[,i,], na.rm=TRUE) / ncol(rr1)
-      ratio_24 = if (i+24 <= max_iter) sum(rr1[,i+24,], na.rm=TRUE) / ncol(rr1) else 0
-      ratio_48 = if (i+48 <= max_iter) sum(rr1[,i+48,], na.rm=TRUE) / ncol(rr1) else 0
+      # `i` indexes COLUMNS (depth), so rr1[,i,] holds nrow(rr1) pixels -- the
+      # tape coverage of that depth slice across the circumference. Dividing by
+      # ncol() scaled the ratio by the aspect ratio, so `tape_thresh` did not
+      # mean the documented "fraction of the slice covered by tape".
+      current_ratio = sum(rr1[,i,], na.rm=TRUE) / nrow(rr1)
+      ratio_24 = if (i+24 <= max_iter) sum(rr1[,i+24,], na.rm=TRUE) / nrow(rr1) else 0
+      ratio_48 = if (i+48 <= max_iter) sum(rr1[,i+48,], na.rm=TRUE) / nrow(rr1) else 0
 
       if (current_ratio <= tape_thresh &&
           ratio_24 <= tape_thresh &&
           ratio_48 <= tape_thresh) {
+        found_end = TRUE
         break
       }
 
       i = i + 1
       iter_count = iter_count + 1
+    }
 
-      if (i > dim(rr1)[2]) {
-        warning("Loop exceeded image limits, resetting to 1")
-        i = 1
-      }
+    # The scan ran past the last depth slice without the tape coverage ever
+    # dropping below `tape_thresh`, so the tape is not fully contained in the
+    # search area and there is no end to report. Resetting `i` to 1 here (the
+    # previous behaviour) silently produced the same answer as "tape ended at
+    # the very first slice", making a failed search indistinguishable from a
+    # real detection at depth 0.
+    if (!found_end) {
+      warning("Tape coverage never dropped below 'tape_thresh' within the ",
+              "search area; the tape is probably not fully contained. ",
+              "Increase 'search_area' or lower 'tape_thresh'. Returning NA.")
+      return(data.frame(soil0 = NA_real_, tape.end = NA_real_))
     }
 
     # Calculate final positions

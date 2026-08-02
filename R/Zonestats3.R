@@ -344,7 +344,9 @@ count_pixels <- function(img) {
 #' @param g Green channel luminosity weight.
 #' @param b Blue channel luminosity weight.
 #' @return A data frame with columns: rcc, gcc, bcc, hue, saturation,
-#'   luminosity, red, green, blue.
+#'   luminosity, red, green, blue. \code{hue} and \code{saturation} come from
+#'   the HSV transform of the mean colour; \code{luminosity} is the
+#'   \code{r}/\code{g}/\code{b}-weighted mean luminance (not HSV value).
 #' @export
 #'
 #' @examples
@@ -395,9 +397,11 @@ tube_coloration <- function(img, r = 0.2126, g = 0.7152, b = 0.0722) {
       message("Some pixels have zero intensity, which may affect color calculations")
     }
 
-    lum.gray       <- vr * r + vg * g + vb * b
-    mean.intensity <- round(mean(intensity,  na.rm = TRUE), 4)
-    mean.lum       <- round(mean(lum.gray,   na.rm = TRUE), 4)
+    # Rec.709 luminance from the caller's channel weights. `hsl[3]` below is
+    # HSV *value* (max channel), which is not luminance -- reporting that as
+    # `luminosity` ignored r/g/b entirely, so the weighted mean is used instead.
+    lum.gray <- vr * r + vg * g + vb * b
+    mean.lum <- round(mean(lum.gray, na.rm = TRUE), 4)
 
     rcc <- round(mean(vr / intensity, na.rm = TRUE), 4)
     gcc <- round(mean(vg / intensity, na.rm = TRUE), 4)
@@ -409,7 +413,7 @@ tube_coloration <- function(img, r = 0.2126, g = 0.7152, b = 0.0722) {
       bcc        = bcc,
       hue        = hsl[1],
       saturation = hsl[2],
-      luminosity = hsl[3],
+      luminosity = mean.lum,
       red        = mean.r,
       green      = mean.g,
       blue       = mean.b
@@ -487,7 +491,7 @@ analyze_soil_texture <- function(img.color, grays = 7, window = c(9, 9),
     }
 
     tx.im <- tryCatch(
-      glcm::glcm(img.gray, n_grey = grays, statistics = metrics),
+      glcm::glcm(img.gray, n_grey = grays, window = window, statistics = metrics),
       error = function(e) stop("Error calculating texture metrics: ", e$message)
     )
 
