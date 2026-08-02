@@ -906,7 +906,7 @@ root_depth_metrics <- function(
               res[[paste0("rootlength.above.",    thr_names[ti])]] <-
                 sum(terra::values(ab), na.rm = TRUE) / (dpi / 2.54)
               res[[paste0("avg.diameter.above.",  thr_names[ti])]] <-
-                mean(rd_v[!is.na(rd_v) & rd_v > thr_cm[ti]], na.rm = TRUE)
+                mean(rd_v[!is.na(rd_v) & rd_v >= thr_cm[ti]], na.rm = TRUE)
             }
             
             pk <- if (calc_modal_peaks) {
