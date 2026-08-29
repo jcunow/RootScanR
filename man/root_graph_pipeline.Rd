@@ -14,7 +14,9 @@ root_graph_pipeline(
   max_side = 2000,
   keep_segments = FALSE,
   resolve_overlaps = TRUE,
+  splice_passthrough = TRUE,
   crossing_straight = -0.5,
+  crossing_diam_ratio = 0,
   color_by = c("branch_order", "root_order", "tip_order"),
   diam_weight = 0.5,
   prune_min_length = 0,
@@ -46,7 +48,23 @@ Required if \code{skel} is \code{NULL}.}
 
 \item{resolve_overlaps}{Resolve degree-4 crossings by continuity.}
 
+\item{splice_passthrough}{Dissolve contracted junctions that carry only two
+segment ends (bends and thinning artefacts, not branch points) by splicing
+the two arms into one segment. Leave \code{TRUE} unless you specifically
+want one edge per traced skeleton chain.}
+
 \item{crossing_straight}{Straightness threshold for crossing resolution.}
+
+\item{crossing_diam_ratio}{Opt-in thickness test at a degree-4 node, off by
+default (\code{0} = resolve on geometry alone, the historical behaviour).
+When set (0.5 is a reasonable value), a node is treated as a crossing only
+if the two candidate through-roots are within this thickness ratio of each
+other; otherwise it is read as a bilateral branch and left intact. This is
+a genuine trade-off, not a free win: a thick axis crossed by a thin root and
+a thick axis with two thin laterals are the same shape in outline, so
+raising the threshold fixes the second case and breaks the first. Set it
+only if your material has more bilateral branching than fine-over-coarse
+crossing.}
 
 \item{color_by}{Which order column the overlay colors by.}
 

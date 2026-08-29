@@ -4,7 +4,14 @@
 \alias{prune_terminal_segments}
 \title{Prune short or thin terminal segments}
 \usage{
-prune_terminal_segments(segs, DT, min_length = 0, min_diameter = 0, iter = 1L)
+prune_terminal_segments(
+  segs,
+  DT,
+  min_length = 0,
+  min_diameter = 0,
+  iter = 1L,
+  splice = TRUE
+)
 }
 \arguments{
 \item{segs}{Segment list from \code{trace_segments}.}
@@ -16,13 +23,24 @@ prune_terminal_segments(segs, DT, min_length = 0, min_diameter = 0, iter = 1L)
 \item{min_diameter}{Minimum segment diameter (px) to keep a terminal segment.}
 
 \item{iter}{Number of pruning passes.}
+
+\item{splice}{Re-join the parent across a junction that a removed lateral has
+left with only two arms, before the next pass.}
 }
 \value{
 The pruned segment list.
 }
 \description{
 Iteratively removes terminal (degree-1) segments below a length or diameter
-threshold. Only deletes segments (never rewires), so ordering remains valid.
-Skeleton-level pruning before the pipeline is an alternative, fully modular
-approach.
+threshold. Segments are only deleted, never re-routed, so the ordering stays
+valid. Skeleton-level pruning before the pipeline is an alternative, fully
+modular approach.
+}
+\details{
+Between passes the junctions left behind are re-checked: once a lateral is
+gone its branch point carries only two arms, so the parent's two pieces are
+spliced back into one segment before the next pass measures them. Without
+that step a multi-pass prune eats healthy axes, because each parent piece
+between two former branch points is short enough on its own to look like a
+spur. Set \code{splice = FALSE} for the older delete-only behaviour.
 }

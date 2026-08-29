@@ -101,6 +101,35 @@
 }
 
 
+#' Warn when the traced graph covers little of the skeleton
+#'
+#' Junction contraction only dissolves a handful of pixels per branch point, so
+#' a real 1-px skeleton traces to >95% coverage. A low value almost always means
+#' the "skeleton" is actually a filled mask (or a badly thinned one): nearly
+#' every pixel then has degree >= 3, is contracted away, and the pipeline
+#' silently returns a near-empty graph.
+#'
+#' @param segs Traced segment list.
+#' @param skel The 0/1 skeleton matrix the segments were traced from.
+#' @param min_frac Coverage below which to warn.
+#' @return Invisibly, the covered fraction.
+#' @keywords internal
+#' @noRd
+.check_skeleton_coverage <- function(segs, skel, min_frac = 0.75) {
+  npx <- sum(skel > 0)
+  if (npx == 0L) return(invisible(NA_real_))
+  hit <- matrix(FALSE, nrow(skel), ncol(skel))
+  for (s in segs) hit[s$coords] <- TRUE
+  frac <- sum(hit) / npx
+  if (frac < min_frac)
+    warning(sprintf(paste0("Only %.1f%% of skeleton pixels were traced into segments. ",
+                           "Is 'skel' a 1-pixel-wide skeleton? Passing a filled mask ",
+                           "as 'skel' yields a near-empty graph."), 100 * frac),
+            call. = FALSE)
+  invisible(frac)
+}
+
+
 #' Trace skeleton segments with junction-cluster contraction
 #'
 #' Walks degree-2 pixel chains between nodes (tips and junctions). Connected
@@ -111,14 +140,20 @@
 #' @return A list of segments; each is \code{list(coords, from, to)} where
 #'   \code{coords} is an Nx2 (row, col) matrix and \code{from}/\code{to} are node
 #'   labels (\code{"J<id>"} for junction clusters, \code{"<row>_<col>"} for tips).
-#'   \code{attr(., "dims")} holds the skeleton dimensions.
+#'   \code{attr(., "dims")} holds the skeleton dimensions and
+#'   \code{attr(., "node_xy")} the (row, col) centroid of each junction cluster.
 #' @keywords internal
 #' @noRd
 trace_segments <- function(skel) {
   skel <- (.to_binary_matrix(skel) > 0) * 1L
   nr <- nrow(skel); nc <- ncol(skel)
   lin <- which(skel > 0); np <- length(lin)
-  if (np == 0L) { out <- list(); attr(out, "dims") <- c(nr, nc); return(out) }
+  if (np == 0L) {
+    out <- list(); attr(out, "dims") <- c(nr, nc)
+    attr(out, "node_xy") <- matrix(numeric(0), 0L, 2L,
+                                   dimnames = list(NULL, c("row", "col")))
+    return(out)
+  }
   
   id_mat <- integer(nr * nc); id_mat[lin] <- seq_len(np); dim(id_mat) <- c(nr, nc)
   rr0 <- ((lin - 1L) %% nr) + 1L
@@ -150,20 +185,47 @@ trace_segments <- function(skel) {
     q <- NB[p, d]
     if (q > 0L && is_j[q]) { a <- find(p); b <- find(q); if (a != b) uf[a] <- b }
   }
+  
+  # Absorb degree-2 pixels that bridge two pixels of the SAME junction cluster.
+  # A 90-degree bend in an 8-connected skeleton leaves such a pixel wedged
+  # between two contracted junction pixels; tracing it produced a 3-px J->J
+  # self-loop (a spurious micro-cycle: NA tip_order + a phantom branch point).
+  # Folding it into the cluster removes the artefact at its source.
+  d2 <- which(deg == 2L)
+  if (length(d2)) {
+    pos <- NB[d2, , drop = FALSE] > 0L
+    i1  <- max.col(pos, ties.method = "first")
+    pos[cbind(seq_along(d2), i1)] <- FALSE
+    i2  <- max.col(pos, ties.method = "first")
+    n1  <- NB[d2, , drop = FALSE][cbind(seq_along(d2), i1)]
+    n2  <- NB[d2, , drop = FALSE][cbind(seq_along(d2), i2)]
+    repeat {
+      cand <- which(!is_j[d2] & is_j[n1] & is_j[n2])
+      if (!length(cand)) break
+      r1 <- vapply(n1[cand], find, integer(1L))
+      r2 <- vapply(n2[cand], find, integer(1L))
+      take <- cand[r1 == r2]
+      if (!length(take)) break
+      for (i in take) { p <- d2[i]; is_j[p] <- TRUE; uf[p] <- find(n1[i]) }
+    }
+  }
+  
   node_label <- function(p) if (is_j[p]) paste0("J", find(p)) else paste0(rr0[p], "_", cc0[p])
   
   consumed <- matrix(FALSE, np, 8L)
   segs <- list()
-  for (p in which(deg != 2L)) {
+  # start at every node pixel: tips/isolated (deg != 2) and every junction pixel
+  # (which after absorption may itself have degree 2).
+  for (p in which(deg != 2L | is_j)) {
     for (d in 1:8) {
       q <- NB[p, d]
       if (q == 0L || consumed[p, d]) next
-      if (deg[q] >= 3L) { consumed[p, d] <- TRUE; next }   # junction<->junction: contracted away
+      if (is_j[q]) { consumed[p, d] <- TRUE; next }   # junction<->junction: contracted away
       consumed[p, d] <- TRUE
       
       buf <- integer(64L); buf[1L] <- p; buf[2L] <- q; len <- 2L
       prev <- p; cur <- q; din <- rev_d[d]
-      while (deg[cur] == 2L) {
+      while (!is_j[cur] && deg[cur] == 2L) {
         dirs <- which(NB[cur, ] > 0L)
         out_dir <- dirs[dirs != din][1L]
         nxt <- NB[cur, out_dir]
@@ -179,7 +241,22 @@ trace_segments <- function(skel) {
       )
     }
   }
-  attr(segs, "dims") <- c(nr, nc)
+  
+  # Junction-cluster centroids. Contraction dissolves the cluster interior, so
+  # the traced arms stop on the cluster rim; build_edge_table() re-attaches the
+  # rim-to-centroid stub, which is otherwise lost from every root length.
+  node_xy <- matrix(numeric(0), 0L, 2L, dimnames = list(NULL, c("row", "col")))
+  jp <- which(is_j)
+  if (length(jp)) {
+    jr  <- vapply(jp, find, integer(1L))
+    cr  <- tapply(rr0[jp], jr, mean)
+    cc_ <- tapply(cc0[jp], jr, mean)
+    node_xy <- cbind(row = as.numeric(cr), col = as.numeric(cc_))
+    rownames(node_xy) <- paste0("J", names(cr))
+  }
+  
+  attr(segs, "dims")    <- c(nr, nc)
+  attr(segs, "node_xy") <- node_xy
   segs
 }
 
@@ -188,13 +265,27 @@ trace_segments <- function(skel) {
 #'
 #' @param segs Output of \code{trace_segments} / \code{\link{resolve_crossings}}.
 #' @param DT Distance-transform matrix on the (cropped) mask.
+#' @param node_xy Junction-cluster centroids, as attached by
+#'   \code{trace_segments()}. Each segment end that lands on a contracted
+#'   junction is extended to its cluster centroid, which restores the
+#'   cluster-interior length that contraction removes. Defaults to the
+#'   \code{"node_xy"} attribute of \code{segs}; pass \code{NULL} for the raw
+#'   rim-to-rim length.
 #' @return A data.frame with \code{edge_id}, \code{from}, \code{to}, \code{n_px},
 #'   \code{n_orth}, \code{n_diag}, \code{length} (sqrt(2) polyline, px),
 #'   \code{length_kimura} (px), and \code{mean}/\code{median}/\code{min_diameter} (px).
 #' @keywords internal
 #' @noRd
-build_edge_table <- function(segs, DT) {
+build_edge_table <- function(segs, DT, node_xy = attr(segs, "node_xy")) {
   if (length(segs) == 0L) return(NULL)
+  has_xy <- !is.null(node_xy) && nrow(node_xy) > 0L
+  stub <- function(lab, px) {
+    # distance from a segment's terminal pixel to its junction-cluster centre
+    if (!has_xy) return(0)
+    k <- match(lab, rownames(node_xy))
+    if (is.na(k)) return(0)                       # tip node: the pixel is the node
+    sqrt((node_xy[k, 1L] - px[1L])^2 + (node_xy[k, 2L] - px[2L])^2)
+  }
   rows <- lapply(seq_along(segs), function(i) {
     s <- segs[[i]]; p <- s$coords
     dr <- diff(p[, 1]); dc <- diff(p[, 2]); seglen <- sqrt(dr*dr + dc*dc)
@@ -203,8 +294,9 @@ build_edge_table <- function(segs, DT) {
     diag <- (adr == 1L & adc == 1L)      # diagonal unit step
     no <- sum(orth); nd <- sum(diag)
     gap <- sum(seglen[!(orth | diag)])   # jumps across contracted-junction gaps
-    len_poly   <- sum(seglen)                                   # sqrt(2) chain code
-    len_kimura <- sqrt(nd^2 + (nd + no/2)^2) + no/2 + gap       # Kimura per segment
+    ends <- stub(s$from, p[1L, ]) + stub(s$to, p[nrow(p), ])
+    len_poly   <- sum(seglen) + ends                            # sqrt(2) chain code
+    len_kimura <- sqrt(nd^2 + (nd + no/2)^2) + no/2 + gap + ends  # Kimura per segment
     rad <- DT[p]
     data.frame(edge_id = i, from = s$from, to = s$to, n_px = nrow(p),
                n_orth = no, n_diag = nd,
@@ -232,12 +324,12 @@ compute_tip_order <- function(edge_tbl) {
   ni <- stats::setNames(seq_along(nodes), nodes)
   fi <- as.integer(ni[edge_tbl$from]); ti <- as.integer(ni[edge_tbl$to])
   M <- length(nodes); E <- nrow(edge_tbl)
-  active <- rep(TRUE, E); ord <- rep(NA_integer_, E); round <- 0L
+  active <- rep(TRUE, E); ord <- rep(NA_integer_, E); peel <- 0L
   repeat {
     inc  <- tabulate(c(fi[active], ti[active]), nbins = M)
     leaf <- active & (inc[fi] == 1L | inc[ti] == 1L)
     if (!any(leaf)) break
-    round <- round + 1L; ord[leaf] <- round; active[leaf] <- FALSE
+    peel <- peel + 1L; ord[leaf] <- peel; active[leaf] <- FALSE
   }
   edge_tbl$tip_order <- ord
   if (any(is.na(ord)))
@@ -278,11 +370,16 @@ render_order_overlay <- function(segs, tip_order, dims, file,
   on.exit(grDevices::dev.off())
   graphics::par(mar = c(0, 0, 0, 0))
   
-  graphics::image(xs, ys, mk_f, col = c("white", "gray88"), axes = FALSE, useRaster = TRUE)
+  graphics::image(xs, ys, mk_f, col = c("white", "gray88"), zlim = c(0, 1),
+                  axes = FALSE, useRaster = TRUE)
   pal <- grDevices::hcl.colors(max(maxo, 1L), "viridis")
-  graphics::image(xs, ys, ord_f, col = pal, breaks = seq(0.5, maxo + 0.5, by = 1),
-                  add = TRUE, useRaster = TRUE)
-  graphics::image(xs, ys, na_f, col = "red", add = TRUE, useRaster = TRUE)
+  # image() derives breaks from the data, so an all-NA layer must be skipped
+  if (any(!is.na(ord_f)))
+    graphics::image(xs, ys, ord_f, col = pal, breaks = seq(0.5, maxo + 0.5, by = 1),
+                    add = TRUE, useRaster = TRUE)
+  if (any(!is.na(na_f)))
+    graphics::image(xs, ys, na_f, col = "red", zlim = c(0, 1),
+                    add = TRUE, useRaster = TRUE)
   
   for (k in seq_len(maxo)) {
     yt <- 0.99 - (k - 1) * 0.035
@@ -325,7 +422,21 @@ render_order_overlay <- function(segs, tip_order, dims, file,
 #' @param keep_segments Attach the traced segments as \code{attr(., "segments")}
 #'   (needed for re-plotting and classification maps).
 #' @param resolve_overlaps Resolve degree-4 crossings by continuity.
+#' @param splice_passthrough Dissolve contracted junctions that carry only two
+#'   segment ends (bends and thinning artefacts, not branch points) by splicing
+#'   the two arms into one segment. Leave \code{TRUE} unless you specifically
+#'   want one edge per traced skeleton chain.
 #' @param crossing_straight Straightness threshold for crossing resolution.
+#' @param crossing_diam_ratio Opt-in thickness test at a degree-4 node, off by
+#'   default (\code{0} = resolve on geometry alone, the historical behaviour).
+#'   When set (0.5 is a reasonable value), a node is treated as a crossing only
+#'   if the two candidate through-roots are within this thickness ratio of each
+#'   other; otherwise it is read as a bilateral branch and left intact. This is
+#'   a genuine trade-off, not a free win: a thick axis crossed by a thin root and
+#'   a thick axis with two thin laterals are the same shape in outline, so
+#'   raising the threshold fixes the second case and breaks the first. Set it
+#'   only if your material has more bilateral branching than fine-over-coarse
+#'   crossing.
 #' @param color_by Which order column the overlay colors by.
 #' @param diam_weight Diameter-vs-angle weight for the root-continuation choice.
 #' @param prune_min_length,prune_min_diameter,prune_iter Optional terminal-segment
@@ -339,7 +450,8 @@ root_graph_pipeline <- function(skel = NULL, mask = NULL, verbose = TRUE,
                                 dt_backend = "auto", crop = TRUE,
                                 overlay_png = NULL, max_side = 2000,
                                 keep_segments = FALSE,
-                                resolve_overlaps = TRUE, crossing_straight = -0.5,
+                                resolve_overlaps = TRUE, splice_passthrough = TRUE,
+                                crossing_straight = -0.5, crossing_diam_ratio = 0,
                                 color_by = c("branch_order", "root_order", "tip_order"),
                                 diam_weight = 0.5,
                                 prune_min_length = 0, prune_min_diameter = 0, prune_iter = 0L) {
@@ -379,10 +491,19 @@ root_graph_pipeline <- function(skel = NULL, mask = NULL, verbose = TRUE,
   if (verbose) cat("Tracing + contracting junctions...\n")
   segs <- trace_segments(skel)
   if (verbose) cat(sprintf("  %d segment(s)\n", length(segs)))
+  .check_skeleton_coverage(segs, skel)
+  
+  if (splice_passthrough) {
+    n0 <- length(segs)
+    segs <- .splice_passthrough(segs)
+    if (verbose) cat(sprintf("  spliced pass-through nodes: %d -> %d segment(s)\n",
+                             n0, length(segs)))
+  }
   
   if (resolve_overlaps) {
     n0 <- length(segs)
-    segs <- resolve_crossings(segs, straight_dot = crossing_straight)
+    segs <- resolve_crossings(segs, DT = DT, straight_dot = crossing_straight,
+                              diam_ratio = crossing_diam_ratio)
     if (verbose) cat(sprintf("  resolved crossings: %d -> %d segment(s)\n", n0, length(segs)))
   }
   
@@ -503,13 +624,22 @@ plot_order_window <- function(et, skel, r_range, c_range, scale = 3, file = "win
 #' ambiguous nodes are left untouched.
 #'
 #' @param segs Segment list from \code{trace_segments}.
+#' @param DT Distance-transform matrix. Optional but recommended: it enables the
+#'   thickness test that separates a crossing from a bilateral branch (see
+#'   \code{diam_ratio}). Without it, geometry alone decides.
 #' @param straight_dot A crossing is resolved only if both candidate pairs have
 #'   tangent dot product below this (more negative = straighter; -0.5 ~ >120deg).
-#' @param look Pixels used to estimate endpoint tangents.
+#' @param look Pixels used to estimate endpoint tangents and local radii.
+#' @param diam_ratio Minimum thickness ratio between the two through-roots, or
+#'   \code{0} (default) to disable the test. Two thin laterals leaving a thick
+#'   axis in opposite directions look exactly like an X in outline, and so does
+#'   a thin root crossing a thick one; no threshold gets both right, which is
+#'   why this is off unless the caller asks for it.
 #' @return A segment list with crossings spliced; \code{attr(., "dims")} preserved.
 #' @keywords internal
 #' @noRd
-resolve_crossings <- function(segs, straight_dot = -0.5, look = 5L) {
+resolve_crossings <- function(segs, DT = NULL, straight_dot = -0.5, look = 5L,
+                              diam_ratio = 0) {
   ns <- length(segs)
   if (ns < 2L) return(segs)
   
@@ -519,6 +649,11 @@ resolve_crossings <- function(segs, straight_dot = -0.5, look = 5L) {
     list(.endpoint_tangent(p, 1L, look), .endpoint_tangent(p, 2L, look))
   })
   side_tan <- function(i, s) tang[[i]][[s]]
+  # Representative radius per segment, for the crossing-vs-bilateral-branch test.
+  # Measured over the whole segment, not at the node: every arm is swollen where
+  # it enters a junction, so an end-window makes a thin lateral look thick.
+  seg_rad <- if (is.null(DT) || diam_ratio <= 0) NULL else
+    vapply(seq_len(ns), function(i) stats::median(DT[segs[[i]]$coords]), numeric(1))
   
   # node -> incident (seg, side) rows
   node_inc <- list()
@@ -542,6 +677,14 @@ resolve_crossings <- function(segs, straight_dot = -0.5, look = 5L) {
       if (sum(d) < best_tot) { best_tot <- sum(d); best <- list(pr = pr, d = d) }
     }
     if (max(best$d) >= straight_dot) next            # both pairs must be straight
+    if (!is.null(seg_rad)) {
+      # a crossing joins two roots of comparable thickness; a bilateral branch
+      # pairs a thick axis against two thin laterals, and must be left alone
+      pr0 <- best$pr
+      rad <- seg_rad[inc[, 1]]
+      pd  <- c(mean(rad[pr0[1:2]]), mean(rad[pr0[3:4]]))
+      if (max(pd) > 0 && min(pd) / max(pd) < diam_ratio) next
+    }
     pr <- best$pr
     for (q in c(1L, 3L)) {                            # link (pr[q], pr[q+1])
       a <- inc[pr[q], ]; b <- inc[pr[q + 1L], ]
@@ -550,9 +693,34 @@ resolve_crossings <- function(segs, straight_dot = -0.5, look = 5L) {
     }
   }
   
-  # stitch merged chains
+  if (!any(partner_seg > 0L)) return(segs)
+  .stitch_chains(segs, partner_seg, partner_side)
+}
+
+
+#' Follow partner links and concatenate segments into single polylines
+#'
+#' Shared back end for \code{\link{resolve_crossings}} and
+#' \code{\link{.splice_passthrough}}. Chains are always entered from a free end
+#' (a side with no partner); only after every open chain is consumed are the
+#' remaining closed rings walked. Starting mid-chain would emit the two halves
+#' as separate segments and leave the node unresolved.
+#'
+#' @param segs Segment list.
+#' @param partner_seg,partner_side \code{length(segs) x 2} integer matrices; the
+#'   segment/side that each (segment, side) is spliced to, or 0 for a free end.
+#' @return A segment list with chains concatenated; \code{"dims"} and
+#'   \code{"node_xy"} attributes are preserved.
+#' @keywords internal
+#' @noRd
+.stitch_chains <- function(segs, partner_seg, partner_side) {
+  ns <- length(segs)
+  side_lab <- function(i, s) if (s == 1L) segs[[i]]$from else segs[[i]]$to
+  # open chains first, closed rings last
+  order_starts <- c(which(partner_seg[, 1] == 0L | partner_seg[, 2] == 0L),
+                    which(partner_seg[, 1] != 0L & partner_seg[, 2] != 0L))
   visited <- logical(ns); out <- list()
-  for (s0 in seq_len(ns)) {
+  for (s0 in order_starts) {
     if (visited[s0]) next
     start_side <- if (partner_seg[s0, 1] == 0L) 1L
     else if (partner_seg[s0, 2] == 0L) 2L else 1L     # last case: closed loop fallback
@@ -579,8 +747,45 @@ resolve_crossings <- function(segs, straight_dot = -0.5, look = 5L) {
                                     from = start_lab,
                                     to   = side_lab(last_seg, last_exit))
   }
-  attr(out, "dims") <- attr(segs, "dims")
+  attr(out, "dims")    <- attr(segs, "dims")
+  attr(out, "node_xy") <- attr(segs, "node_xy")
   out
+}
+
+
+#' Splice segments across pass-through nodes
+#'
+#' A contracted junction cluster carrying only \emph{two} segment ends is not a
+#' branch point -- it is a bend or a thinning artefact that fragmented one root
+#' into two edges. Splicing the pair back together restores contiguous segments,
+#' so \code{n_segments} and \code{mean_segment_length} describe roots rather than
+#' skeleton staircases, and the cluster the two arms straddle is re-counted as
+#' polyline length instead of being dropped.
+#'
+#' @param segs Segment list from \code{\link{trace_segments}}.
+#' @return A segment list with pass-through nodes dissolved; attributes preserved.
+#' @keywords internal
+#' @noRd
+.splice_passthrough <- function(segs) {
+  ns <- length(segs)
+  if (ns < 2L) return(segs)
+  side_lab <- function(i, s) if (s == 1L) segs[[i]]$from else segs[[i]]$to
+  node_inc <- list()
+  for (i in seq_len(ns)) for (s in 1:2) {
+    lab <- side_lab(i, s); node_inc[[lab]] <- rbind(node_inc[[lab]], c(i, s))
+  }
+  partner_seg  <- matrix(0L, ns, 2)
+  partner_side <- matrix(0L, ns, 2)
+  for (lab in names(node_inc)) {
+    inc <- node_inc[[lab]]
+    if (nrow(inc) != 2L) next
+    if (inc[1, 1] == inc[2, 1]) next                  # self-loop: leave it alone
+    a <- inc[1, ]; b <- inc[2, ]
+    partner_seg[a[1], a[2]] <- b[1]; partner_side[a[1], a[2]] <- b[2]
+    partner_seg[b[1], b[2]] <- a[1]; partner_side[b[1], b[2]] <- a[2]
+  }
+  if (!any(partner_seg > 0L)) return(segs)
+  .stitch_chains(segs, partner_seg, partner_side)
 }
 
 
@@ -588,7 +793,8 @@ resolve_crossings <- function(segs, straight_dot = -0.5, look = 5L) {
 #'
 #' Segments are grouped into continuous roots: at each junction the continuation
 #' pair is the two arms maximizing \code{straightness + diam_weight * diameter
-#' similarity}; the odd arm out is a lateral. \code{root_order} is the maximum
+#' consistency}, where consistency combines how alike the two arms are with how
+#' thick they are relative to the node; the odd arm out is a lateral. \code{root_order} is the maximum
 #' \code{tip_order} along each root. \code{branch_order} is a centrifugal
 #' generation: the thickest root (length-weighted mean diameter) in each
 #' connected component is 1, counting branching hops outward.
@@ -631,13 +837,21 @@ assign_root_order <- function(segs, edge_tbl, diam_weight = 0.5, look = 5L) {
       next
     }
     # k >= 3: pick the continuation pair (straightest + most similar diameter)
+    # Similarity alone is not enough to pick the continuation: two identical thin
+    # laterals score a perfect 1 while two near-identical thick arms score
+    # slightly less, so at a 4-way node the laterals used to win and the parent
+    # axis was split in two. Scale the diameter term by how thick the pair is
+    # relative to the node, so the thick axis is preferred among equally
+    # straight, equally consistent candidates.
+    dmax <- max(diam[inc[, 1]], na.rm = TRUE)
     bi <- NA_integer_; bj <- NA_integer_; best <- -Inf
     for (m in 1:(k - 1L)) for (n in (m + 1L):k) {
       ti <- tang[[inc[m, 1]]][[inc[m, 2]]]; tj <- tang[[inc[n, 1]]][[inc[n, 2]]]
       di <- diam[inc[m, 1]]; dj <- diam[inc[n, 1]]
       straight <- -sum(ti * tj)
       dsim <- if (max(di, dj) > 0) min(di, dj) / max(di, dj) else 1
-      sc <- straight + diam_weight * dsim
+      dmag <- if (is.finite(dmax) && dmax > 0) min(di, dj) / dmax else 1
+      sc <- straight + diam_weight * dsim * dmag
       if (sc > best) { best <- sc; bi <- m; bj <- n }
     }
     unite(inc[bi, 1], inc[bj, 1])
@@ -723,20 +937,32 @@ assign_root_order <- function(segs, edge_tbl, diam_weight = 0.5, look = 5L) {
 #' Prune short or thin terminal segments
 #'
 #' Iteratively removes terminal (degree-1) segments below a length or diameter
-#' threshold. Only deletes segments (never rewires), so ordering remains valid.
-#' Skeleton-level pruning before the pipeline is an alternative, fully modular
-#' approach.
+#' threshold. Segments are only deleted, never re-routed, so the ordering stays
+#' valid. Skeleton-level pruning before the pipeline is an alternative, fully
+#' modular approach.
+#'
+#' @details
+#' Between passes the junctions left behind are re-checked: once a lateral is
+#' gone its branch point carries only two arms, so the parent's two pieces are
+#' spliced back into one segment before the next pass measures them. Without
+#' that step a multi-pass prune eats healthy axes, because each parent piece
+#' between two former branch points is short enough on its own to look like a
+#' spur. Set \code{splice = FALSE} for the older delete-only behaviour.
 #'
 #' @param segs Segment list from \code{trace_segments}.
 #' @param DT Distance-transform matrix (for the diameter test).
 #' @param min_length Minimum segment length (px) to keep a terminal segment.
 #' @param min_diameter Minimum segment diameter (px) to keep a terminal segment.
 #' @param iter Number of pruning passes.
+#' @param splice Re-join the parent across a junction that a removed lateral has
+#'   left with only two arms, before the next pass.
 #' @return The pruned segment list.
 #' @export
-prune_terminal_segments <- function(segs, DT, min_length = 0, min_diameter = 0, iter = 1L) {
+prune_terminal_segments <- function(segs, DT, min_length = 0, min_diameter = 0,
+                                    iter = 1L, splice = TRUE) {
   for (it in seq_len(iter)) {
     if (length(segs) == 0L) break
+    if (splice && it > 1L) segs <- .splice_passthrough(segs)
     labs <- unlist(lapply(segs, function(s) c(s$from, s$to)))
     deg <- table(labs)
     drop <- logical(length(segs))
@@ -749,7 +975,9 @@ prune_terminal_segments <- function(segs, DT, min_length = 0, min_diameter = 0, 
       if (L < min_length || dm < min_diameter) drop[i] <- TRUE
     }
     if (!any(drop)) break
-    segs <- segs[!drop]
+    dims <- attr(segs, "dims"); node_xy <- attr(segs, "node_xy")
+    segs <- segs[!drop]                                  # `[` drops attributes
+    attr(segs, "dims") <- dims; attr(segs, "node_xy") <- node_xy
   }
   segs
 }
@@ -973,8 +1201,14 @@ convert_root_units <- function(et, unit = c("cm", "inch", "px"), dpi = 300,
                                length_method = c("polyline", "kimura")) {
   if (is.null(et) || nrow(et) == 0L) return(et)
   unit <- match.arg(unit); length_method <- match.arg(length_method)
-  f <- switch(unit, px = 1, inch = 1 / dpi, cm = 2.54 / dpi)
-  poly_px <- et$length
+  px_factor <- function(u, d) switch(u, px = 1, inch = 1 / d, cm = 2.54 / d)
+  # Convert from whatever unit the table is already in, not blindly from pixels:
+  # calling this twice used to rescale an already-converted table a second time.
+  from_unit <- attr(et, "unit"); from_dpi <- attr(et, "dpi")
+  if (is.null(from_unit)) { from_unit <- "px"; from_dpi <- dpi }
+  if (is.null(from_dpi)) from_dpi <- dpi
+  f <- px_factor(unit, dpi) / px_factor(from_unit, from_dpi)
+  poly_px <- if (is.null(et$length_poly)) et$length else et$length_poly
   et$length_poly     <- poly_px * f
   et$length_kimura   <- et$length_kimura * f
   et$length          <- if (length_method == "kimura") et$length_kimura else et$length_poly
@@ -1062,6 +1296,10 @@ branch_order_map <- function(skel = NULL, mask = NULL, order = c("branch_order",
   et <- convert_root_units(et, unit = unit, dpi = dpi, length_method = length_method)
   res <- list(edges = et, summary = summarize_orders(et, order),
               order = order, unit = unit, dpi = dpi, length_method = length_method)
+  if (return_map && (is.null(et) || nrow(et) == 0L)) {
+    warning("No root segments found; returning an empty result without a class_map.")
+    return(structure(res, class = "branchOrderMap"))
+  }
   if (return_map) {
     tmpl <- if (!is.null(template)) template
     else if (inherits(skel, "SpatRaster")) skel
